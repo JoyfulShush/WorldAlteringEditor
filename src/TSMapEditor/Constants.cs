@@ -1,12 +1,11 @@
 ﻿using Rampastring.Tools;
 using System;
-using TSMapEditor.GameMath;
 
 namespace TSMapEditor
 {
     public static class Constants
     {
-        public const string ReleaseVersion = "1.2.4";
+        public const string ReleaseVersion = "1.3.8";
 
         public static int CellSizeX = 48;
         public static int CellSizeY = 24;
@@ -29,9 +28,8 @@ namespace TSMapEditor
         public static bool WarnOfTooManyTriggerActions = true;
         public static bool DefaultPreview = false;
 
-        public static string ExpectedClientExecutableName = "DTA.exe";
+        public static string[] ExpectedClientExecutableNames = new string[] { "DTA.exe" };
         public static string GameRegistryInstallPath = "SOFTWARE\\DawnOfTheTiberiumAge";
-        public static bool InstallPathAtHKLM = false;
         public static string OpenFileDialogFilter = "TS maps|*.map|All files|*.*";
 
         public static bool EnableIniInclude = false;
@@ -88,6 +86,8 @@ namespace TSMapEditor
         public static int MapPreviewMaxWidth = 800;
         public static int MapPreviewMaxHeight = 400;
 
+        public static int MaxHouseTechLevel = 10;
+
         public const int MAX_MAP_LENGTH_IN_DIMENSION = 512;
         public const int NO_OVERLAY = 255; // 0xFF
         public const int OverlayPackFormat = 80;
@@ -98,13 +98,13 @@ namespace TSMapEditor
         public const float RemapBrightenFactor = 1.25f;
 
         // The resolution of depth rendering. In other words, the minimum depth difference that is significant enough to have an impact on rendering order.
-        public const float DepthEpsilon = 1f / 255f;
+        public const float DepthEpsilon = 1f / 333f;
 
         // Depth is between 0.0 and 1.0. How much of the scale is reserved for depth increasing as we go southwards on the map.
-        public const float DownwardsDepthRenderSpace = 0.5f;
+        public const float DownwardsDepthRenderSpace = 0.75f;
 
         // How much of the depth scale (0.0 to 1.0) is reserved for depth increasing as we go up the map height levels.
-        public static readonly float DepthRenderStep = 0.0f / (MaxMapHeightLevel + 1);
+        public static readonly float DepthRenderStep = DepthEpsilon * 3;
 
         public const string ClipboardMapDataFormatValue = "ScenarioEditorCopiedMapData";
         public const string UserDataFolder = "UserData";
@@ -143,9 +143,13 @@ namespace TSMapEditor
             WarnOfTooManyTriggerActions = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(WarnOfTooManyTriggerActions), WarnOfTooManyTriggerActions);
             DefaultPreview = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(DefaultPreview), DefaultPreview);
 
-            ExpectedClientExecutableName = constantsIni.GetStringValue(ConstantsSectionName, nameof(ExpectedClientExecutableName), ExpectedClientExecutableName);
+            // Check two keys for backwards compatibility
+            if (constantsIni.KeyExists(ConstantsSectionName, "ExpectedClientExecutableName"))
+                ExpectedClientExecutableNames = constantsIni.GetSection(ConstantsSectionName).GetListValue("ExpectedClientExecutableName", ',', s => s).ToArray();
+            else
+                ExpectedClientExecutableNames = constantsIni.GetSection(ConstantsSectionName).GetListValue(nameof(ExpectedClientExecutableNames), ',', s => s).ToArray();
+
             GameRegistryInstallPath = constantsIni.GetStringValue(ConstantsSectionName, nameof(GameRegistryInstallPath), GameRegistryInstallPath);
-            InstallPathAtHKLM = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(InstallPathAtHKLM), InstallPathAtHKLM);
             OpenFileDialogFilter = constantsIni.GetStringValue(ConstantsSectionName, nameof(OpenFileDialogFilter), OpenFileDialogFilter);
 
             EnableIniInclude = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(EnableIniInclude), EnableIniInclude);
@@ -157,6 +161,8 @@ namespace TSMapEditor
 
             MapPreviewMaxWidth = constantsIni.GetIntValue(ConstantsSectionName, nameof(MapPreviewMaxWidth), MapPreviewMaxWidth);
             MapPreviewMaxHeight = constantsIni.GetIntValue(ConstantsSectionName, nameof(MapPreviewMaxHeight), MapPreviewMaxHeight);
+
+            MaxHouseTechLevel = constantsIni.GetIntValue(ConstantsSectionName, nameof(MaxHouseTechLevel), MaxHouseTechLevel);
 
             RulesIniPath = constantsIni.GetStringValue(FilePathsSectionName, "Rules", "INI/Rules.ini");
             FirestormIniPath = constantsIni.GetStringValue(FilePathsSectionName, "Firestorm", "INI/Enhance.ini");

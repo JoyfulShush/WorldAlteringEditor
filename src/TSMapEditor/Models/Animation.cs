@@ -41,6 +41,14 @@ namespace TSMapEditor.Models
 
         public override int GetFrameIndex(int frameCount)
         {
+            if (IsTurretAnim)
+            {
+                // Turret anims have their facing frames reversed
+                // Turret anims also only have 32 facings
+                byte facing = (byte)(255 - Facing - 31);
+                return facing / (256 / 32);
+            }
+
             if (IsBuildingAnim && ParentBuilding != null)
             {
                 if (frameCount > 1 && ParentBuilding.HP < Constants.ConditionYellowHP)

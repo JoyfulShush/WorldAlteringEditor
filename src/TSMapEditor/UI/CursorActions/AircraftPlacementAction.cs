@@ -3,7 +3,6 @@ using Rampastring.XNAUI.Input;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
 using TSMapEditor.Mutations.Classes;
-using TSMapEditor.Rendering;
 
 namespace TSMapEditor.UI.CursorActions
 {
@@ -41,6 +40,12 @@ namespace TSMapEditor.UI.CursorActions
                     }
                 }
             }
+        }
+
+        public override void OnActionEnter()
+        {
+            if (aircraft != null)
+                aircraft.Owner = CursorActionTarget.MutationTarget.ObjectOwner;
         }
 
         public override void PreMapDraw(Point2D cellCoords)

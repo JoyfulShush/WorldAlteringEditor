@@ -12,9 +12,19 @@ namespace MapEditorLauncher
     {
         public UpdaterLink()
         {
-            buildHandler = new BuildHandler(Environment.CurrentDirectory,
-                "SecondStageUpdater/SecondStageUpdater.exe");
-            buildHandler.AddUpdateMirror("https://rampastring.cnc-comm.com/DTAScenarioEditorUpdates/", "CnCNet (cnc-comm.com)");
+            buildHandler = new BuildHandler(Environment.CurrentDirectory, "SecondStageUpdater/SecondStageUpdater.exe");
+
+            string filePath = Path.Combine(Environment.CurrentDirectory, "UpdateMirrors.ini");
+
+            if (File.Exists(filePath))
+            {
+                buildHandler.ParseUpdateMirrors(filePath);
+            }
+            else
+            {
+                buildHandler.AddUpdateMirror("https://rampastring.cnc-comm.com/DTAScenarioEditorUpdates/", "CnCNet (cnc-comm.com)");
+            }
+
             buildHandler.ReadLocalBuildInfo();
             buildHandler.UpdateCheckFailed += BuildHandler_UpdateCheckFailed;
             buildHandler.BuildUpToDate += BuildHandler_BuildUpToDate;

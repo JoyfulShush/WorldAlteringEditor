@@ -76,6 +76,7 @@ namespace TSMapEditor.Models
 
             if (Constants.IsRA2YR)
             {
+                stringBuilder.Append(Environment.NewLine + Environment.NewLine);
                 stringBuilder.Append("TransportWaypoint: " + (string.IsNullOrWhiteSpace(TransportWaypoint) ? Constants.NoneValue2 : Helpers.GetWaypointNumberFromAlphabeticalString(TransportWaypoint)));
             }
 

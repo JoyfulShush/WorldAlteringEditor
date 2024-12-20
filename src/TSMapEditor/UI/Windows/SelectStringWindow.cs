@@ -31,6 +31,7 @@ namespace TSMapEditor.UI.Windows
             if (lbObjectList.SelectedItem == null)
             {
                 SelectedObject = null;
+                panelContent.Text = string.Empty;
                 return;
             }
 
@@ -42,8 +43,6 @@ namespace TSMapEditor.UI.Windows
         {
             lbObjectList.Clear();
             panelContent.Text = string.Empty;
-
-            lbObjectList.AddItem(new XNAListBoxItem() { Text = "None" });
 
             foreach (CsfString csf in map.StringTable.GetStringEnumerator())
             {

@@ -106,7 +106,6 @@ namespace TSMapEditor.UI.Windows
 
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
-        private XNAContextMenu triggerListContextMenu;
 
         private Trigger editedTrigger;
 
@@ -190,26 +189,33 @@ namespace TSMapEditor.UI.Windows
             lbEvents.AllowMultiLineItems = false;
             lbActions.AllowMultiLineItems = false;
 
+            var triggerContextMenu = new EditorContextMenu(WindowManager);
+            triggerContextMenu.Name = nameof(triggerContextMenu);
+            triggerContextMenu.Width = 270;
+            triggerContextMenu.AddItem("Place CellTag", PlaceCellTag);
+            triggerContextMenu.AddItem("Clear CellTags", ClearCellTags);
+            triggerContextMenu.AddItem("Attach to Objects", AttachTagToObjects);
+            triggerContextMenu.AddItem("View References", ShowReferences);
+            if (!Constants.IsRA2YR)
+            {
+                triggerContextMenu.AddItem("Wrap in EVA disable/enable actions", WrapInEVADisableAndEnableActions);
+            }
+            triggerContextMenu.AddItem("Clone for Easier Diffs", CloneForEasierDifficulties);
+            triggerContextMenu.AddItem("Clone for Easier Diffs (No Dependencies)", CloneForEasierDifficultiesWithoutDependencies);
+            AddChild(triggerContextMenu);
+
             FindChild<EditorButton>("btnNewTrigger").LeftClick += BtnNewTrigger_LeftClick;
             FindChild<EditorButton>("btnDeleteTrigger").LeftClick += BtnDeleteTrigger_LeftClick;
             FindChild<EditorButton>("btnCloneTrigger").LeftClick += BtnCloneTrigger_LeftClick;
             ddActions = FindChild<XNADropDown>(nameof(ddActions));
             ddActions.AddItem("Advanced...");
-            ddActions.AddItem(new XNADropDownItem() { Text = "Place CellTag", Tag = new Action(PlaceCellTag) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "Clear CellTags", Tag = new Action(ClearCellTags) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "Attach to Objects", Tag = new Action(AttachTagToObjects) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "View Attached Objects", Tag = new Action(ShowAttachedObjects) });
-
-            if (!Constants.IsRA2YR)
+            // Add context menu options to Advanced menu for backwards compatibility
+            for (int i = 0; i < triggerContextMenu.Items.Count; i++)
             {
-                ddActions.AddItem(new XNADropDownItem() { Text = string.Empty, Selectable = false });
-                ddActions.AddItem(new XNADropDownItem() { Text = "Wrap in EVA disable/enable actions", Tag = new Action(WrapInEVADisableAndEnableActions) });
+                var contextMenuOption = triggerContextMenu.Items[i];
+                ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
-
-            ddActions.AddItem(new XNADropDownItem() { Text = string.Empty, Selectable = false });
             ddActions.AddItem(new XNADropDownItem() { Text = "Re-generate Trigger IDs", Tag = new Action(RegenerateIDs) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "Clone for Easier Difficulties", Tag = new Action(CloneForEasierDifficulties) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "Clone (no dependencies)", Tag = new Action(CloneForEasierDifficultiesWithoutDependencies) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -299,7 +305,7 @@ namespace TSMapEditor.UI.Windows
             var particleSystemTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectParticleSystemTypeWindow);
             particleSystemTypeDarkeningPanel.Hidden += ParticleSystemTypeDarkeningPanel_Hidden;
 
-            eventContextMenu = new XNAContextMenu(WindowManager);
+            eventContextMenu = new EditorContextMenu(WindowManager);
             eventContextMenu.Name = nameof(eventContextMenu);
             eventContextMenu.Width = lbEvents.Width;
             eventContextMenu.AddItem("Move Up", EventContextMenu_MoveUp, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex > 0);
@@ -311,7 +317,7 @@ namespace TSMapEditor.UI.Windows
             lbEvents.AllowRightClickUnselect = false;
             lbEvents.RightClick += (s, e) => { if (editedTrigger != null) { lbEvents.OnMouseLeftDown(); eventContextMenu.Open(GetCursorPoint()); } };
 
-            actionContextMenu = new XNAContextMenu(WindowManager);
+            actionContextMenu = new EditorContextMenu(WindowManager);
             actionContextMenu.Name = nameof(actionContextMenu);
             actionContextMenu.Width = lbActions.Width;
             actionContextMenu.AddItem("Move Up", ActionContextMenu_MoveUp, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
@@ -323,17 +329,19 @@ namespace TSMapEditor.UI.Windows
             lbActions.AllowRightClickUnselect = false;
             lbActions.RightClick += (s, e) => { if (editedTrigger != null) { lbActions.OnMouseLeftDown(); actionContextMenu.Open(GetCursorPoint()); } };
 
-            triggerListContextMenu = new XNAContextMenu(WindowManager);
-            triggerListContextMenu.Name = nameof(triggerListContextMenu);
-            triggerListContextMenu.Width = lbTriggers.Width;
-            triggerListContextMenu.AddItem("Sort by ID", () => TriggerSortMode = TriggerSortMode.ID);
-            triggerListContextMenu.AddItem("Sort by Name", () => TriggerSortMode = TriggerSortMode.Name);
-            triggerListContextMenu.AddItem("Sort by Color", () => TriggerSortMode = TriggerSortMode.Color);
-            triggerListContextMenu.AddItem("Sort by Color, then by Name", () => TriggerSortMode = TriggerSortMode.ColorThenName);
-            AddChild(triggerListContextMenu);
+            var sortContextMenu = new EditorContextMenu(WindowManager);
+            sortContextMenu.Name = nameof(sortContextMenu);
+            sortContextMenu.Width = lbTriggers.Width;
+            sortContextMenu.AddItem("Sort by ID", () => TriggerSortMode = TriggerSortMode.ID);
+            sortContextMenu.AddItem("Sort by Name", () => TriggerSortMode = TriggerSortMode.Name);
+            sortContextMenu.AddItem("Sort by Color", () => TriggerSortMode = TriggerSortMode.Color);
+            sortContextMenu.AddItem("Sort by Color, then by Name", () => TriggerSortMode = TriggerSortMode.ColorThenName);
+            AddChild(sortContextMenu);
+
+            FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
             lbTriggers.AllowRightClickUnselect = false;
-            lbTriggers.RightClick += (s, e) => triggerListContextMenu.Open(GetCursorPoint());
+            lbTriggers.RightClick += (s, e) => { lbTriggers.SelectedIndex = lbTriggers.HoveredIndex; if (lbTriggers.SelectedItem != null) triggerContextMenu.Open(GetCursorPoint()); };
             lbTriggers.SelectedIndexChanged += LbTriggers_SelectedIndexChanged;
         }
 
@@ -422,7 +430,7 @@ namespace TSMapEditor.UI.Windows
 
         #region Viewing linked objects
 
-        private void ShowAttachedObjects()
+        private void ShowReferences()
         {
             if (editedTrigger == null)
                 return;
@@ -583,12 +591,12 @@ namespace TSMapEditor.UI.Windows
                 "This will re-generate the internal IDs (01000000, 01000001 etc.) for ALL* of your map's script elements" + Environment.NewLine +
                 "that start their ID with 0100 (all editor-generated script elements do)." + Environment.NewLine + Environment.NewLine +
                 "It might make the list more sensible in case there are deleted triggers. However, this feature is" + Environment.NewLine +
-                "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?" + Environment.NewLine + Environment.NewLine +
-                "* AITriggers are not yet handled by the editor, so you might need to update them manually afterwards.",
+                "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?",
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => map.RegenerateInternalIds();
             ListTriggers();
+            LbTriggers_SelectedIndexChanged(this, EventArgs.Empty);
         }
 
         private void CloneForEasierDifficulties()
@@ -621,6 +629,33 @@ namespace TSMapEditor.UI.Windows
                 "No un-do is available. Do you want to continue?", MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(false);
+        }
+
+        private TeamType FindOrCloneTeamTypeForDifficulty(TeamType hardTeamType, Difficulty targetDifficulty)
+        {
+            string targetDiffTeamTypeName = Helpers.ConvertNameToNewDifficulty(hardTeamType.Name, Difficulty.Hard, targetDifficulty);
+            TeamType targetDiffTeamType = map.TeamTypes.Find(tt => tt.Name == targetDiffTeamTypeName);
+
+            // Only create new TeamType and TaskForce if they weren't already found
+            if (targetDiffTeamType == null)
+            {
+                string targetDiffTaskForceName = Helpers.ConvertNameToNewDifficulty(hardTeamType.TaskForce.Name, Difficulty.Hard, targetDifficulty);
+                TaskForce targetDiffTaskForce = map.TaskForces.Find(tt => tt.Name == targetDiffTaskForceName);
+
+                if (targetDiffTaskForce == null)
+                {
+                    targetDiffTaskForce = hardTeamType.TaskForce.Clone(map.GetNewUniqueInternalId());
+                    targetDiffTaskForce.Name = targetDiffTaskForceName;
+                    map.AddTaskForce(targetDiffTaskForce);
+                }
+
+                targetDiffTeamType = hardTeamType.Clone(map.GetNewUniqueInternalId());
+                targetDiffTeamType.Name = targetDiffTeamTypeName;
+                targetDiffTeamType.TaskForce = targetDiffTaskForce;
+                map.AddTeamType(targetDiffTeamType);
+            }
+
+            return targetDiffTeamType;
         }
 
         private void DoCloneForEasierDifficulties(bool cloneDependencies)
@@ -717,8 +752,6 @@ namespace TSMapEditor.UI.Windows
                 // Go through used actions and their parameters.
                 // If they refer to any TeamTypes, clone the TeamTypes and replace the references.
 
-                var clonedTeamTypes = new List<(TeamType Hard, TeamType Medium, TeamType Easy)>();
-
                 for (int i = 0; i < editedTrigger.Actions.Count; i++)
                 {
                     TriggerAction action = editedTrigger.Actions[i];
@@ -735,42 +768,11 @@ namespace TSMapEditor.UI.Windows
 
                             if (teamType != null && teamType.TaskForce != null)
                             {
-                                var existingEntry = clonedTeamTypes.Find(entry => entry.Hard == teamType);
+                                TeamType mediumTeamType = FindOrCloneTeamTypeForDifficulty(teamType, Difficulty.Medium);
+                                TeamType easyTeamType = FindOrCloneTeamTypeForDifficulty(teamType, Difficulty.Easy);
 
-                                // Do not clone the same team multiple times if it's used in multiple actions or multiple parameters
-                                if (existingEntry.Hard != null)
-                                {
-                                    mediumDifficultyTrigger.Actions[i].Parameters[j] = existingEntry.Medium.ININame;
-                                    easyDifficultyTrigger.Actions[i].Parameters[j] = existingEntry.Easy.ININame;
-                                }
-                                else
-                                {
-                                    TaskForce mediumTaskForce = teamType.TaskForce.Clone(map.GetNewUniqueInternalId());
-                                    map.AddTaskForce(mediumTaskForce);
-
-                                    TaskForce easyTaskForce = teamType.TaskForce.Clone(map.GetNewUniqueInternalId());
-                                    map.AddTaskForce(easyTaskForce);
-
-                                    mediumTaskForce.Name = teamType.TaskForce.Name.Replace("H ", "M ").Replace(" H", " M").Replace("Hard", "Medium");
-                                    easyTaskForce.Name = teamType.TaskForce.Name.Replace("H ", "E ").Replace(" H", " E").Replace("Hard", "Easy");
-
-                                    TeamType mediumTeamType = teamType.Clone(map.GetNewUniqueInternalId());
-                                    map.AddTeamType(mediumTeamType);
-
-                                    TeamType easyTeamType = teamType.Clone(map.GetNewUniqueInternalId());
-                                    map.AddTeamType(easyTeamType);
-
-                                    mediumTeamType.Name = teamType.Name.Replace("H ", "M ").Replace(" H", " M").Replace("Hard", "Medium");
-                                    easyTeamType.Name = teamType.Name.Replace("H ", "E ").Replace(" H", " E").Replace("Hard", "Easy");
-
-                                    mediumTeamType.TaskForce = mediumTaskForce;
-                                    easyTeamType.TaskForce = easyTaskForce;
-
-                                    mediumDifficultyTrigger.Actions[i].Parameters[j] = mediumTeamType.ININame;
-                                    easyDifficultyTrigger.Actions[i].Parameters[j] = easyTeamType.ININame;
-
-                                    clonedTeamTypes.Add(new (teamType, mediumTeamType, easyTeamType));
-                                }
+                                mediumDifficultyTrigger.Actions[i].Parameters[j] = mediumTeamType.ININame;
+                                easyDifficultyTrigger.Actions[i].Parameters[j] = easyTeamType.ININame;
                             }
                         }
                     }
@@ -889,6 +891,7 @@ namespace TSMapEditor.UI.Windows
                     paramValue = Conversions.IntFromString(triggerEvent.Parameters[paramIndex], -1);
                     BuildingType existingBuilding = paramValue < 0 || paramValue >= map.Rules.BuildingTypes.Count ? null : map.Rules.BuildingTypes[paramValue];
                     selectBuildingTypeWindow.IsForEvent = true;
+                    selectBuildingTypeWindow.Tag = TriggerParamType.Building;
                     selectBuildingTypeWindow.Open(existingBuilding);
                     break;
                 case TriggerParamType.Techno:
@@ -1049,6 +1052,12 @@ namespace TSMapEditor.UI.Windows
                         : map.Rules.Sounds.Get(Conversions.IntFromString(triggerAction.Parameters[paramIndex], -1));
                     selectSoundWindow.Open(sound);
                     break;
+                case TriggerParamType.BuildingName:
+                    selectBuildingTypeWindow.IsForEvent = false;
+                    selectBuildingTypeWindow.Tag = TriggerParamType.BuildingName;
+                    BuildingType buildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == triggerAction.Parameters[paramIndex]);
+                    selectBuildingTypeWindow.Open(buildingType);
+                    break;
                 default:
                     break;
             }
@@ -1125,7 +1134,10 @@ namespace TSMapEditor.UI.Windows
             if (selectBuildingTypeWindow.SelectedObject == null)
                 return;
 
-            AssignParamValue(selectBuildingTypeWindow.IsForEvent, selectBuildingTypeWindow.SelectedObject.Index);
+            if ((TriggerParamType)selectBuildingTypeWindow.Tag == TriggerParamType.BuildingName)
+                AssignParamValue(selectBuildingTypeWindow.IsForEvent, selectBuildingTypeWindow.SelectedObject.ININame);
+            else
+                AssignParamValue(selectBuildingTypeWindow.IsForEvent, selectBuildingTypeWindow.SelectedObject.Index);
         }
 
         private void ThemeDarkeningPanel_Hidden(object sender, EventArgs e)
@@ -1356,11 +1368,8 @@ namespace TSMapEditor.UI.Windows
         public void SelectTrigger(Trigger trigger)
         {
             lbTriggers.SelectedIndex = lbTriggers.Items.FindIndex(item => item.Tag == trigger);
-
-            if (lbTriggers.LastIndex < lbTriggers.SelectedIndex)
-                lbTriggers.ScrollToBottom(); // TODO we don't actually have a good way to scroll the listbox into a specific place right now
-            else if (lbTriggers.TopIndex > lbTriggers.SelectedIndex)
-                lbTriggers.TopIndex = lbTriggers.SelectedIndex;
+            if (lbTriggers.SelectedItem != null)
+                lbTriggers.ScrollToSelectedElement();
         }
 
         private void EventWindowDarkeningPanel_Hidden(object sender, EventArgs e)
@@ -1537,7 +1546,7 @@ namespace TSMapEditor.UI.Windows
         private void RefreshHouses()
         {
             ddHouseType.Items.Clear();
-            map.GetHouseTypes().ForEach(ht => ddHouseType.AddItem(ht.ININame, ht.XNAColor));
+            map.GetHouseTypes().ForEach(ht => ddHouseType.AddItem(ht.ININame, Helpers.GetHouseTypeUITextColor(ht)));
         }
 
         private void ListTriggers()
@@ -1608,6 +1617,7 @@ namespace TSMapEditor.UI.Windows
                 ddHouseType.SelectedIndex = -1;
                 ddType.SelectedIndex = -1;
                 selAttachedTrigger.Text = string.Empty;
+                chkDisabled.Checked = false;
 
                 lbEvents.Clear();
                 selEventType.Text = string.Empty;
@@ -2044,7 +2054,7 @@ namespace TSMapEditor.UI.Windows
                         if (houseType == null)
                             goto case TriggerParamType.Unused;
 
-                        return houseType.XNAColor;
+                        return Helpers.GetHouseTypeUITextColor(houseType);
                     }
                     goto case TriggerParamType.Unused;
                 case TriggerParamType.House:
@@ -2159,6 +2169,12 @@ namespace TSMapEditor.UI.Windows
                     return paramValue + " " + trigger.Name;
                 case TriggerParamType.Building:
                     return GetObjectValueText(RTTIType.Building, map.Rules.BuildingTypes, paramValue);
+                case TriggerParamType.BuildingName:
+                    BuildingType buildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == paramValue);
+                    if (buildingType == null)
+                        return paramValue;
+
+                    return paramValue + " (" + buildingType.GetEditorDisplayName() + ")";
                 case TriggerParamType.Aircraft:
                     return GetObjectValueText(RTTIType.Aircraft, map.Rules.AircraftTypes, paramValue);
                 case TriggerParamType.Infantry:

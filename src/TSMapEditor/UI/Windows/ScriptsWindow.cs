@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Models;
@@ -54,8 +55,7 @@ namespace TSMapEditor.UI.Windows
         private XNADropDown ddScriptColor;
 
         private SelectScriptActionWindow selectScriptActionWindow;
-        private XNAContextMenu actionListContextMenu;
-        private XNAContextMenu scriptListContextMenu;
+        private EditorContextMenu actionListContextMenu;
 
         private SelectBuildingTargetWindow selectBuildingTargetWindow;
 
@@ -99,7 +99,7 @@ namespace TSMapEditor.UI.Windows
 
             tbFilter.TextChanged += TbFilter_TextChanged;
 
-            var presetValuesContextMenu = new XNAContextMenu(WindowManager);
+            var presetValuesContextMenu = new EditorContextMenu(WindowManager);
             presetValuesContextMenu.Width = 250;
             btnEditorPresetValues.ContextMenu = presetValuesContextMenu;
             btnEditorPresetValues.ContextMenu.OptionSelected += ContextMenu_OptionSelected;
@@ -110,17 +110,30 @@ namespace TSMapEditor.UI.Windows
             lbScriptTypes.SelectedIndexChanged += LbScriptTypes_SelectedIndexChanged;
             lbActions.SelectedIndexChanged += LbActions_SelectedIndexChanged;
 
-            scriptListContextMenu = new XNAContextMenu(WindowManager);
-            scriptListContextMenu.Name = nameof(scriptListContextMenu);
-            scriptListContextMenu.Width = lbScriptTypes.Width;
-            scriptListContextMenu.AddItem("Sort by ID", () => ScriptSortMode = ScriptSortMode.ID);
-            scriptListContextMenu.AddItem("Sort by Name", () => ScriptSortMode = ScriptSortMode.Name);
-            scriptListContextMenu.AddItem("Sort by Color", () => ScriptSortMode = ScriptSortMode.Color);
-            scriptListContextMenu.AddItem("Sort by Color, then by Name", () => ScriptSortMode = ScriptSortMode.ColorThenName);
-            AddChild(scriptListContextMenu);
+            var sortContextMenu = new EditorContextMenu(WindowManager);
+            sortContextMenu.Name = nameof(sortContextMenu);
+            sortContextMenu.Width = lbScriptTypes.Width;
+            sortContextMenu.AddItem("Sort by ID", () => ScriptSortMode = ScriptSortMode.ID);
+            sortContextMenu.AddItem("Sort by Name", () => ScriptSortMode = ScriptSortMode.Name);
+            sortContextMenu.AddItem("Sort by Color", () => ScriptSortMode = ScriptSortMode.Color);
+            sortContextMenu.AddItem("Sort by Color, then by Name", () => ScriptSortMode = ScriptSortMode.ColorThenName);
+            AddChild(sortContextMenu);
+
+            FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
+
+            var scriptContextMenu = new EditorContextMenu(WindowManager);
+            scriptContextMenu.Name = nameof(scriptContextMenu);
+            scriptContextMenu.Width = lbScriptTypes.Width;
+            scriptContextMenu.AddItem("View References", ShowScriptReferences);
+            AddChild(scriptContextMenu);
 
             lbScriptTypes.AllowRightClickUnselect = false;
-            lbScriptTypes.RightClick += (s, e) => scriptListContextMenu.Open(GetCursorPoint());
+            lbScriptTypes.RightClick += (s, e) =>
+            {
+                lbScriptTypes.SelectedIndex = lbScriptTypes.HoveredIndex;
+                if (editedScript != null)
+                    scriptContextMenu.Open(GetCursorPoint());
+            };
 
             selectScriptActionWindow = new SelectScriptActionWindow(WindowManager, map.EditorConfig);
             var selectScriptActionDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectScriptActionWindow);
@@ -144,7 +157,7 @@ namespace TSMapEditor.UI.Windows
 
             selectCellCursorAction.CellSelected += SelectCellCursorAction_CellSelected;
 
-            actionListContextMenu = new XNAContextMenu(WindowManager);
+            actionListContextMenu = new EditorContextMenu(WindowManager);
             actionListContextMenu.Name = nameof(actionListContextMenu);
             actionListContextMenu.Width = 150;
             actionListContextMenu.AddItem("Move Up", MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
@@ -153,6 +166,7 @@ namespace TSMapEditor.UI.Windows
             actionListContextMenu.AddItem("Insert New Action Here", InsertAction, () => editedScript != null && lbActions.SelectedItem != null);
             actionListContextMenu.AddItem("Delete Action", ActionListContextMenu_Delete, () => editedScript != null && lbActions.SelectedItem != null);
             AddChild(actionListContextMenu);
+
             lbActions.AllowRightClickUnselect = false;
             lbActions.RightClick += (s, e) => { if (editedScript != null) { lbActions.SelectedIndex = lbActions.HoveredIndex; actionListContextMenu.Open(GetCursorPoint()); } };
         }
@@ -264,11 +278,37 @@ namespace TSMapEditor.UI.Windows
             }
         }
 
+        private void ShowScriptReferences()
+        {
+            if (editedScript == null)
+                return;
+
+            var referringLocalTeamTypes = map.TeamTypes.FindAll(tt => tt.Script == editedScript);
+            var referringGlobalTeamTypes = map.Rules.TeamTypes.FindAll(tt => tt.Script.ININame == editedScript.ININame);
+
+            if (referringLocalTeamTypes.Count == 0 && referringGlobalTeamTypes.Count == 0)
+            {
+                EditorMessageBox.Show(WindowManager, "No references found",
+                    $"The selected Script \"{editedScript.Name}\" ({editedScript.ININame}) is not used by any TeamTypes, either local (map) or global (AI.ini).", MessageBoxButtons.OK);
+            }
+            else
+            {
+                var stringBuilder = new StringBuilder();
+                referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Local TeamType \"{tt.Name}\" ({tt.ININame})"));
+                referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Global TeamType \"{tt.Name}\" ({tt.ININame})"));
+
+                EditorMessageBox.Show(WindowManager, "Script References",
+                    $"The selected Script \"{editedScript.Name}\" ({editedScript.ININame}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine +
+                    stringBuilder.ToString(), MessageBoxButtons.OK);
+            }
+        }
+
         private void BtnAddScript_LeftClick(object sender, EventArgs e)
         {
-            map.Scripts.Add(new Script(map.GetNewUniqueInternalId()) { Name = "New script" });
+            var newScript = new Script(map.GetNewUniqueInternalId()) { Name = "New script" };
+            map.Scripts.Add(newScript);
             ListScripts();
-            SelectLastScript();
+            SelectScript(newScript);
         }
 
         private void BtnDeleteScript_LeftClick(object sender, EventArgs e)
@@ -312,15 +352,10 @@ namespace TSMapEditor.UI.Windows
             if (editedScript == null)
                 return;
 
-            map.Scripts.Add(editedScript.Clone(map.GetNewUniqueInternalId()));
+            var newScript = editedScript.Clone(map.GetNewUniqueInternalId());
+            map.Scripts.Add(newScript);
             ListScripts();
-            SelectLastScript();
-        }
-
-        private void SelectLastScript()
-        {
-            lbScriptTypes.SelectedIndex = map.Scripts.Count - 1;
-            lbScriptTypes.ScrollToBottom();
+            SelectScript(newScript);
         }
 
         private void BtnAddAction_LeftClick(object sender, EventArgs e)
@@ -570,8 +605,11 @@ namespace TSMapEditor.UI.Windows
         {
             int index = lbScriptTypes.Items.FindIndex(lbi => lbi.Tag == script);
 
-            if (index > -1)
-                lbScriptTypes.SelectedIndex = index;
+            if (index < 0)
+                return;
+
+            lbScriptTypes.SelectedIndex = index;
+            lbScriptTypes.ScrollToSelectedElement();
         }
 
         private void ListScripts()
@@ -580,7 +618,7 @@ namespace TSMapEditor.UI.Windows
 
             IEnumerable<Script> sortedScripts = map.Scripts;
 
-            var shouldViewTop = false; // when filtering the scroll bar should update so we use a flag here
+            bool shouldViewTop = false; // when filtering the scroll bar should update so we use a flag here
             if (tbFilter.Text != string.Empty && tbFilter.Text != tbFilter.Suggestion)
             {
                 sortedScripts = sortedScripts.Where(script => script.Name.Contains(tbFilter.Text, StringComparison.CurrentCultureIgnoreCase));

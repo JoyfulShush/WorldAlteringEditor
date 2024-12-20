@@ -3,7 +3,6 @@ using System;
 using TSMapEditor.CCEngine;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models.Enums;
-using TSMapEditor.Rendering;
 using TSMapEditor.UI;
 using System.Linq;
 using HCT = TSMapEditor.Mutations.Classes.HeightMutations.HeightComparisonType;
@@ -17,9 +16,11 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
     /// </summary>
     public class FlattenGroundMutation : AlterElevationMutationBase
     {
-        public FlattenGroundMutation(IMutationTarget mutationTarget, Point2D originCell, BrushSize brushSize, int desiredHeightLevel) : base(mutationTarget, originCell, brushSize)
+        public FlattenGroundMutation(IMutationTarget mutationTarget, Point2D originCell, BrushSize brushSize,
+            int desiredHeightLevel, int eventId) : base(mutationTarget, originCell, brushSize)
         {
             this.desiredHeightLevel = desiredHeightLevel;
+            EventID = eventId;
         }
 
         private readonly int desiredHeightLevel;
@@ -28,6 +29,8 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         private void FlattenGround()
         {
+            Clear();
+
             int xSize = BrushSize.Width;
             int ySize = BrushSize.Height;
 

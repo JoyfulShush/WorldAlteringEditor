@@ -134,6 +134,11 @@ namespace TSMapEditor.UI
             }
         }
 
+        public void ClearSubscriptions()
+        {
+            Triggered = null;
+        }
+
         public void DoTrigger()
         {
             Triggered?.Invoke(this, EventArgs.Empty);

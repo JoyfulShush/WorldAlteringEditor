@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TSMapEditor.CCEngine;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
-using TSMapEditor.Rendering;
 using TSMapEditor.UI;
 
 namespace TSMapEditor.Mutations.Classes.HeightMutations
@@ -32,6 +31,14 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
         protected bool IsCellMorphable(MapTile cell)
         {
             return Map.TheaterInstance.Theater.TileSets[Map.TheaterInstance.GetTileSetId(cell.TileIndex)].Morphable;
+        }
+
+        protected void Clear()
+        {
+            cellsToProcess.Clear();
+            processedCellsThisIteration.Clear();
+            totalProcessedCells.Clear();
+            undoData.Clear();
         }
 
         /// <summary>

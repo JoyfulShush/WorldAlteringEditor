@@ -154,7 +154,7 @@ namespace TSMapEditor.UI.Windows
                 IQ = 0, 
                 PercentBuilt = 100, 
                 PlayerControl = false, 
-                TechLevel = 10,
+                TechLevel = Constants.MaxHouseTechLevel,
                 XNAColor = Color.White
             });
 

@@ -371,6 +371,9 @@ namespace TSMapEditor
             return houseType.XNAColor;
         }
 
+        /// <summary>
+        /// Checks whether a color should be considered too dark to be readable in the user-interface.
+        /// </summary>
         public static bool IsColorDark(Color color) => color.R < 32 && color.G < 32 && color.B < 64;
 
         public static void FindDefaultSideForNewHouseType(HouseType houseType, Rules rules)
@@ -599,9 +602,28 @@ namespace TSMapEditor
             string fromDifficultyString = fromDifficulty.ToString();
             string toDifficultyString = toDifficulty.ToString();
 
-            string newName = name.Replace(fromDifficultyString, toDifficultyString);
-            newName = newName.Replace($" {fromDifficultyString[0]}", $" {toDifficultyString[0]}");
-            newName = newName.Replace($"{fromDifficultyString[0]} ", $"{toDifficultyString[0]} ");
+            string newName;
+
+            if (name.Contains(fromDifficultyString))
+            {
+                // Replace full difficulty string
+                newName = name.Replace(fromDifficultyString, toDifficultyString);
+            }
+            else if (name.StartsWith($"{fromDifficultyString[0]} "))
+            {
+                // Replace single-character difficulty identifier in beginning of string
+                newName = $"{toDifficultyString[0]} " + name[2..];
+            }
+            else if (name.EndsWith($" {fromDifficultyString[0]}"))
+            {
+                // Replace single-character difficulty identifier in end of string
+                newName = name[..^2] + $" {toDifficultyString[0]}";
+            }
+            else
+            {
+                // Couldn't find anything to replace, return original name
+                newName = name;
+            }
 
             return newName;
         }

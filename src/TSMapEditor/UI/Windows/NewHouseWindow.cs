@@ -86,7 +86,7 @@ namespace TSMapEditor.UI.Windows
                 IQ = 0,
                 PercentBuilt = 100,
                 PlayerControl = false,
-                TechLevel = 10,
+                TechLevel = Constants.MaxHouseTechLevel,
                 ID = map.Houses.Count
             };
 
@@ -111,7 +111,7 @@ namespace TSMapEditor.UI.Windows
                 houseType => ddParentCountry.AddItem(new XNADropDownItem() 
             { 
                 Text = houseType.ININame,
-                TextColor = houseType.XNAColor,
+                TextColor = Helpers.GetHouseTypeUITextColor(houseType),
                 Tag = houseType 
             }));
         }

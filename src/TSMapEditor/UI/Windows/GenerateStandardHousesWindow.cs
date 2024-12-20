@@ -51,7 +51,7 @@ namespace TSMapEditor.UI.Windows
                 house.ID = i;
                 house.Edge = "North";
                 house.Allies = house.ININame;
-                house.TechLevel = 7;
+                house.TechLevel = Constants.MaxHouseTechLevel;
 
                 if (!Constants.IsRA2YR)
                 {

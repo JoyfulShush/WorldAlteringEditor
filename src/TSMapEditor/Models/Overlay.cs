@@ -17,7 +17,7 @@
 
         public override int GetShadowFrameIndex(int frameCount)
         {
-            return 100;
+            return frameCount / 2 + FrameIndex;
         }
 
         public override bool HasShadow() => true;

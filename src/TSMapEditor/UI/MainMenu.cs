@@ -41,8 +41,11 @@ namespace TSMapEditor.UI
 
         public override void Initialize()
         {
+            bool hasRecentFiles = UserSettings.Instance.RecentFiles.GetEntries().Count > 0;
+
             Name = nameof(MainMenu);
             Width = 570;
+            Height = WindowManager.RenderResolutionY;
 
             var lblGameDirectory = new XNALabel(WindowManager);
             lblGameDirectory.Name = nameof(lblGameDirectory);
@@ -65,8 +68,7 @@ namespace TSMapEditor.UI
 
 #if DEBUG
             // When debugging we might often switch between configs - make it a bit more convenient
-            string expectedPath = Path.Combine(tbGameDirectory.Text, Constants.ExpectedClientExecutableName);
-            if (!File.Exists(expectedPath))
+            if (!VerifyGameDirectory())
             {
                 ReadGameInstallDirectoryFromRegistry();
             }
@@ -111,29 +113,12 @@ namespace TSMapEditor.UI
             AddChild(btnBrowseMapPath);
             btnBrowseMapPath.LeftClick += BtnBrowseMapPath_LeftClick;
 
-            var lblDirectoryListing = new XNALabel(WindowManager);
-            lblDirectoryListing.Name = nameof(lblDirectoryListing);
-            lblDirectoryListing.X = Constants.UIEmptySideSpace;
-            lblDirectoryListing.Y = tbMapPath.Bottom + Constants.UIVerticalSpacing * 2;
-            lblDirectoryListing.Text = "Alternatively, select a map file below:";
-            AddChild(lblDirectoryListing);
-
-            lbFileList = new FileBrowserListBox(WindowManager);
-            lbFileList.Name = nameof(lbFileList);
-            lbFileList.X = Constants.UIEmptySideSpace;
-            lbFileList.Y = lblDirectoryListing.Bottom + Constants.UIVerticalSpacing;
-            lbFileList.Width = Width - Constants.UIEmptySideSpace * 2;
-            lbFileList.Height = 420;
-            lbFileList.FileSelected += LbFileList_FileSelected;
-            lbFileList.FileDoubleLeftClick += LbFileList_FileDoubleLeftClick;
-            AddChild(lbFileList);
-
             btnLoad = new EditorButton(WindowManager);
             btnLoad.Name = nameof(btnLoad);
             btnLoad.Width = 150;
             btnLoad.Text = "Load";
-            btnLoad.Y = lbFileList.Bottom + Constants.UIEmptyTopSpace;
-            btnLoad.X = lbFileList.Right - btnLoad.Width;
+            btnLoad.Y = Height - btnLoad.Height - Constants.UIEmptyBottomSpace;
+            btnLoad.X = Width - btnLoad.Width - Constants.UIEmptySideSpace;
             AddChild(btnLoad);
             btnLoad.LeftClick += BtnLoad_LeftClick;
 
@@ -141,12 +126,59 @@ namespace TSMapEditor.UI
             btnCreateNewMap.Name = nameof(btnCreateNewMap);
             btnCreateNewMap.Width = 150;
             btnCreateNewMap.Text = "New Map...";
-            btnCreateNewMap.X = lbFileList.X;
+            btnCreateNewMap.X = Constants.UIEmptySideSpace;
             btnCreateNewMap.Y = btnLoad.Y;
             AddChild(btnCreateNewMap);
             btnCreateNewMap.LeftClick += BtnCreateNewMap_LeftClick;
 
-            Height = btnLoad.Bottom + Constants.UIEmptyBottomSpace;
+            var lblCopyright = new XNALabel(WindowManager);
+            lblCopyright.Name = nameof(lblCopyright);
+            lblCopyright.Text = "Created by Rampastring";
+            lblCopyright.TextColor = UISettings.ActiveSettings.SubtleTextColor;
+            AddChild(lblCopyright);
+            lblCopyright.CenterOnControlVertically(btnCreateNewMap);
+            lblCopyright.X = btnCreateNewMap.Right + ((btnLoad.X - btnCreateNewMap.Right) - lblCopyright.Width) / 2;
+
+            int directoryListingY = tbMapPath.Bottom + Constants.UIVerticalSpacing * 2;
+
+            if (hasRecentFiles)
+            {
+                const int recentFilesHeight = 150;
+
+                var lblRecentFiles = new XNALabel(WindowManager);
+                lblRecentFiles.Name = nameof(lblRecentFiles);
+                lblRecentFiles.X = Constants.UIEmptySideSpace;
+                lblRecentFiles.Y = directoryListingY;
+                lblRecentFiles.Text = "Recent files:";
+                AddChild(lblRecentFiles);
+
+                var recentFilesPanel = new RecentFilesPanel(WindowManager);
+                recentFilesPanel.X = lblRecentFiles.X;
+                recentFilesPanel.Y = lblRecentFiles.Bottom + Constants.UIVerticalSpacing;
+                recentFilesPanel.Width = Width - (Constants.UIEmptySideSpace * 2);
+                recentFilesPanel.Height = recentFilesHeight - lblRecentFiles.Height - (Constants.UIVerticalSpacing * 2);
+                recentFilesPanel.FileSelected += RecentFilesPanel_FileSelected;
+                AddChild(recentFilesPanel);
+
+                directoryListingY = recentFilesPanel.Bottom + Constants.UIVerticalSpacing;
+            }
+
+            var lblDirectoryListing = new XNALabel(WindowManager);
+            lblDirectoryListing.Name = nameof(lblDirectoryListing);
+            lblDirectoryListing.X = Constants.UIEmptySideSpace;
+            lblDirectoryListing.Y = directoryListingY;
+            lblDirectoryListing.Text = "Alternatively, select a map file below:";
+            AddChild(lblDirectoryListing);
+
+            lbFileList = new FileBrowserListBox(WindowManager);
+            lbFileList.Name = nameof(lbFileList);
+            lbFileList.X = Constants.UIEmptySideSpace;
+            lbFileList.Y = lblDirectoryListing.Bottom + Constants.UIVerticalSpacing;
+            lbFileList.Width = Width - (Constants.UIEmptySideSpace * 2);
+            lbFileList.Height = btnLoad.Y - Constants.UIEmptyTopSpace - lbFileList.Y;
+            lbFileList.FileSelected += LbFileList_FileSelected;
+            lbFileList.FileDoubleLeftClick += LbFileList_FileDoubleLeftClick;
+            AddChild(lbFileList);
 
             settingsPanel = new SettingsPanel(WindowManager);
             settingsPanel.Name = nameof(settingsPanel);
@@ -191,6 +223,12 @@ namespace TSMapEditor.UI
             }
         }
 
+        private void RecentFilesPanel_FileSelected(object sender, FileSelectedEventArgs e)
+        {
+            tbMapPath.Text = e.FilePath;
+            BtnLoad_LeftClick(this, EventArgs.Empty);
+        }
+
         private void LbFileList_FileSelected(object sender, FileSelectionEventArgs e)
         {
             tbMapPath.Text = e.FilePath;
@@ -220,33 +258,67 @@ namespace TSMapEditor.UI
 
         private void ReadGameInstallDirectoryFromRegistry()
         {
+            string[] pathsToLookup = Constants.GameRegistryInstallPath.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+            if (pathsToLookup.Length == 0)
+            {
+                Logger.Log($"No valid paths specified in {nameof(Constants.GameRegistryInstallPath)}. Unable to read game installation path from Windows registry.");
+                return;
+            }
+
             try
             {
-                RegistryKey key;
+                foreach (string registryInstallPath in pathsToLookup)
+                {
+                    RegistryKey key;
 
-                if (Constants.InstallPathAtHKLM)
-                {
-                    key = Registry.LocalMachine.OpenSubKey(Constants.GameRegistryInstallPath);
-                }
-                else
-                {
-                    key = Registry.CurrentUser.OpenSubKey(Constants.GameRegistryInstallPath);
-                }
+                    const string hklmIdentifier = "HKLM:";
 
-                object value = key.GetValue("InstallPath", string.Empty);
-                if (!(value is string valueAsString))
-                {
-                    tbGameDirectory.Text = string.Empty;
-                }
-                else
-                {
-                    if (File.Exists(valueAsString))
-                        tbGameDirectory.Text = Path.GetDirectoryName(valueAsString);
+                    // By default, try to find the key from the current user's registry.
+                    // Optionally, if the path starts with the HKLM identifier, look for the key in the local machine's registry instead.
+                    if (registryInstallPath.StartsWith(hklmIdentifier))
+                    {
+                        key = Registry.LocalMachine.OpenSubKey(registryInstallPath.Substring(hklmIdentifier.Length));
+                    }
                     else
-                        tbGameDirectory.Text = valueAsString;
-                }
+                    {
+                        key = Registry.CurrentUser.OpenSubKey(registryInstallPath);
+                    }
 
-                key.Close();
+                    bool isValid = false;
+
+                    object value = key.GetValue("InstallPath", string.Empty);
+                    if (!(value is string valueAsString))
+                    {
+                        tbGameDirectory.Text = string.Empty;
+                    }
+                    else
+                    {
+                        if (File.Exists(valueAsString))
+                        {
+                            tbGameDirectory.Text = Path.GetDirectoryName(valueAsString);
+                        }
+                        else
+                        {
+                            tbGameDirectory.Text = valueAsString;
+                        }
+
+                        foreach (string expectedExecutableName in Constants.ExpectedClientExecutableNames)
+                        {
+                            if (File.Exists(Path.Combine(tbGameDirectory.Text, expectedExecutableName)))
+                            {
+                                isValid = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    key.Close();
+
+                    // Break when we find the first valid installation path
+                    if (isValid)
+                        break;
+                }
             }
             catch (Exception ex)
             {
@@ -265,13 +337,28 @@ namespace TSMapEditor.UI
             BtnLoad_LeftClick(this, EventArgs.Empty);
         }
 
+        private bool VerifyGameDirectory()
+        {
+            bool gameDirectoryVerified = false;
+            foreach (string expectedExecutableName in Constants.ExpectedClientExecutableNames)
+            {
+                if (File.Exists(Path.Combine(tbGameDirectory.Text, expectedExecutableName)))
+                {
+                    gameDirectoryVerified = true;
+                    break;
+                }
+            }
+
+            return gameDirectoryVerified;
+        }
+
         private bool CheckGameDirectory()
         {
-            if (!File.Exists(Path.Combine(tbGameDirectory.Text, Constants.ExpectedClientExecutableName)))
+            if (!VerifyGameDirectory())
             {
                 EditorMessageBox.Show(WindowManager,
                     "Invalid game directory",
-                    $"{Constants.ExpectedClientExecutableName} not found, please check that you typed the correct game directory.",
+                    $"{Constants.ExpectedClientExecutableNames[0]} not found, please check that you typed the correct game directory.",
                     MessageBoxButtons.OK);
 
                 return false;
@@ -290,17 +377,12 @@ namespace TSMapEditor.UI
 
             UserSettings.Instance.GameDirectory.UserDefinedValue = tbGameDirectory.Text;
             UserSettings.Instance.LastScenarioPath.UserDefinedValue = tbMapPath.Text;
+            UserSettings.Instance.RecentFiles.PutEntry(tbMapPath.Text);
 
             bool fullscreenWindowed = UserSettings.Instance.FullscreenWindowed.GetValue();
             bool borderless = UserSettings.Instance.Borderless.GetValue();
             if (fullscreenWindowed && !borderless)
                 throw new InvalidOperationException("Borderless= cannot be set to false if FullscreenWindowed= is enabled.");
-
-            var gameForm = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(Game.Window.Handle);
-
-            double renderScale = UserSettings.Instance.RenderScale.GetValue();
-
-
 
             WindowManager.CenterControlOnScreen(this);
 
@@ -314,7 +396,7 @@ namespace TSMapEditor.UI
             {
                 openFileDialog.InitialDirectory = tbGameDirectory.Text;
                 openFileDialog.Filter =
-                    $"Game executable|{Constants.ExpectedClientExecutableName}";
+                    $"Game executable|{string.Join(';', Constants.ExpectedClientExecutableNames)}";
                 openFileDialog.RestoreDirectory = true;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -337,6 +419,7 @@ namespace TSMapEditor.UI
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     tbMapPath.Text = openFileDialog.FileName;
+                    BtnLoad_LeftClick(this, new EventArgs());
                 }
             }
 #endif

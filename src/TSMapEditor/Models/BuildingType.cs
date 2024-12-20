@@ -32,6 +32,7 @@ namespace TSMapEditor.Models
         public double LightRedTint { get; set; }
         public double LightGreenTint { get; set; }
         public double LightBlueTint { get; set; }
+        public int EditorZAdjust { get; set; }
 
         public BuildingArtConfig ArtConfig { get; set; } = new BuildingArtConfig();
         public IArtConfig GetArtConfig() => ArtConfig;

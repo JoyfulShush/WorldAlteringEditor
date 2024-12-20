@@ -48,12 +48,13 @@ namespace TSMapEditor.UI
                 AdjustTileHeightUp,
                 AdjustTileHeightDown,
                 PlaceConnectedTile,
+                RepeatConnectedTile,
 
-                AircraftMenu,
                 BuildingMenu,
-                VehicleMenu,
-                NavalMenu,
                 InfantryMenu,
+                VehicleMenu,
+                AircraftMenu,
+                NavalMenu,
                 TerrainObjectMenu,
                 OverlayMenu,
                 SmudgeMenu
@@ -87,6 +88,12 @@ namespace TSMapEditor.UI
             {
                 iniFile.SetStringValue("Keybinds", command.ININame, command.Key.GetDataString());
             }
+        }
+
+        public void ClearCommandSubscriptions()
+        {
+            foreach (var command in Commands)
+                command.ClearSubscriptions();
         }
 
 
@@ -130,13 +137,14 @@ namespace TSMapEditor.UI
         public KeyboardCommand ToggleFullscreen { get; } = new KeyboardCommand("ToggleFullscreen", "Toggle Full Screen", new KeyboardCommandInput(Keys.F11, KeyboardModifiers.None));
         public KeyboardCommand AdjustTileHeightUp { get; } = new KeyboardCommand("AdjustTileHeightUp", "Adjust Tile Height Up", new KeyboardCommandInput(Keys.PageUp, KeyboardModifiers.None), forActionsOnly:true);
         public KeyboardCommand AdjustTileHeightDown { get; } = new KeyboardCommand("AdjustTileHeightDown", "Adjust Tile Height Down", new KeyboardCommandInput(Keys.PageDown, KeyboardModifiers.None), forActionsOnly:true);
-        public KeyboardCommand PlaceConnectedTile { get; } = new KeyboardCommand("PlaceConnectedTile", "Place Connected Tile", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Ctrl));
+        public KeyboardCommand PlaceConnectedTile { get; } = new KeyboardCommand("PlaceConnectedTile", "Place Connected Tile", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Alt));
+        public KeyboardCommand RepeatConnectedTile { get; } = new KeyboardCommand("RepeatConnectedTile", "Repeat Last Connected Tile", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Ctrl));
 
-        public KeyboardCommand AircraftMenu { get; } = new KeyboardCommand("AircraftMenu", "Aircraft Menu", new KeyboardCommandInput(Keys.D1, KeyboardModifiers.None));
-        public KeyboardCommand BuildingMenu { get; } = new KeyboardCommand("BuildingMenu", "Building Menu", new KeyboardCommandInput(Keys.D2, KeyboardModifiers.None));
+        public KeyboardCommand BuildingMenu { get; } = new KeyboardCommand("BuildingMenu", "Building Menu", new KeyboardCommandInput(Keys.D1, KeyboardModifiers.None));
+        public KeyboardCommand InfantryMenu { get; } = new KeyboardCommand("InfantryMenu", "Infantry Menu", new KeyboardCommandInput(Keys.D2, KeyboardModifiers.None));
         public KeyboardCommand VehicleMenu { get; } = new KeyboardCommand("VehicleMenu", "Vehicle Menu", new KeyboardCommandInput(Keys.D3, KeyboardModifiers.None));
-        public KeyboardCommand NavalMenu { get; } = new KeyboardCommand("NavalMenu", "Naval Menu", new KeyboardCommandInput(Keys.D4, KeyboardModifiers.None));
-        public KeyboardCommand InfantryMenu { get; } = new KeyboardCommand("InfantryMenu", "Infantry Menu", new KeyboardCommandInput(Keys.D5, KeyboardModifiers.None));
+        public KeyboardCommand AircraftMenu { get; } = new KeyboardCommand("AircraftMenu", "Aircraft Menu", new KeyboardCommandInput(Keys.D4, KeyboardModifiers.None));
+        public KeyboardCommand NavalMenu { get; } = new KeyboardCommand("NavalMenu", "Naval Menu", new KeyboardCommandInput(Keys.D5, KeyboardModifiers.None));
         public KeyboardCommand TerrainObjectMenu { get; } = new KeyboardCommand("TerrainObjectMenu", "Terrain Objects Menu", new KeyboardCommandInput(Keys.D6, KeyboardModifiers.None));
         public KeyboardCommand OverlayMenu { get; } = new KeyboardCommand("OverlayMenu", "Overlay Menu", new KeyboardCommandInput(Keys.D7, KeyboardModifiers.None));
         public KeyboardCommand SmudgeMenu { get; } = new KeyboardCommand("SmudgeMenu", "Smudge Menu", new KeyboardCommandInput(Keys.D8, KeyboardModifiers.None));

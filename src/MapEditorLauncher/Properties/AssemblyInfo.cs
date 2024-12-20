@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DTA Scenario Editor Launcher")]
-[assembly: AssemblyDescription("DTA Scenario Editor Launcher")]
+[assembly: AssemblyTitle("World-Altering Editor (WAE) Launcher")]
+[assembly: AssemblyDescription("World-Altering Editor (WAE) Launcher")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2023")]
+[assembly: AssemblyProduct("World-Altering Editor (WAE)")]
+[assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2022-2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]

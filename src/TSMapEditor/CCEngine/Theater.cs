@@ -56,21 +56,6 @@ namespace TSMapEditor.CCEngine
             UIName = name;
         }
 
-        public Theater(string uiName, string configIniName, List<string> contentMixName,
-            List<string> optionalContentMixName, string paletteName, string unitPaletteName,
-            string tiberiumPaletteName, string fileExtension, char newTheaterBuildingLetter)
-        {
-            UIName = uiName;
-            ConfigINIPath = configIniName;
-            ContentMIXName = contentMixName;
-            OptionalContentMIXName = optionalContentMixName;
-            TerrainPaletteName = paletteName;
-            UnitPaletteName = unitPaletteName;
-            TiberiumPaletteName = tiberiumPaletteName;
-            FileExtension = fileExtension;
-            NewTheaterBuildingLetter = newTheaterBuildingLetter;
-        }
-
         public string UIName { get; }
         public string ConfigINIPath { get; set; }
         public List<string> ContentMIXName { get; set; }
@@ -79,6 +64,7 @@ namespace TSMapEditor.CCEngine
         public string UnitPaletteName { get; set; }
         public string TiberiumPaletteName { get; set; }
         public string FileExtension { get; set; }
+        public string FallbackTileFileExtension { get; set; }
         public char NewTheaterBuildingLetter { get; set; }
 
         public List<string> RoughConnectToTileSets { get; set; }

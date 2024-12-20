@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using TSMapEditor.GameMath;
 using TSMapEditor.Misc;
 using TSMapEditor.Models;
-using TSMapEditor.Rendering;
 
 namespace TSMapEditor.UI.CursorActions
 {
@@ -19,43 +18,39 @@ namespace TSMapEditor.UI.CursorActions
         {
         }
 
+        private BaseNode draggedBaseNode = null;
+        private bool isDragging = false;
+
         public override string GetName() => "Manage Base Nodes";
 
         public override bool DrawCellCursor => true;
 
         public override bool HandlesKeyboardInput => true;
 
+        public override bool OnlyUniqueCellEvents => false;
+
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)
         {
             string text = "Placement actions:" + Environment.NewLine +
                 "Click on building to place a base node." + Environment.NewLine +
-                "Hold SHIFT while clicking to also delete the building." + Environment.NewLine +
+                "Hold SHIFT while clicking to also delete the source building." + Environment.NewLine +
                 "Hold CTRL while clicking to erase a base node." + Environment.NewLine + Environment.NewLine +
+                "Hold M while dragging a base node to move it." + Environment.NewLine + Environment.NewLine +
                 "Ordering actions:" + Environment.NewLine +
                 "Press E while hovering over a base node to shift it to be built earlier." + Environment.NewLine +
                 "Press D while hovering over a base node to shift it to be built later.";
 
-            DrawText(cellCoords, cameraTopLeftPoint, text, UISettings.ActiveSettings.AltColor);
-        }
+            DrawText(cellCoords, cameraTopLeftPoint, 60, -240, text, UISettings.ActiveSettings.AltColor);
 
-        private void DrawText(Point2D cellCoords, Point2D cameraTopLeftPoint, string text, Color textColor)
-        {
-            Point2D cellTopLeftPoint = CellMath.CellTopLeftPointFromCellCoords(cellCoords, CursorActionTarget.Map) - cameraTopLeftPoint;
-            cellTopLeftPoint = cellTopLeftPoint.ScaleBy(CursorActionTarget.Camera.ZoomLevel);
+            if (isDragging)
+            {
+                var source = Is2DMode ? CellMath.CellCenterPointFromCellCoords(draggedBaseNode.Position, Map) : CellMath.CellCenterPointFromCellCoords_3D(draggedBaseNode.Position, Map);
+                var destination = Is2DMode ? CellMath.CellCenterPointFromCellCoords(cellCoords, Map) : CellMath.CellCenterPointFromCellCoords_3D(cellCoords, Map);
+                source = CursorActionTarget.Camera.ScalePointWithZoom(source - cameraTopLeftPoint);
+                destination = CursorActionTarget.Camera.ScalePointWithZoom(destination - cameraTopLeftPoint);
 
-            var textDimensions = Renderer.GetTextDimensions(text, Constants.UIBoldFont);
-            int x = cellTopLeftPoint.X - (int)(textDimensions.X - Constants.CellSizeX) / 2;
-
-            Vector2 textPosition = new Vector2(x + 60, cellTopLeftPoint.Y - 200);
-            Rectangle textBackgroundRectangle = new Rectangle((int)textPosition.X - Constants.UIEmptySideSpace,
-                (int)textPosition.Y - Constants.UIEmptyTopSpace,
-                (int)textDimensions.X + Constants.UIEmptySideSpace * 2,
-                (int)textDimensions.Y + Constants.UIEmptyBottomSpace + Constants.UIEmptyTopSpace);
-
-            Renderer.FillRectangle(textBackgroundRectangle, UISettings.ActiveSettings.PanelBackgroundColor);
-            Renderer.DrawRectangle(textBackgroundRectangle, UISettings.ActiveSettings.PanelBorderColor);
-
-            Renderer.DrawStringWithShadow(text, Constants.UIBoldFont, textPosition, textColor);
+                Renderer.DrawLine(source.ToXNAVector(), destination.ToXNAVector(), Color.White);
+            }
         }
 
         public override void OnKeyPressed(KeyPressEventArgs e, Point2D cellCoords)
@@ -75,8 +70,48 @@ namespace TSMapEditor.UI.CursorActions
             }
         }
 
+        public override void LeftDown(Point2D cellCoords)
+        {
+            if (Keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.M))
+            {
+                if (!isDragging)
+                {
+                    var baseNode = GetBaseNodeFromCellCoords(cellCoords);
+                    if (baseNode != null)
+                    {
+                        StartBaseNodeDrag(baseNode);
+                    }
+                }
+            }
+            else
+            {
+                StopBaseNodeDrag();
+            }
+
+            base.LeftDown(cellCoords);
+        }
+
+        public override void LeftUpOnMouseMove(Point2D cellCoords)
+        {
+            if (isDragging && !Keyboard.IsKeyHeldDown(Microsoft.Xna.Framework.Input.Keys.M))
+            {
+                StopBaseNodeDrag();
+            }
+
+            base.LeftUpOnMouseMove(cellCoords);
+        }
+
         public override void LeftClick(Point2D cellCoords)
         {
+            if (isDragging)
+            {
+                draggedBaseNode.Position = cellCoords;
+
+                StopBaseNodeDrag();
+                CursorActionTarget.InvalidateMap();
+                return;
+            }
+
             if (Keyboard.IsCtrlHeldDown())
             {
                 DeleteBaseNode(cellCoords);
@@ -87,6 +122,18 @@ namespace TSMapEditor.UI.CursorActions
             }
 
             base.LeftClick(cellCoords);
+        }
+
+        private void StartBaseNodeDrag(BaseNode draggedBaseNode)
+        {
+            this.draggedBaseNode = draggedBaseNode;
+            isDragging = true;
+        }
+
+        private void StopBaseNodeDrag()
+        {
+            isDragging = false;
+            draggedBaseNode = null;
         }
 
         // TODO implement all these manipulations as mutations so they go through the undo/redo system
@@ -249,6 +296,21 @@ namespace TSMapEditor.UI.CursorActions
                     return;
                 }
             }
+        }
+
+        private BaseNode GetBaseNodeFromCellCoords(Point2D cellCoords)
+        {
+            foreach (House house in Map.GetHouses())
+            {
+                int index = GetBaseNodeIndexForHouse(house, cellCoords);
+
+                if (index > -1)
+                {
+                    return house.BaseNodes[index];
+                }
+            }
+
+            return null;
         }
     }
 }

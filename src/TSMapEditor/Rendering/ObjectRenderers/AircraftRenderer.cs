@@ -22,11 +22,18 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             };
         }
 
+        protected override float GetDepthAddition(Aircraft gameObject)
+        {
+            return Constants.DepthEpsilon * ObjectDepthAdjustments.Aircraft;
+        }
+
+        protected override double GetExtraLight(Aircraft gameObject) => Map.Rules.ExtraAircraftLight;
+
         protected override void Render(Aircraft gameObject, Point2D drawPoint, in CommonDrawParams drawParams)
         {
             DrawVoxelModel(gameObject, drawParams.MainVoxel,
                 gameObject.Facing, RampType.None, Color.White, true, gameObject.GetRemapColor(),
-                Constants.VoxelsAffectedByLighting, drawPoint);
+                Constants.VoxelsAffectedByLighting, drawPoint, 0f, true);
         }
     }
 }

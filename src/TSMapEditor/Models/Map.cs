@@ -1445,36 +1445,66 @@ namespace TSMapEditor.Models
         public void RegenerateInternalIds()
         {
             string idBeginning = "0100";
-            List<IIDContainer> scriptElements = new List<IIDContainer>();
+            var scriptElements = new List<IIDContainer>();
 
-            Func<IIDContainer, bool> f = (scriptElement) => scriptElement.GetInternalID().StartsWith(idBeginning);
+            bool filter(IIDContainer scriptElement) => scriptElement.GetInternalID().StartsWith(idBeginning);
 
-            var tfs = TaskForces.FindAll(tf => f(tf));
-            var scripts = Scripts.FindAll(s => f(s));
-            var teamtypes = TeamTypes.FindAll(tt => f(tt));
-            var tags = Tags.FindAll(t => f(t));
-            var triggers = Triggers.FindAll(t => f(t));
+            var tfs = TaskForces.FindAll(filter);
+            var scripts = Scripts.FindAll(filter);
+            var teamtypes = TeamTypes.FindAll(filter);
+            var tags = Tags.FindAll(filter);
+            var triggers = Triggers.FindAll(filter);
+            var aiTriggers = AITriggerTypes.FindAll(filter);
 
-            scriptElements.AddRange(TaskForces.FindAll(tf => f(tf)));
-            scriptElements.AddRange(Scripts.FindAll(s => f(s)));
-            scriptElements.AddRange(TeamTypes.FindAll(tt => f(tt)));
-            scriptElements.AddRange(Triggers.FindAll(t => f(t)));
-            scriptElements.AddRange(Tags.FindAll(t => f(t)));
+            scriptElements.AddRange(tfs);
+            scriptElements.AddRange(scripts);
+            scriptElements.AddRange(teamtypes);
+            scriptElements.AddRange(tags);
+            scriptElements.AddRange(triggers);
+            scriptElements.AddRange(aiTriggers);
             scriptElements = scriptElements.OrderBy(se => se.GetInternalID()).ToList();
 
             tfs.ForEach(tf => LoadedINI.RemoveSection(tf.ININame));
             scripts.ForEach(s => LoadedINI.RemoveSection(s.ININame));
             teamtypes.ForEach(tt => LoadedINI.RemoveSection(tt.ININame));
-            // Our map writing system takes care of the tags and triggers, no need to manually remove their INI entries
+            // Our map writing system takes care of tags, triggers, and AITriggers, no need to manually remove their INI entries
             // (they don't have sections)
 
-            // TODO implement old-ID-to-new-ID lookup table, necessary for fixing up trigger references
+            // Build dictionary of old ID to scripting element for "ID swizzling" to correct triggers' references to other scripting elements
+            var dict = new Dictionary<string, IIDContainer>();
+            scriptElements.ForEach(s => dict.Add(s.GetInternalID(), s));
 
             // Zero out the internal IDs
             scriptElements.ForEach(se => se.SetInternalID(string.Empty));
 
             // Generate new internal IDs
             scriptElements.ForEach(se => se.SetInternalID(GetNewUniqueInternalId()));
+
+            // Fix up triggers that refer to the old IDs
+            foreach (var trigger in triggers)
+            {
+                foreach (var action in trigger.Actions)
+                {
+                    for (int i = 0; i < action.Parameters.Length; i++)
+                    {
+                        if (!string.IsNullOrWhiteSpace(action.Parameters[i]) && dict.TryGetValue(action.Parameters[i], out IIDContainer element))
+                        {
+                            action.Parameters[i] = element.GetInternalID();
+                        }
+                    }
+                }
+
+                foreach (var condition in trigger.Conditions)
+                {
+                    for (int i = 0; i < condition.Parameters.Length; i++)
+                    {
+                        if (!string.IsNullOrWhiteSpace(condition.Parameters[i]) && dict.TryGetValue(condition.Parameters[i], out IIDContainer element))
+                        {
+                            condition.Parameters[i] = element.GetInternalID();
+                        }
+                    }
+                }
+            }
         }
 
         public void InitializeRules(GameConfigINIFiles gameConfigINIFiles)
@@ -1864,7 +1894,7 @@ namespace TSMapEditor.Models
                     {
                         if (triggerActionType.Parameters[i].TriggerParamType == TriggerParamType.TeamType)
                         {
-                            if (!TeamTypes.Exists(tt => tt.ININame == action.Parameters[i]))
+                            if (!TeamTypes.Exists(tt => tt.ININame == action.Parameters[i]) && !Rules.TeamTypes.Exists(tt => tt.ININame == action.Parameters[i]))
                             {
                                 issueList.Add($"Trigger '{trigger.Name}' has a nonexistent TeamType specified as a parameter for one or more of its actions.");
                                 break;
@@ -1872,6 +1902,39 @@ namespace TSMapEditor.Models
                         }
                     }
                 }
+            }
+
+            var houseTypes = GetHouseTypes();
+
+            // Check for invalid HouseType parameter values in triggers
+            foreach (var trigger in Triggers)
+            {
+                foreach (var action in trigger.Actions)
+                {
+                    if (!EditorConfig.TriggerActionTypes.TryGetValue(action.ActionIndex, out var triggerActionType))
+                        continue;
+
+                    for (int i = 0; i < triggerActionType.Parameters.Length; i++)
+                    {
+                        if (triggerActionType.Parameters[i].TriggerParamType == TriggerParamType.HouseType)
+                        {
+                            int paramAsInt = Conversions.IntFromString(action.Parameters[i], -1);
+
+                            if (!houseTypes.Exists(ht => ht.Index == paramAsInt))
+                            {
+                                issueList.Add($"Trigger '{trigger.Name}' has a nonexistent HouseType specified as a parameter for one or more of its actions.");
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check for triggers having invalid owners
+            foreach (var trigger in Triggers)
+            {
+                if (!houseTypes.Exists(ht => trigger.HouseType == ht.ININame))
+                    issueList.Add($"Trigger '{trigger.Name}' has a nonexistent HouseType '{trigger.HouseType}' specified as its owner.");
             }
 
             // Check for triggers having too many actions. This can cause a crash because the game's buffer for parsing trigger actions

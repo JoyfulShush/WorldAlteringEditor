@@ -1089,7 +1089,7 @@ namespace TSMapEditor.Initialization
                 var color = map.Rules.Colors.Find(c => c.Name == houseType.Color);
                 if (color == null)
                 {
-                    houseType.XNAColor = Color.Black;
+                    houseType.XNAColor = Color.White;
                 }
                 else
                 {

@@ -164,6 +164,7 @@ namespace TSMapEditor.Rendering
 
             if (pngTexture != null && !remapable)
             {
+                IsPNG = true;
                 Frames = new PositionedTexture[] { pngTexture };
                 return;
             }
@@ -198,6 +199,8 @@ namespace TSMapEditor.Rendering
         private GraphicsDevice graphicsDevice;
 
         public bool SubjectToLighting { get; }
+
+        public bool IsPNG { get; }
 
         public int GetFrameCount() => Frames.Length;
 
@@ -516,7 +519,17 @@ namespace TSMapEditor.Rendering
                             baseName = baseName + ((char)('a' + (v - 1)));
                         }
 
-                        byte[] data = fileManager.LoadFile(baseName + Theater.FileExtension);
+                        string fileName = baseName + Theater.FileExtension;
+                        byte[] data = fileManager.LoadFile(fileName);
+
+                        if (data == null && !string.IsNullOrWhiteSpace(Theater.FallbackTileFileExtension))
+                        {
+                            // Support for FA2 NEWURBAN hack. FA2 Marble.mix does not contain Marble Madness graphics for NEWURBAN, only URBAN.
+                            // To allow Marble Madness to work in NEWURBAN, FA2 also loads .urb files for NEWURBAN.
+                            // We must do the same at least for now.
+                            fileName = baseName + Theater.FallbackTileFileExtension;
+                            data = fileManager.LoadFile(fileName);
+                        }
 
                         if (data == null)
                         {
@@ -531,7 +544,7 @@ namespace TSMapEditor.Rendering
                             }
                         }
 
-                        var tmpFile = new TmpFile();
+                        var tmpFile = new TmpFile(fileName);
                         tmpFile.ParseFromBuffer(data);
 
                         var tmpImages = new List<MGTMPImage>();
