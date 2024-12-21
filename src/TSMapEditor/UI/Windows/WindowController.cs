@@ -8,6 +8,7 @@ using TSMapEditor.Rendering;
 using TSMapEditor.UI.Controls;
 using TSMapEditor.UI.Notifications;
 using TSMapEditor.UI.Windows.MainMenuWindows;
+using TSMapEditor.UI.Windows.TeamCreationWizard;
 using TSMapEditor.UI.Windows.TerrainGenerator;
 
 namespace TSMapEditor.UI.Windows
@@ -41,6 +42,10 @@ namespace TSMapEditor.UI.Windows
         public TeamTypesWindow TeamTypesWindow { get; private set; }
         public TriggersWindow TriggersWindow { get; private set; }
         public AITriggersWindow AITriggersWindow { get; private set; }
+        public GeneralSettingsWizardStepWindow GeneralSettingsWizardStepWindow { get; private set; }
+        public TaskForceWizardStepWindow TaskForceWizardStepWindow { get; private set; }
+        public ScriptWizardStepWindow ScriptWizardStepWindow { get; private set; }
+        public TeamTypesWizardStepWindow TeamTypesWizardStepWindow { get; private set; }
         public PlaceWaypointWindow PlaceWaypointWindow { get; private set; }
         public LocalVariablesWindow LocalVariablesWindow { get; private set; }
         public StructureOptionsWindow StructureOptionsWindow { get; private set; }
@@ -121,6 +126,18 @@ namespace TSMapEditor.UI.Windows
 
             AITriggersWindow = new AITriggersWindow(windowParentControl.WindowManager, map);
             Windows.Add(AITriggersWindow);
+
+            GeneralSettingsWizardStepWindow = new GeneralSettingsWizardStepWindow(windowParentControl.WindowManager, map);
+            Windows.Add(GeneralSettingsWizardStepWindow);
+
+            TaskForceWizardStepWindow = new TaskForceWizardStepWindow(windowParentControl.WindowManager, map);
+            Windows.Add(TaskForceWizardStepWindow);
+
+            ScriptWizardStepWindow = new ScriptWizardStepWindow(windowParentControl.WindowManager, map);
+            Windows.Add(ScriptWizardStepWindow);
+
+            TeamTypesWizardStepWindow = new TeamTypesWizardStepWindow(windowParentControl.WindowManager, map);
+            Windows.Add(TeamTypesWizardStepWindow);
 
             PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
             Windows.Add(PlaceWaypointWindow);
@@ -216,6 +233,11 @@ namespace TSMapEditor.UI.Windows
             InfantryOptionsWindow.TagOpened += Window_TagOpened;
             AircraftOptionsWindow.TagOpened += Window_TagOpened;
 
+            GeneralSettingsWizardStepWindow.TaskForceWizardStepOpened += GeneralSettingsWizardStepWindow_TaskForceWizardStepOpened;
+            TaskForceWizardStepWindow.ScriptsWizardStepOpened += TaskForceWizardStepWindow_ScriptsWizardStepOpened;
+            ScriptWizardStepWindow.ScriptsWindowOpened += ScriptWizardStepWindow_ScriptsWindowOpened;
+            ScriptWizardStepWindow.TeamTypeWizardStepOpened += ScriptWizardStepWindow_TeamTypeWizardStepOpened;
+
             foreach (var window in Windows)
             {
                 window.DrawOrder = ChildWindowOrderValue;
@@ -287,6 +309,29 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.SelectTeamType(e.TeamType);
         }
 
+        private void GeneralSettingsWizardStepWindow_TaskForceWizardStepOpened(object sender, TaskForcesWizardStepEventArgs e)
+        {
+            TaskForceWizardStepWindow.WizardConfigurations = e.WizardConfigurations;
+            TaskForceWizardStepWindow.Open();
+        }
+
+        private void TaskForceWizardStepWindow_ScriptsWizardStepOpened(object sender, ScriptWizardStepEventArgs e)
+        {
+            ScriptWizardStepWindow.WizardConfigurations = e.WizardConfigurations;
+            ScriptWizardStepWindow.Open();
+        }
+
+        private void ScriptWizardStepWindow_ScriptsWindowOpened(object sender, ScriptWindowEventArgs e)
+        {
+            ScriptsWindow.Open();
+        }
+
+        private void ScriptWizardStepWindow_TeamTypeWizardStepOpened(object sender, TeamTypeWizardStepEventArgs e)
+        {
+            TeamTypesWizardStepWindow.WizardConfigurations = e.WizardConfigurations;
+            TeamTypesWizardStepWindow.Open();
+        }
+
         private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);
 
         private void ClearFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
@@ -312,6 +357,8 @@ namespace TSMapEditor.UI.Windows
             VehicleOptionsWindow.TagOpened -= Window_TagOpened;
             InfantryOptionsWindow.TagOpened -= Window_TagOpened;
             MapSizeWindow.OnResizeMapButtonClicked -= MapSizeWindow_OnResizeMapButtonClicked;
+
+            GeneralSettingsWizardStepWindow.TaskForceWizardStepOpened -= GeneralSettingsWizardStepWindow_TaskForceWizardStepOpened;
 
             foreach (var window in Windows)
             {
