@@ -165,7 +165,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                     finalTeamName = teamName + " " + difficultyName;
                 }
 
-                var teamCreationWizardConfiguration = new TeamCreationWizardConfiguration(finalTeamName, difficulty, houseType, editorColor);
+                var teamCreationWizardConfiguration = new TeamCreationWizardConfiguration(map, finalTeamName, difficulty, houseType, editorColor);
                 teamCreationWizardConfiguration.ShouldIncludeAITriggers = shouldIncludeAITriggers;
                 wizardConfigurations.Add(teamCreationWizardConfiguration);
             }

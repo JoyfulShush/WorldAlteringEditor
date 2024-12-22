@@ -233,10 +233,24 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
         }
 
         private void BtnFinish_LeftClick(object sender, EventArgs e)
-        {
-            // TODO: implement. No need for validations - team types are valid from the get go
+        {            
+            bool ShouldIncludeAITriggers = WizardConfigurations[0].ShouldIncludeAITriggers;
+
             // check if AI Triggers should be created, if so move to next page
             // otherwise finish and trigger the logic
+            if (ShouldIncludeAITriggers)
+            {
+                // TODO: create AI trigger window and trigger event to open it
+            }
+            else
+            {
+                foreach (var wizardConfiguration in WizardConfigurations)
+                {
+                    wizardConfiguration.ProcessConfiguration();
+                }
+            }
+
+            Hide();
         }
 
         private void BtnApplyTeamTypesOtherDiffs_LeftClick(object sender, EventArgs e)

@@ -1,13 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using TSMapEditor.Initialization;
 using TSMapEditor.Misc;
+using TSMapEditor.UI.Windows;
 
 namespace TSMapEditor.Models
 {
     public class TeamCreationWizardConfiguration
     {
-        public TeamCreationWizardConfiguration(string name, Difficulty difficulty, HouseType houseType, string color)
+        public TeamCreationWizardConfiguration(Map map, string name, Difficulty difficulty, HouseType houseType, string color)
         {
+            this.map = map;
             Name = name;
             Difficulty = difficulty;
             HouseType = houseType;
@@ -17,6 +20,7 @@ namespace TSMapEditor.Models
             TeamType = new TeamType(name);
         }
 
+        private readonly Map map;
         public string Name { get; set; }
         public Difficulty Difficulty { get; set; }
         public HouseType HouseType { get; set; }
@@ -59,5 +63,41 @@ namespace TSMapEditor.Models
 
             return Helpers.GetHouseTypeUITextColor(HouseType);
         }
+
+        public void ProcessConfiguration()
+        {            
+            CreateTaskForce();
+            CreateTeamType();
+
+            if (ShouldIncludeAITriggers)
+            {                
+                CreateAITrigger();
+            }
+        }
+
+        private void CreateTaskForce()
+        {
+            TaskForce = TaskForce.Clone(map.GetNewUniqueInternalId());
+            TaskForce.Name = Name;
+
+            map.TaskForces.Add(TaskForce);
+        }
+
+        private void CreateTeamType()
+        {
+            TeamType = TeamType.Clone(map.GetNewUniqueInternalId());
+            TeamType.Name = Name;
+            TeamType.EditorColor = EditorColor;
+            TeamType.HouseType = HouseType;
+            TeamType.TaskForce = TaskForce;
+            TeamType.Script = Script;
+
+            map.TeamTypes.Add(TeamType);
+        }
+
+        private void CreateAITrigger()
+        { 
+
+        }        
     }
 }
