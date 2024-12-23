@@ -969,8 +969,9 @@ namespace TSMapEditor.Rendering
 
             // Base nodes can be large, let's increase the level of padding for them.
             int padding = Constants.RenderPixelPadding * 2;
-            if (Camera.TopLeftPoint.X > drawPoint.X + padding || Camera.TopLeftPoint.Y > drawPoint.Y + padding ||
-                GetCameraRightXCoord() < drawPoint.X - padding || GetCameraBottomYCoord() < drawPoint.Y - padding)
+            if (MinimapUsers.Count == 0 &&
+                (Camera.TopLeftPoint.X > drawPoint.X + padding || Camera.TopLeftPoint.Y > drawPoint.Y + padding ||
+                GetCameraRightXCoord() < drawPoint.X - padding || GetCameraBottomYCoord() < drawPoint.Y - padding))
             {
                 return;
             }
@@ -1069,10 +1070,11 @@ namespace TSMapEditor.Rendering
             if (cell != null && !EditorState.Is2DMode)
                 drawPoint -= new Point2D(0, cell.Level * Constants.CellHeight);
 
-            if (Camera.TopLeftPoint.X > drawPoint.X + EditorGraphics.TileBorderTexture.Width ||
+            if (MinimapUsers.Count == 0 &&
+                (Camera.TopLeftPoint.X > drawPoint.X + EditorGraphics.TileBorderTexture.Width ||
                 Camera.TopLeftPoint.Y > drawPoint.Y + EditorGraphics.TileBorderTexture.Height ||
                 GetCameraRightXCoord() < drawPoint.X ||
-                GetCameraBottomYCoord() < drawPoint.Y)
+                GetCameraBottomYCoord() < drawPoint.Y))
             {
                 // This waypoint is outside the camera
                 return;
