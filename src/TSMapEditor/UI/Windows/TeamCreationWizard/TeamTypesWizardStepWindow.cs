@@ -8,6 +8,16 @@ using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows.TeamCreationWizard
 {
+    public class AITriggersWizardStepEventArgs : EventArgs
+    {
+        public AITriggersWizardStepEventArgs(List<TeamCreationWizardConfiguration> wizardConfigurations)
+        {
+            WizardConfigurations = wizardConfigurations;
+        }
+
+        public List<TeamCreationWizardConfiguration> WizardConfigurations { get; }
+    }
+
     public class TeamTypesWizardStepWindow : INItializableWindow
     {
         public TeamTypesWizardStepWindow(WindowManager windowManager, Map map) : base(windowManager)
@@ -18,6 +28,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
         private readonly Map map;
 
         public event EventHandler<TagEventArgs> TagOpened;
+        public event EventHandler<AITriggersWizardStepEventArgs> AITriggersWizardStepWindowOpened;
 
         public List<TeamCreationWizardConfiguration> WizardConfigurations { get; set; }
         private TeamCreationWizardConfiguration currentWizardConfiguration;
@@ -117,6 +128,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             EditTeamType(currentWizardConfiguration.TeamType);
         }
+
         private void SelectionWindow_ApplyEffect<T>(Action<T> action, T window)
         {
             if (!IsCurrentTeamTypeExists())            
@@ -235,12 +247,10 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
         private void BtnFinish_LeftClick(object sender, EventArgs e)
         {            
             bool ShouldIncludeAITriggers = WizardConfigurations[0].ShouldIncludeAITriggers;
-
-            // check if AI Triggers should be created, if so move to next page
-            // otherwise finish and trigger the logic
+            
             if (ShouldIncludeAITriggers)
             {
-                // TODO: create AI trigger window and trigger event to open it
+                OpenAITriggersWizardStep();
             }
             else
             {
@@ -347,6 +357,12 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
         {
             bool shouldIncludeAITriggers = WizardConfigurations[0].ShouldIncludeAITriggers;
             btnFinish.Text = shouldIncludeAITriggers ? "Next" : "Finish";
+        }
+
+        private void OpenAITriggersWizardStep()
+        {
+            AITriggersWizardStepWindowOpened?.Invoke(this, new AITriggersWizardStepEventArgs(WizardConfigurations));
+            Hide();
         }
 
         public void ResetForms()

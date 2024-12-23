@@ -46,6 +46,7 @@ namespace TSMapEditor.UI.Windows
         public TaskForceWizardStepWindow TaskForceWizardStepWindow { get; private set; }
         public ScriptWizardStepWindow ScriptWizardStepWindow { get; private set; }
         public TeamTypesWizardStepWindow TeamTypesWizardStepWindow { get; private set; }
+        public AITriggersWizardStepWindow AITriggersWizardStepWindow { get; private set; }
         public PlaceWaypointWindow PlaceWaypointWindow { get; private set; }
         public LocalVariablesWindow LocalVariablesWindow { get; private set; }
         public StructureOptionsWindow StructureOptionsWindow { get; private set; }
@@ -138,6 +139,9 @@ namespace TSMapEditor.UI.Windows
 
             TeamTypesWizardStepWindow = new TeamTypesWizardStepWindow(windowParentControl.WindowManager, map);
             Windows.Add(TeamTypesWizardStepWindow);
+
+            AITriggersWizardStepWindow = new AITriggersWizardStepWindow(windowParentControl.WindowManager, map);
+            Windows.Add(AITriggersWizardStepWindow);            
 
             PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
             Windows.Add(PlaceWaypointWindow);
@@ -237,6 +241,7 @@ namespace TSMapEditor.UI.Windows
             TaskForceWizardStepWindow.ScriptsWizardStepOpened += TaskForceWizardStepWindow_ScriptsWizardStepOpened;
             ScriptWizardStepWindow.ScriptsWindowOpened += ScriptWizardStepWindow_ScriptsWindowOpened;
             ScriptWizardStepWindow.TeamTypeWizardStepOpened += ScriptWizardStepWindow_TeamTypeWizardStepOpened;
+            TeamTypesWizardStepWindow.AITriggersWizardStepWindowOpened += TeamTypesWizardStepWindow_AITriggersWizardStepWindowOpened;
 
             foreach (var window in Windows)
             {
@@ -330,6 +335,12 @@ namespace TSMapEditor.UI.Windows
         {
             TeamTypesWizardStepWindow.WizardConfigurations = e.WizardConfigurations;
             TeamTypesWizardStepWindow.Open();
+        }
+
+        private void TeamTypesWizardStepWindow_AITriggersWizardStepWindowOpened(object sender, AITriggersWizardStepEventArgs e)
+        {
+            AITriggersWizardStepWindow.WizardConfigurations = e.WizardConfigurations;
+            AITriggersWizardStepWindow.Open();
         }
 
         private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);

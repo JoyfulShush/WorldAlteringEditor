@@ -27,6 +27,8 @@ namespace TSMapEditor.Models
         public TaskForce TaskForce { get; set; }        
         public Script Script { get; set; }
         public TeamType TeamType { get; set; }
+        
+        public AITriggerType AITriggerType { get; set; }
         public bool ShouldIncludeAITriggers = false;
 
         public static NamedColor[] SupportedColors => NamedColors.GenericSupportedNamedColors;
@@ -65,19 +67,19 @@ namespace TSMapEditor.Models
         }
 
         public void ProcessConfiguration()
-        {            
+        {
             CreateTaskForce();
             CreateTeamType();
 
             if (ShouldIncludeAITriggers)
-            {                
+            {
                 CreateAITrigger();
             }
         }
 
         private void CreateTaskForce()
         {
-            TaskForce = TaskForce.Clone(map.GetNewUniqueInternalId());
+            TaskForce.SetInternalID(map.GetNewUniqueInternalId());
             TaskForce.Name = Name;
 
             map.TaskForces.Add(TaskForce);
@@ -85,7 +87,7 @@ namespace TSMapEditor.Models
 
         private void CreateTeamType()
         {
-            TeamType = TeamType.Clone(map.GetNewUniqueInternalId());
+            TeamType.SetInternalID(map.GetNewUniqueInternalId());
             TeamType.Name = Name;
             TeamType.EditorColor = EditorColor;
             TeamType.HouseType = HouseType;
@@ -96,8 +98,30 @@ namespace TSMapEditor.Models
         }
 
         private void CreateAITrigger()
-        { 
-
-        }        
+        {
+            AITriggerType.SetInternalID(map.GetNewUniqueInternalId());
+            AITriggerType.Name = Name;
+            AITriggerType.PrimaryTeam = TeamType;
+            AITriggerType.OwnerName = HouseType.ININame;
+            AITriggerType.Side = map.Rules.Sides.FindIndex(side => side == HouseType.Side);
+            if (Difficulty == Difficulty.Easy)
+            {
+                AITriggerType.Easy = true;
+                AITriggerType.Medium = false;
+                AITriggerType.Hard = false;
+            }
+            else if (Difficulty == Difficulty.Medium)
+            {
+                AITriggerType.Easy = false;
+                AITriggerType.Medium = true;
+                AITriggerType.Hard = false;
+            }
+            else
+            {
+                AITriggerType.Easy = false;
+                AITriggerType.Medium = false;
+                AITriggerType.Hard = true;
+            }
+        }
     }
 }

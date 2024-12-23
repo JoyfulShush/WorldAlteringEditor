@@ -87,11 +87,11 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             chkCreateHard.Checked = true;
             ddHouse.SelectedIndex = 0;
             ddColor.SelectedIndex = 0;
+            chkAddAITriggers.Checked = false;
         }
 
         private void BtnNext_LeftClick(object sender, EventArgs e)
-        {
-            // Gather information
+        {            
             string teamName = tbTeamName.Text;
             bool createEasyDiff = chkCreateEasy.Checked;
             bool createMediumDiff = chkCreateMedium.Checked;
