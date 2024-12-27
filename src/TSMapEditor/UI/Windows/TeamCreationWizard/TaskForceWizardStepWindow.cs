@@ -142,7 +142,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             var taskForce = currentWizardConfiguration.TaskForce;
             taskForce.RemoveTechnoEntry(lbUnitEntries.SelectedIndex);
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
         }
 
         private void BtnAddUnit_LeftClick(object sender, System.EventArgs e)
@@ -162,11 +162,11 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                     TechnoType = (TechnoType)lbUnitType.Items[0].Tag
                 });
 
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.SelectedIndex = lbUnitEntries.Items.Count - 1;
         }
 
-        private void EditTaskForce(TaskForce taskForce)
+        private void EditTaskForce(TaskForce taskForce, bool markTaskForceEdited)
         {
             RefreshTaskForceCost();
 
@@ -199,6 +199,11 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             else
             {
                 LbUnitEntries_SelectedIndexChanged(this, EventArgs.Empty);
+            }
+
+            if (markTaskForceEdited)
+            {
+                currentWizardConfiguration.EditedTaskForce = true;
             }
         }
 
@@ -337,7 +342,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             int viewTop = lbUnitEntries.ViewTop;
             taskForce.TechnoTypes.Swap(lbUnitEntries.SelectedIndex - 1, lbUnitEntries.SelectedIndex);
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.SelectedIndex--;
             lbUnitEntries.ViewTop = viewTop;
         }
@@ -351,7 +356,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             int viewTop = lbUnitEntries.ViewTop;
             taskForce.TechnoTypes.Swap(lbUnitEntries.SelectedIndex, lbUnitEntries.SelectedIndex + 1);
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.SelectedIndex++;
             lbUnitEntries.ViewTop = viewTop;
         }
@@ -370,7 +375,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             var clonedEntry = taskForce.TechnoTypes[lbUnitEntries.SelectedIndex].Clone();
             taskForce.InsertTechnoEntry(newIndex, clonedEntry);
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.SelectedIndex = newIndex;
             lbUnitEntries.ViewTop = viewTop;
         }
@@ -392,7 +397,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                     TechnoType = (TechnoType)lbUnitType.Items[0].Tag
                 });
 
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.SelectedIndex = newIndex;
             lbUnitEntries.ViewTop = viewTop;
         }
@@ -406,7 +411,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             int viewTop = lbUnitEntries.ViewTop;
             taskForce.RemoveTechnoEntry(lbUnitEntries.SelectedIndex);
-            EditTaskForce(taskForce);
+            EditTaskForce(taskForce, true);
             lbUnitEntries.ViewTop = viewTop;
         }
 
@@ -425,7 +430,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             currentWizardConfiguration = selectedWizardConfiguration;
 
-            EditTaskForce(currentWizardConfiguration.TaskForce);
+            EditTaskForce(currentWizardConfiguration.TaskForce, false);
         }
 
         private void TbGroup_TextChanged(object sender, EventArgs e)
@@ -440,6 +445,60 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             if (!IsCurrentTaskForceExists())
                 return;
 
+            if (WizardConfigurations.Count <= 1)
+            {
+                EditorMessageBox.Show(WindowManager, "No Difficulties", "There are no other difficulties to clone to. Aborting.", MessageBoxButtons.OK);
+                return;
+            }
+
+            if (!currentWizardConfiguration.EditedTaskForce)
+            {
+                EditorMessageBox.Show(WindowManager, "No Configuration to Clone", "This TaskForce is not edited, and cannot be cloned to other difficulties.", MessageBoxButtons.OK);
+                return;
+            }                
+            
+            bool hasOtherEditedTaskForces = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration && 
+                wizardConfiguration.EditedTaskForce == true);
+
+            bool hasOtherUneditedTaskForces = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration &&
+                wizardConfiguration.EditedTaskForce == false);
+
+            if (hasOtherEditedTaskForces)
+            {
+                string description = hasOtherUneditedTaskForces ?
+                    "There are other difficulties that have edited TaskForces. Should this clone operation skip those difficulties?" + Environment.NewLine +
+                    "Press 'Yes' to only clone to difficulties with unedited TaskForces, or 'No' to clone to all other difficulties." :
+
+                    "All other difficulties has edited TaskForces. Are you sure you want to continue?";
+
+                var result = EditorMessageBox.Show(WindowManager, "Existing Configurations Found", description, MessageBoxButtons.YesNo);
+                result.YesClickedAction = _ =>
+                {
+                    if (hasOtherUneditedTaskForces)
+                    {
+                        ApplyClone(true);
+                    }
+                    else
+                    {
+                        ApplyClone(false);
+                    }
+                };
+                
+                if (hasOtherUneditedTaskForces)
+                {
+                    result.NoClickedAction = _ => ApplyClone(false);
+                }
+            }
+            else
+            {
+                ApplyClone(true);
+            }
+        }
+
+        private void ApplyClone(bool skipEditedConfigurations)
+        {
             var taskForce = currentWizardConfiguration.TaskForce;
 
             foreach (var wizardConfiguration in WizardConfigurations)
@@ -447,11 +506,18 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 if (currentWizardConfiguration == wizardConfiguration)
                     continue;
 
-                wizardConfiguration.TaskForce = taskForce.Clone(wizardConfiguration.Name);
-                wizardConfiguration.TaskForce.Name = wizardConfiguration.Name;
+                if (skipEditedConfigurations && wizardConfiguration.EditedTaskForce)
+                    continue;
+
+                wizardConfiguration.TaskForce = taskForce.Clone(wizardConfiguration.FullName);
+                wizardConfiguration.TaskForce.Name = wizardConfiguration.FullName;
+                wizardConfiguration.EditedTaskForce = true;
             }
 
-            EditorMessageBox.Show(WindowManager, "Clone successful", "Applied the current TaskForce to the other difficulties successfully.", MessageBoxButtons.OK);
+            string relevantDifficultiesString = skipEditedConfigurations ?
+                "to difficulties with unedited TaskForces" :
+                "to all other difficulties";
+            EditorMessageBox.Show(WindowManager, "Application successful", $"Applied the current TaskForce {relevantDifficultiesString} successfully.", MessageBoxButtons.OK);
         }
 
         private void BtnNext_LeftClick(object sender, EventArgs e)

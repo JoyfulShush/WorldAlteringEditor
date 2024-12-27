@@ -138,10 +138,10 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             currentWizardConfiguration = selectedWizardConfiguration;
 
-            UpdateScriptFields(currentWizardConfiguration.Script);
+            UpdateScriptFields(currentWizardConfiguration.Script, false);
         }
 
-        private void UpdateScriptFields(Script script)
+        private void UpdateScriptFields(Script script, bool markScriptAsEdited)
         {
             ClearScriptFields();
             ListScripts();
@@ -170,6 +170,11 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                     Text = GetActionEntryText(i, actionEntry),
                     Tag = actionEntry
                 });
+            }
+
+            if (markScriptAsEdited)
+            {
+                currentWizardConfiguration.EditedScript = true;
             }
         }
 
@@ -234,7 +239,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 }
             }
 
-            UpdateScriptFields(currentWizardConfiguration.Script);
+            UpdateScriptFields(currentWizardConfiguration.Script, true);
         }
         private bool IsCurrentScriptExists()
         {
@@ -253,7 +258,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
         private void BtnRefresh_LeftClick(object sender, EventArgs e)
         {            
-            UpdateScriptFields(currentWizardConfiguration.Script);
+            UpdateScriptFields(currentWizardConfiguration.Script, true);
         }
 
         private void BtnNext_LeftClick(object sender, EventArgs e)
@@ -278,20 +283,82 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
         private void BtnApplyScriptOtherDiffs_LeftClick(object sender, EventArgs e)
         {
-            if (!IsCurrentScriptExists())
+            if (currentWizardConfiguration == null)
                 return;
 
+            if (WizardConfigurations.Count <= 1)
+            {
+                EditorMessageBox.Show(WindowManager, "No Difficulties", "There are no other difficulties to clone to. Aborting.", MessageBoxButtons.OK);
+                return;
+            }
+
+            if (!currentWizardConfiguration.EditedScript)
+            {
+                EditorMessageBox.Show(WindowManager, "No Configuration to Clone", "This Script configuration is not edited, and cannot be cloned to other difficulties.", MessageBoxButtons.OK);
+                return;
+            }
+
+            bool hasOtherEditedScriptConfigurations = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration &&
+                wizardConfiguration.EditedScript == true);
+
+            bool hasOtherUneditedScriptConfigurations = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration &&
+                wizardConfiguration.EditedScript == false);
+
+            if (hasOtherEditedScriptConfigurations)
+            {
+                string description = hasOtherUneditedScriptConfigurations ?
+                    "There are other difficulties that have edited script configurations. Should this clone operation skip those difficulties?" + Environment.NewLine +
+                    "Press 'Yes' to only clone to difficulties with unedited script configurations, or 'No' to clone to all other difficulties." :
+
+                    "All other difficulties has edited script configurations. Are you sure you want to continue?";
+
+                var result = EditorMessageBox.Show(WindowManager, "Existing Configurations Found", description, MessageBoxButtons.YesNo);
+                result.YesClickedAction = _ =>
+                {
+                    if (hasOtherUneditedScriptConfigurations)
+                    {
+                        ApplyClone(true);
+                    }
+                    else
+                    {
+                        ApplyClone(false);
+                    }
+                };
+
+                if (hasOtherUneditedScriptConfigurations)
+                {
+                    result.NoClickedAction = _ => ApplyClone(false);
+                }
+            }
+            else
+            {
+                ApplyClone(true);
+            }            
+        }     
+
+        private void ApplyClone(bool skipEditedConfigurations)
+        {            
             var script = currentWizardConfiguration.Script;
             foreach (var wizardConfiguration in WizardConfigurations)
             {
                 if (wizardConfiguration == currentWizardConfiguration)
                     continue;
 
-                wizardConfiguration.Script = script;
-            }
+                if (skipEditedConfigurations && wizardConfiguration.EditedScript)
+                    continue;
 
-            EditorMessageBox.Show(WindowManager, "Script applied successfully", $"Script '{script.Name}' was successfully applied to all other difficulties.", MessageBoxButtons.OK);
+                wizardConfiguration.Script = script;
+                wizardConfiguration.EditedScript = true;
+            }            
+
+            string relevantDifficultiesString = skipEditedConfigurations ?
+                "to difficulties with unedited script configurations" :
+                "to all other difficulties";
+            EditorMessageBox.Show(WindowManager, "Script configuration applied successfully", $"Script '{script.Name}' was applied {relevantDifficultiesString} successfully.", MessageBoxButtons.OK);
         }
+
         private bool ValidateScriptInMapEntries(Script script)
         {
             var mapEntryScript = map.Scripts.Find(mapScript => mapScript == script);

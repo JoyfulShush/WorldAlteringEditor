@@ -2,7 +2,6 @@
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
 using TSMapEditor.Models;
 using TSMapEditor.UI.Controls;
 
@@ -96,7 +95,16 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
         }
         private void ClearTeamTypeFields()
-        {
+        {            
+            ddVeteranLevel.SelectedIndexChanged -= DdVeteranLevel_SelectedIndexChanged;
+            tbPriority.TextChanged -= TbPriority_TextChanged;
+            tbMax.TextChanged -= TbMax_TextChanged;
+            tbTechLevel.TextChanged -= TbTechLevel_TextChanged;
+            ddMindControlDecision.SelectedIndexChanged -= DdMindControlDecision_SelectedIndexChanged;
+            tbGroup.TextChanged -= TbGroup_TextChanged;
+            tbWaypoint.TextChanged -= TbWaypoint_TextChanged;
+            tbTransportWaypoint.TextChanged -= TbTransportWaypoint_TextChanged;
+
             ddVeteranLevel.SelectedIndex = 0;
             tbPriority.Text = string.Empty;
             tbMax.Text = string.Empty;
@@ -107,6 +115,15 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             selTag.Text = string.Empty;
             selTag.Tag = null;
             tbTransportWaypoint.Text = string.Empty;
+         
+            ddVeteranLevel.SelectedIndexChanged += DdVeteranLevel_SelectedIndexChanged;
+            tbPriority.TextChanged += TbPriority_TextChanged;
+            tbMax.TextChanged += TbMax_TextChanged;
+            tbTechLevel.TextChanged += TbTechLevel_TextChanged;
+            ddMindControlDecision.SelectedIndexChanged += DdMindControlDecision_SelectedIndexChanged;
+            tbGroup.TextChanged += TbGroup_TextChanged;
+            tbWaypoint.TextChanged += TbWaypoint_TextChanged;
+            tbTransportWaypoint.TextChanged += TbTransportWaypoint_TextChanged;
 
             checkBoxes.ForEach(checkBoxes => checkBoxes.Checked = false);
         }
@@ -126,7 +143,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
 
             currentWizardConfiguration = selectedWizardConfiguration;
 
-            EditTeamType(currentWizardConfiguration.TeamType);
+            EditTeamType(currentWizardConfiguration.TeamType, false);
         }
 
         private void SelectionWindow_ApplyEffect<T>(Action<T> action, T window)
@@ -136,17 +153,26 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             
 
             action(window);
-            EditTeamType(currentWizardConfiguration.TeamType);
+            EditTeamType(currentWizardConfiguration.TeamType, true);
         }
 
-        private void EditTeamType(TeamType teamType)
+        private void EditTeamType(TeamType teamType, bool markTeamTypeAsEdited)
         {
             if (teamType == null)
             {
                 ClearTeamTypeFields();
                 return;
             }
-            
+
+            ddVeteranLevel.SelectedIndexChanged -= DdVeteranLevel_SelectedIndexChanged;
+            tbPriority.TextChanged -= TbPriority_TextChanged;
+            tbMax.TextChanged -= TbMax_TextChanged;
+            tbTechLevel.TextChanged -= TbTechLevel_TextChanged;
+            ddMindControlDecision.SelectedIndexChanged -= DdMindControlDecision_SelectedIndexChanged;
+            tbGroup.TextChanged -= TbGroup_TextChanged;
+            tbWaypoint.TextChanged -= TbWaypoint_TextChanged;
+            tbTransportWaypoint.TextChanged -= TbTransportWaypoint_TextChanged;
+
             ddVeteranLevel.SelectedIndex = teamType.VeteranLevel - 1;
             tbPriority.Value = teamType.Priority;
             tbMax.Value = teamType.Max;
@@ -166,6 +192,20 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 selTag.Text = string.Empty;
 
             checkBoxes.ForEach(chk => chk.Checked = teamType.IsFlagEnabled((string)chk.Tag));
+
+            if (markTeamTypeAsEdited)
+            {
+                currentWizardConfiguration.EditedTeamType = true;
+            }
+
+            ddVeteranLevel.SelectedIndexChanged += DdVeteranLevel_SelectedIndexChanged;
+            tbPriority.TextChanged += TbPriority_TextChanged;
+            tbMax.TextChanged += TbMax_TextChanged;
+            tbTechLevel.TextChanged += TbTechLevel_TextChanged;
+            ddMindControlDecision.SelectedIndexChanged += DdMindControlDecision_SelectedIndexChanged;
+            tbGroup.TextChanged += TbGroup_TextChanged;
+            tbWaypoint.TextChanged += TbWaypoint_TextChanged;
+            tbTransportWaypoint.TextChanged += TbTransportWaypoint_TextChanged;
         }
 
         private void DdVeteranLevel_SelectedIndexChanged(object sender, EventArgs e)
@@ -174,6 +214,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.VeteranLevel = ddVeteranLevel.SelectedIndex + 1;
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void TbPriority_TextChanged(object sender, EventArgs e)
@@ -182,6 +223,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.Priority = tbPriority.Value;
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void TbMax_TextChanged(object sender, EventArgs e)
@@ -190,6 +232,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.Max = tbMax.Value;
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void TbTechLevel_TextChanged(object sender, EventArgs e)
@@ -198,6 +241,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.TechLevel = tbTechLevel.Value;
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void DdMindControlDecision_SelectedIndexChanged(object sender, EventArgs e)
@@ -205,6 +249,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             if (Constants.IsRA2YR && IsCurrentTeamTypeExists())
             {
                 currentWizardConfiguration.TeamType.MindControlDecision = ddMindControlDecision.SelectedIndex;
+                currentWizardConfiguration.EditedTeamType = true;
             }
         }
 
@@ -214,6 +259,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.Group = tbGroup.Value;
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void TbWaypoint_TextChanged(object sender, EventArgs e)
@@ -222,6 +268,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             currentWizardConfiguration.TeamType.Waypoint = Helpers.WaypointNumberToAlphabeticalString(tbWaypoint.Value);
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void TbTransportWaypoint_TextChanged(object sender, EventArgs e)
@@ -229,6 +276,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             if (Constants.IsRA2YR && IsCurrentTeamTypeExists())
             {
                currentWizardConfiguration.TeamType.TransportWaypoint = Helpers.WaypointNumberToAlphabeticalString(tbTransportWaypoint.Value);
+               currentWizardConfiguration.EditedTeamType = true;
             }
         }        
 
@@ -242,6 +290,8 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 currentWizardConfiguration.TeamType.EnableFlag((string)checkBox.Tag);
             else
                 currentWizardConfiguration.TeamType.DisableFlag((string)checkBox.Tag);
+
+            currentWizardConfiguration.EditedTeamType = true;
         }
 
         private void BtnFinish_LeftClick(object sender, EventArgs e)
@@ -258,16 +308,72 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 {
                     wizardConfiguration.ProcessConfiguration();
                 }
-            }
 
+                EditorMessageBox.Show(WindowManager, "Wizard Completed!", WizardConfigurations[0].GetFinishMessageText(), MessageBoxButtons.OK);
+            }
+            
             Hide();
         }
 
         private void BtnApplyTeamTypesOtherDiffs_LeftClick(object sender, EventArgs e)
         {
-            if (!IsCurrentTeamTypeExists())
+            if (currentWizardConfiguration == null)
                 return;
 
+            if (WizardConfigurations.Count <= 1)
+            {
+                EditorMessageBox.Show(WindowManager, "No Difficulties", "There are no other difficulties to clone to. Aborting.", MessageBoxButtons.OK);
+                return;
+            }
+
+            if (!currentWizardConfiguration.EditedTeamType)
+            {
+                EditorMessageBox.Show(WindowManager, "No Configuration to Clone", "This TeamType is not edited, and cannot be cloned to other difficulties.", MessageBoxButtons.OK);
+                return;
+            }
+
+            bool hasOtherEditedTeamTypes = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration &&
+                wizardConfiguration.EditedTeamType == true);
+
+            bool hasOtherUneditedTeamTypes = WizardConfigurations.Exists(wizardConfiguration =>
+                wizardConfiguration != currentWizardConfiguration &&
+                wizardConfiguration.EditedTeamType == false);
+
+            if (hasOtherEditedTeamTypes)
+            {
+                string description = hasOtherUneditedTeamTypes ?
+                    "There are other difficulties that have edited TeamTypes. Should this clone operation skip those difficulties?" + Environment.NewLine +
+                    "Press 'Yes' to only clone to difficulties with unedited TeamTypes, or 'No' to clone to all other difficulties." :
+
+                    "All other difficulties has edited TeamTypes. Are you sure you want to continue?";
+
+                var result = EditorMessageBox.Show(WindowManager, "Existing Configurations Found", description, MessageBoxButtons.YesNo);
+                result.YesClickedAction = _ =>
+                {
+                    if (hasOtherUneditedTeamTypes)
+                    {
+                        ApplyClone(true);
+                    }
+                    else
+                    {
+                        ApplyClone(false);
+                    }
+                };
+
+                if (hasOtherUneditedTeamTypes)
+                {
+                    result.NoClickedAction = _ => ApplyClone(false);
+                }
+            }
+            else
+            {
+                ApplyClone(true);
+            }           
+        }        
+
+        private void ApplyClone(bool skipEditedConfigurations)
+        {
             var teamType = currentWizardConfiguration.TeamType;
 
             foreach (var wizardConfiguration in WizardConfigurations)
@@ -275,11 +381,18 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 if (currentWizardConfiguration == wizardConfiguration)
                     continue;
 
-                wizardConfiguration.TeamType = teamType.Clone(wizardConfiguration.Name);
-                wizardConfiguration.TeamType.Name = wizardConfiguration.Name;
+                if (skipEditedConfigurations && wizardConfiguration.EditedTeamType)
+                    continue;
+
+                wizardConfiguration.TeamType = teamType.Clone(wizardConfiguration.FullName);
+                wizardConfiguration.TeamType.Name = wizardConfiguration.FullName;
+                wizardConfiguration.EditedTeamType = true;
             }
 
-            EditorMessageBox.Show(WindowManager, "Clone successful", "Applied the current TeamType to the other difficulties successfully.", MessageBoxButtons.OK);
+            string relevantDifficultiesString = skipEditedConfigurations ?
+                "to difficulties with unedited TeamTypes" :
+                "to all other difficulties";
+            EditorMessageBox.Show(WindowManager, "TeamType applied successfully", $"TeamType was applied {relevantDifficultiesString} successfully.", MessageBoxButtons.OK);
         }
 
         private void AddBooleanProperties(EditorPanel panelBooleans)
