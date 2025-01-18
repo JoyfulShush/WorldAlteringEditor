@@ -102,10 +102,14 @@ namespace TSMapEditor.Rendering
         private RenderTarget2D transparencyRenderTarget;             // Render target for map UI elements (celltags etc.) that are only refreshed if something in the map changes (due to performance reasons)
         private RenderTarget2D transparencyPerFrameRenderTarget;     // Render target for map UI elements that are redrawn each frame
         private RenderTarget2D compositeRenderTarget;                // Render target where all the above is combined
+        private RenderTarget2D compositeRenderTargetCopy;
+        private RenderTarget2D alphaRenderTarget;                    // Render target for alpha map
         private RenderTarget2D minimapRenderTarget;                  // For minimap and megamap rendering
 
         private Effect palettedColorDrawEffect;                      // Effect for rendering textures, both paletted and RGBA, with or without remap, with depth assignation to a separate render target
         private Effect combineDrawEffect;                            // Effect for combining map and object render targets into one, taking both of their depth buffers into account
+        private Effect alphaMapDrawEffect;                           // Effect for rendering the alpha light map
+        private Effect alphaImageToAlphaMapEffect;                   // Effect for rendering a single alpha image to the alpha light map
 
         private bool mapInvalidated;
         private bool cameraMoved;
@@ -115,6 +119,7 @@ namespace TSMapEditor.Rendering
         private List<Overlay> flatOverlaysToRender = new List<Overlay>();
         private List<GameObject> gameObjectsToRender = new List<GameObject>(); 
         private List<Smudge> smudgesToRender = new List<Smudge>();
+        private List<AlphaImageRenderStruct> alphaImagesToRender = new List<AlphaImageRenderStruct>();
         private ObjectSpriteRecord objectSpriteRecord = new ObjectSpriteRecord();
 
         private Stopwatch refreshStopwatch;
@@ -214,6 +219,8 @@ namespace TSMapEditor.Rendering
         {
             palettedColorDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedColorDraw");
             combineDrawEffect = AssetLoader.LoadEffect("Shaders/CombineWithDepth");
+            alphaMapDrawEffect = AssetLoader.LoadEffect("Shaders/AlphaMapApply");
+            alphaImageToAlphaMapEffect = AssetLoader.LoadEffect("Shaders/AlphaImageToAlphaMap");
         }
 
         private void Map_CellLightingModified(object sender, CellLightingEventArgs e)
@@ -256,6 +263,8 @@ namespace TSMapEditor.Rendering
             transparencyRenderTarget?.Dispose();
             transparencyPerFrameRenderTarget?.Dispose();
             compositeRenderTarget?.Dispose();
+            compositeRenderTargetCopy?.Dispose();
+            alphaRenderTarget?.Dispose();
             minimapRenderTarget?.Dispose();
         }
 
@@ -270,6 +279,8 @@ namespace TSMapEditor.Rendering
             transparencyRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             transparencyPerFrameRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             compositeRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
+            compositeRenderTargetCopy = CreateFullMapRenderTarget(SurfaceFormat.Color);
+            alphaRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Alpha8);
             minimapRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
 
             palettedColorDrawEffect.Parameters["WorldTextureHeight"].SetValue((float)mapRenderTarget.Height);
@@ -353,6 +364,7 @@ namespace TSMapEditor.Rendering
             flatOverlaysToRender.Clear();
             structuresToRender.Clear();
             gameObjectsToRender.Clear();
+            alphaImagesToRender.Clear();
 
             Renderer.PushRenderTargets(mapRenderTarget, mapDepthRenderTarget);
 
@@ -563,11 +575,19 @@ namespace TSMapEditor.Rendering
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Structures) == RenderObjectFlags.Structures)
             {
-                tile.DoForAllBuildings(structure =>
+                // Do not use tile.DoForAllBuildings here due to lambdas being expensive due to memory allocation + function calls
+                for (int i = 0; i < tile.Structures.Count; i++)
                 {
+                    var structure = tile.Structures[i];
+
                     if (structure.Position == tile.CoordsToPoint())
+                    {
                         AddStructureToRender(structure);
-                });
+
+                        if (structure.ObjectType.AlphaShape != null && IsRenderFlagEnabled(RenderObjectFlags.AlphaLights))
+                            alphaImagesToRender.Add(new AlphaImageRenderStruct(structure.Position, structure.ObjectType.AlphaShape));
+                    }
+                }
             }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Infantry) == RenderObjectFlags.Infantry)
@@ -580,7 +600,17 @@ namespace TSMapEditor.Rendering
                 tile.DoForAllVehicles(AddGameObjectToRender);
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.TerrainObjects) == RenderObjectFlags.TerrainObjects && tile.TerrainObject != null)
+            {
                 AddGameObjectToRender(tile.TerrainObject);
+
+                if (tile.TerrainObject.TerrainType.AlphaShape != null && IsRenderFlagEnabled(RenderObjectFlags.AlphaLights))
+                    alphaImagesToRender.Add(new AlphaImageRenderStruct(tile.TerrainObject.Position, tile.TerrainObject.TerrainType.AlphaShape));
+            }
+        }
+
+        private bool IsRenderFlagEnabled(RenderObjectFlags flag)
+        {
+            return (EditorState.RenderObjectFlags & flag) == flag;
         }
 
         private void AddStructureToRender(Structure structure)
@@ -1577,6 +1607,42 @@ namespace TSMapEditor.Rendering
                 sourceRectangle,
                 destinationRectangle,
                 Color.White);
+
+            // Rendering alpha images is a relatively expensive operation. Only do it if necessary.
+            if (IsRenderFlagEnabled(RenderObjectFlags.AlphaLights) && alphaImagesToRender.Count > 0)
+            {
+                // Then draw alpha effects. First, render all alpha effects into the alpha surface. Then,
+                // render the alpha surface on the composite render target using a special shader.
+
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, alphaImageToAlphaMapEffect));
+                GraphicsDevice.SetRenderTarget(alphaRenderTarget);
+                GraphicsDevice.Clear(new Color(0.5f, 0f, 0f, 0f));
+
+                for (int i = 0; i < alphaImagesToRender.Count; i++)
+                {
+                    var alphaTexture = alphaImagesToRender[i].AlphaImage.GetFrame(0);
+                    var pixelPoint = EditorState.Is2DMode ? CellMath.CellCenterPointFromCellCoords(alphaImagesToRender[i].Point, Map) :
+                        CellMath.CellCenterPointFromCellCoords_3D(alphaImagesToRender[i].Point, Map);
+                    var alphaDrawRectangle = new Rectangle(pixelPoint.X - alphaTexture.ShapeWidth / 2 + alphaTexture.OffsetX,
+                        pixelPoint.Y - alphaTexture.ShapeHeight / 2 + alphaTexture.OffsetY, alphaTexture.Texture.Width, alphaTexture.Texture.Height);
+
+                    Renderer.DrawTexture(alphaTexture.Texture, alphaDrawRectangle, Color.White);
+                }
+
+                Renderer.PopSettings();
+
+                // Copy of the composite render target so we can sample it while rendering to it
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, null, null, null));
+                GraphicsDevice.SetRenderTarget(compositeRenderTargetCopy);
+                Renderer.DrawTexture(compositeRenderTarget, new Rectangle(0, 0, compositeRenderTarget.Width, compositeRenderTarget.Height), Color.White);
+                Renderer.PopSettings();
+
+                GraphicsDevice.SetRenderTarget(compositeRenderTarget);
+                alphaMapDrawEffect.Parameters["RenderSurface"].SetValue(compositeRenderTargetCopy);
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, null, null, alphaMapDrawEffect));
+                Renderer.DrawTexture(alphaRenderTarget, new Rectangle(0, 0, alphaRenderTarget.Width, alphaRenderTarget.Height), Color.White);
+                Renderer.PopSettings();
+            }
 
             // Then draw transparency layers, without using a custom shader.
             Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null));
