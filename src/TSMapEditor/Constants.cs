@@ -5,7 +5,7 @@ namespace TSMapEditor
 {
     public static class Constants
     {
-        public const string ReleaseVersion = "1.3.9";
+        public const string ReleaseVersion = "1.4.1";
 
         public static int CellSizeX = 48;
         public static int CellSizeY = 24;
@@ -113,6 +113,10 @@ namespace TSMapEditor
 
         public const string VeinholeMonsterTypeName = "VEINHOLE";
         public const string VeinholeDummyTypeName = "VEINHOLEDUMMY";
+
+        public const int MultiplayerMaxPlayers = 8;
+
+        public const int TS_WAYPT_SPECIAL = 100;
 
         public static void Init()
         {

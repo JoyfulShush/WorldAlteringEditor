@@ -27,6 +27,7 @@ namespace TSMapEditor.UI.Windows
         private XNACheckBox chkWaypoints;
         private XNACheckBox chkBaseNodes;
         private XNACheckBox chkAlphaLights;
+        private XNACheckBox chkTunnelTubes;
 
         public override void Initialize()
         {
@@ -45,6 +46,7 @@ namespace TSMapEditor.UI.Windows
             chkWaypoints = FindChild<XNACheckBox>(nameof(chkWaypoints));
             chkBaseNodes = FindChild<XNACheckBox>(nameof(chkBaseNodes));
             chkAlphaLights = FindChild<XNACheckBox>(nameof(chkAlphaLights));
+            chkTunnelTubes = FindChild<XNACheckBox>(nameof(chkTunnelTubes));
 
             FindChild<EditorButton>("btnApply").LeftClick += BtnApply_LeftClick;
         }
@@ -66,6 +68,7 @@ namespace TSMapEditor.UI.Windows
             if (chkWaypoints.Checked)      renderObjectFlags |= RenderObjectFlags.Waypoints;
             if (chkBaseNodes.Checked)      renderObjectFlags |= RenderObjectFlags.BaseNodes;
             if (chkAlphaLights.Checked)    renderObjectFlags |= RenderObjectFlags.AlphaLights;
+            if (chkTunnelTubes.Checked)    renderObjectFlags |= RenderObjectFlags.TunnelTubes;
 
             editorState.RenderObjectFlags = renderObjectFlags;
 
@@ -92,6 +95,7 @@ namespace TSMapEditor.UI.Windows
             chkWaypoints.Checked = editorState.RenderObjectFlags.HasFlag(RenderObjectFlags.Waypoints);
             chkBaseNodes.Checked = editorState.RenderObjectFlags.HasFlag(RenderObjectFlags.BaseNodes);
             chkAlphaLights.Checked = editorState.RenderObjectFlags.HasFlag(RenderObjectFlags.AlphaLights);
+            chkTunnelTubes.Checked = editorState.RenderObjectFlags.HasFlag(RenderObjectFlags.TunnelTubes);
         }
     }
 }

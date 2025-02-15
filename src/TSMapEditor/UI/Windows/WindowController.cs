@@ -73,6 +73,7 @@ namespace TSMapEditor.UI.Windows
         public RenderedObjectsConfigurationWindow RenderedObjectsConfigurationWindow { get; private set; }
         public ConfigureAlliesWindow ConfigureAlliesWindow { get; private set; }
         public SelectConnectedTileWindow SelectConnectedTileWindow { get; private set; }
+        public MegamapGenerationOptionsWindow MegamapGenerationOptionsWindow { get; private set; }
         public AboutWindow AboutWindow { get; private set; }
 
         private IWindowParentControl windowParentControl;
@@ -223,6 +224,9 @@ namespace TSMapEditor.UI.Windows
             // TODO add a way for WindowController windows to use DarkeningPanels
             // DarkeningPanel.InitializeAndAddToParentControlWithChild(windowParentControl.WindowManager, windowParentControl, SelectConnectedTileWindow);
             Windows.Add(SelectConnectedTileWindow);
+
+            MegamapGenerationOptionsWindow = new MegamapGenerationOptionsWindow(windowParentControl.WindowManager);
+            Windows.Add(MegamapGenerationOptionsWindow);
 
             AboutWindow = new AboutWindow(windowParentControl.WindowManager);
             Windows.Add(AboutWindow);
