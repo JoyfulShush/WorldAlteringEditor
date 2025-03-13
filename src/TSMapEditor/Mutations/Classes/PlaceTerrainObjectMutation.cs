@@ -27,11 +27,13 @@ namespace TSMapEditor.Mutations.Classes
 
             var terrainObject = new TerrainObject(terrainType, cellCoords);
             MutationTarget.Map.AddTerrainObject(terrainObject);
+            MutationTarget.InvalidateMap();
         }
 
         public override void Undo()
         {
             MutationTarget.Map.RemoveTerrainObject(cellCoords);
+            MutationTarget.InvalidateMap();
         }
     }
 }

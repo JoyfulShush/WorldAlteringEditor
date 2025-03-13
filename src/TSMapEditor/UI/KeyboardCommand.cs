@@ -32,7 +32,7 @@ namespace TSMapEditor.UI
             if (Key == Keys.None)
             {
                 if (!allowModifiersOnly || Modifiers == KeyboardModifiers.None)
-                    return "<no hotkey>";
+                    return "";
 
                 // Build a different kind of string when there's only modifiers
 

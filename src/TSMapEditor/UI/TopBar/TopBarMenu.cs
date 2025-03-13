@@ -214,8 +214,8 @@ namespace TSMapEditor.UI.TopBar
             toolsContextMenu.AddItem(" ", null, () => false, () => !Constants.IsFlatWorld, null);
             toolsContextMenu.AddItem("Smoothen Ice", SmoothenIce, null, null, null, null);
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
-            toolsContextMenu.AddItem("Check Distance...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null);
-            toolsContextMenu.AddItem("Check Distance (Pathfinding)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction);
+            toolsContextMenu.AddItem("Check Distance...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null, KeyboardCommands.Instance.CheckDistance.GetKeyDisplayString());
+            toolsContextMenu.AddItem("Check Distance (Pathfinding)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction, null, null, null, KeyboardCommands.Instance.CheckDistancePathfinding.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
             toolsContextMenu.AddItem("Calculate Credits...", () => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction, null, null, null, KeyboardCommands.Instance.CalculateCredits.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
@@ -263,6 +263,8 @@ namespace TSMapEditor.UI.TopBar
             KeyboardCommands.Instance.PlaceConnectedTile.Triggered += (s, e) => windowController.SelectConnectedTileWindow.Open();
             KeyboardCommands.Instance.RepeatConnectedTile.Triggered += (s, e) => RepeatLastConnectedTile();
             KeyboardCommands.Instance.CalculateCredits.Triggered += (s, e) => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction;
+            KeyboardCommands.Instance.CheckDistance.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistanceCursorAction;
+            KeyboardCommands.Instance.CheckDistancePathfinding.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction;
             KeyboardCommands.Instance.Save.Triggered += (s, e) => SaveMap();
 
             windowController.TerrainGeneratorConfigWindow.ConfigApplied += TerrainGeneratorConfigWindow_ConfigApplied;

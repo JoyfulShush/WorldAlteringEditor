@@ -693,6 +693,7 @@ namespace TSMapEditor.UI.Windows
 
             LbActions_SelectedIndexChanged(this, EventArgs.Empty);
             ddScriptColor.SelectedIndexChanged += DdScriptColor_SelectedIndexChanged;
+            lbActions.ScrollToSelectedElement();
         }
 
         private string GetActionEntryText(int index, ScriptActionEntry entry)
