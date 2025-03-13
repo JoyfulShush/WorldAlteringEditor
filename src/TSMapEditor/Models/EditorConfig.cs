@@ -16,7 +16,9 @@ namespace TSMapEditor.Models
         {
             EditorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
         }
-        
+
+        private const string IniSystemSectionName = "INISystem";
+
         public IniFile EditorRulesIni { get; }
         public List<OverlayCollection> OverlayCollections { get; } = new List<OverlayCollection>();
         public List<TerrainObjectCollection> TerrainObjectCollections { get; } = new List<TerrainObjectCollection>();
@@ -193,6 +195,9 @@ namespace TSMapEditor.Models
                 if (sections[i].StartsWith("$"))
                     continue;
 
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var scriptAction = new ScriptAction(i);
                 scriptAction.ReadIniSection(iniFile, sections[i]);
 
@@ -213,6 +218,9 @@ namespace TSMapEditor.Models
 
             for (int i = 0; i < sections.Count; i++)
             {
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var triggerEventType = new TriggerEventType(i);
                 var section = iniFile.GetSection(sections[i]);
                 triggerEventType.ReadPropertiesFromIniSection(section);
@@ -234,6 +242,9 @@ namespace TSMapEditor.Models
 
             for (int i = 0; i < sections.Count; i++)
             {
+                if (sections[i] == IniSystemSectionName)
+                    continue;
+
                 var triggerActionType = new TriggerActionType(i);
                 var section = iniFile.GetSection(sections[i]);
                 triggerActionType.ReadPropertiesFromIniSection(section);

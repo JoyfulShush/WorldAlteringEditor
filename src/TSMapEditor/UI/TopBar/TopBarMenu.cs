@@ -84,8 +84,8 @@ namespace TSMapEditor.UI.TopBar
                 () => !string.IsNullOrWhiteSpace(map.LoadedINI.FileName),
                 null, null);
             fileContextMenu.AddItem(" ", null, () => false, null, null);
-            fileContextMenu.AddItem("Extract Megamap...", ExtractMegamap);
-            fileContextMenu.AddItem("Generate Map Preview...", WriteMapPreview);
+            fileContextMenu.AddItem("Extract Megamap...", () => windowController.MegamapGenerationOptionsWindow.Open(false));
+            fileContextMenu.AddItem("Generate Map Preview...", WriteMapPreviewConfirmation);
             fileContextMenu.AddItem(" ", null, () => false, null, null, null);
             fileContextMenu.AddItem("Open With Text Editor", OpenWithTextEditor, () => !string.IsNullOrWhiteSpace(map.LoadedINI.FileName));
             fileContextMenu.AddItem(" ", null, () => false, null, null);
@@ -214,10 +214,10 @@ namespace TSMapEditor.UI.TopBar
             toolsContextMenu.AddItem(" ", null, () => false, () => !Constants.IsFlatWorld, null);
             toolsContextMenu.AddItem("Smoothen Ice", SmoothenIce, null, null, null, null);
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
-            toolsContextMenu.AddItem("Check Distance...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null);
-            toolsContextMenu.AddItem("Check Distance (Pathfinding)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction);
+            toolsContextMenu.AddItem("Check Distance...", () => mapUI.EditorState.CursorAction = checkDistanceCursorAction, null, null, null, KeyboardCommands.Instance.CheckDistance.GetKeyDisplayString());
+            toolsContextMenu.AddItem("Check Distance (Pathfinding)...", () => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction, null, null, null, KeyboardCommands.Instance.CheckDistancePathfinding.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
-            toolsContextMenu.AddItem("Calculate Credits...", () => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction, null, null, null);
+            toolsContextMenu.AddItem("Calculate Credits...", () => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction, null, null, null, KeyboardCommands.Instance.CalculateCredits.GetKeyDisplayString());
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
             toolsContextMenu.AddItem("Load Map-Wide Overlay...", () => MapWideOverlayLoadRequested?.Invoke(this, EventArgs.Empty), null, null, null, null);
             toolsContextMenu.AddItem(" ", null, () => false, null, null);
@@ -260,6 +260,9 @@ namespace TSMapEditor.UI.TopBar
             KeyboardCommands.Instance.PlaceTunnel.Triggered += (s, e) => mapUI.EditorState.CursorAction = placeTubeCursorAction;
             KeyboardCommands.Instance.PlaceConnectedTile.Triggered += (s, e) => windowController.SelectConnectedTileWindow.Open();
             KeyboardCommands.Instance.RepeatConnectedTile.Triggered += (s, e) => RepeatLastConnectedTile();
+            KeyboardCommands.Instance.CalculateCredits.Triggered += (s, e) => mapUI.EditorState.CursorAction = calculateTiberiumValueCursorAction;
+            KeyboardCommands.Instance.CheckDistance.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistanceCursorAction;
+            KeyboardCommands.Instance.CheckDistancePathfinding.Triggered += (s, e) => mapUI.EditorState.CursorAction = checkDistancePathfindingCursorAction;
             KeyboardCommands.Instance.Save.Triggered += (s, e) => SaveMap();
 
             windowController.TerrainGeneratorConfigWindow.ConfigApplied += TerrainGeneratorConfigWindow_ConfigApplied;
@@ -306,29 +309,7 @@ namespace TSMapEditor.UI.TopBar
             }
         }
 
-        private void ExtractMegamap()
-        {
-#if WINDOWS
-            string initialPath = string.IsNullOrWhiteSpace(UserSettings.Instance.LastScenarioPath.GetValue()) ? UserSettings.Instance.GameDirectory : UserSettings.Instance.LastScenarioPath.GetValue();
-
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                saveFileDialog.InitialDirectory = Path.GetDirectoryName(initialPath);
-                saveFileDialog.FileName = Path.ChangeExtension(Path.GetFileName(initialPath), ".png");
-                saveFileDialog.Filter = "PNG files|*.png|All files|*.*";
-                saveFileDialog.RestoreDirectory = true;
-
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    mapUI.ExtractMegamapTo(saveFileDialog.FileName);
-                }
-            }
-#else
-            mapUI.ExtractMegamapTo(Path.Combine(Environment.CurrentDirectory, "megamap.png"));
-#endif
-        }
-
-        private void WriteMapPreview()
+        private void WriteMapPreviewConfirmation()
         {
             var messageBox = EditorMessageBox.Show(WindowManager, "Confirmation",
                 "This will write the current minimap as the map preview to the map file." + Environment.NewLine + Environment.NewLine +
@@ -340,7 +321,7 @@ namespace TSMapEditor.UI.TopBar
                 "Note: The preview won't be actually written to the map before" + Environment.NewLine + 
                 "you save the map.", Windows.MessageBoxButtons.YesNo);
 
-            messageBox.YesClickedAction = _ => mapUI.AddPreviewToMap();
+            messageBox.YesClickedAction = _ => windowController.MegamapGenerationOptionsWindow.Open(true);
         }
 
         private void RepeatLastConnectedTile()

@@ -42,6 +42,17 @@ namespace TSMapEditor.Models
         public event EventHandler PreSave;
         public event EventHandler PostSave;
 
+        /// <summary>
+        /// Raised when TaskForces are added or removed.
+        /// NOT raised when an individual TaskForce's data is modified.
+        /// </summary>
+        public event EventHandler TaskForcesChanged;
+
+        /// <summary>
+        /// Raised when TeamTypes are added or removed.
+        /// NOT raised when an individual TeamType's data is modified.
+        /// </summary>
+        public event EventHandler TeamTypesChanged;
 
         public IniFile LoadedINI { get; private set; }
 
@@ -218,6 +229,7 @@ namespace TSMapEditor.Models
             InitializeRules(gameConfigINIFiles);
             LoadedINI = new IniFileEx();
             var baseMap = new IniFileEx(Environment.CurrentDirectory + "/Config/BaseMap.ini", ccFileManager);
+            baseMap.RemoveSection("INISystem");
             baseMap.FileName = string.Empty;
             baseMap.SetStringValue("Map", "Theater", theaterName);
             baseMap.SetStringValue("Map", "Size", $"0,0,{size.X},{size.Y}");
@@ -727,6 +739,7 @@ namespace TSMapEditor.Models
         public void AddTaskForce(TaskForce taskForce)
         {
             TaskForces.Add(taskForce);
+            TaskForcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemoveTaskForce(TaskForce taskForce)
@@ -734,6 +747,7 @@ namespace TSMapEditor.Models
             TaskForces.Remove(taskForce);
             TeamTypes.FindAll(tt => tt.TaskForce == taskForce).ForEach(tt => tt.TaskForce = null);
             LoadedINI.RemoveSection(taskForce.ININame);
+            TaskForcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void ClearTaskForces()
@@ -790,12 +804,14 @@ namespace TSMapEditor.Models
         public void AddTeamType(TeamType teamType)
         {
             TeamTypes.Add(teamType);
+            TeamTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemoveTeamType(TeamType teamType)
         {
             TeamTypes.Remove(teamType);
             LoadedINI.RemoveSection(teamType.ININame);
+            TeamTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddHouseType(HouseType houseType)
@@ -1952,10 +1968,9 @@ namespace TSMapEditor.Models
 
             // In Tiberian Sun, waypoint #100 should be reserved for special dynamic use cases like paradrops
             // (it is defined as WAYPT_SPECIAL in original game code)
-            const int wpSpecial = 100;
-            if (!Constants.IsRA2YR && Waypoints.Exists(wp => wp.Identifier == wpSpecial))
+            if (!Constants.IsRA2YR && Waypoints.Exists(wp => wp.Identifier == Constants.TS_WAYPT_SPECIAL))
             {
-                issueList.Add($"The map makes use of waypoint #{wpSpecial}. In Tiberian Sun, this waypoint is reserved for special use cases (WAYPT_SPECIAL). Using it as a normal waypoint may cause issues as it may be dynamically moved by game events.");
+                issueList.Add($"The map makes use of waypoint #{Constants.TS_WAYPT_SPECIAL}. In Tiberian Sun, this waypoint is reserved for special use cases (WAYPT_SPECIAL). Using it as a normal waypoint may cause issues as it may be dynamically moved by game events.");
             }
 
             return issueList;

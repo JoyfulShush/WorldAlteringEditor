@@ -2,6 +2,7 @@
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Models;
@@ -11,6 +12,12 @@ using TSMapEditor.UI.CursorActions;
 
 namespace TSMapEditor.UI
 {
+    enum TileSetSortMode
+    {
+        ID,
+        Name
+    }
+
     public class TileSelector : XNAControl
     {
         private const int TileSetListWidth = 180;
@@ -45,8 +52,20 @@ namespace TSMapEditor.UI
 
         public TileDisplay TileDisplay { get; private set; }
 
+        private SortButton btnSort;
         private EditorSuggestionTextBox tbSearch;
         private XNAListBox lbTileSetList;
+
+        private TileSetSortMode _tileSetSortMode;
+        private TileSetSortMode TileSetSortMode
+        {
+            get => _tileSetSortMode;
+            set
+            {
+                _tileSetSortMode = value;
+                RefreshTileSets();
+            }
+        }
 
         private bool isBeingDragged = false;
         private int previousMouseY;
@@ -55,9 +74,14 @@ namespace TSMapEditor.UI
         {
             Name = nameof(TileSelector);
 
+            btnSort = new SortButton(WindowManager);
+            btnSort.Name = nameof(btnSort);
+            btnSort.X = TileSetListWidth - btnSort.Width;
+            AddChild(btnSort);
+
             tbSearch = new EditorSuggestionTextBox(WindowManager);
             tbSearch.Name = nameof(tbSearch);
-            tbSearch.Width = TileSetListWidth;
+            tbSearch.Width = TileSetListWidth - btnSort.Width;
             tbSearch.Suggestion = "Search TileSet...";
             AddChild(tbSearch);
             UIHelpers.AddSearchTipsBoxToControl(tbSearch);
@@ -80,6 +104,15 @@ namespace TSMapEditor.UI
 
             lbTileSetList.BackgroundTexture = TileDisplay.BackgroundTexture;
             lbTileSetList.PanelBackgroundDrawMode = TileDisplay.PanelBackgroundDrawMode;
+
+            var sortContextMenu = new EditorContextMenu(WindowManager);
+            sortContextMenu.Name = nameof(sortContextMenu);
+            sortContextMenu.Width = 200;
+            sortContextMenu.AddItem("Sort by ID", () => TileSetSortMode = TileSetSortMode.ID);
+            sortContextMenu.AddItem("Sort by Name", () => TileSetSortMode = TileSetSortMode.Name);
+            AddChild(sortContextMenu);
+
+            btnSort.LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
             base.Initialize();
 
@@ -228,7 +261,16 @@ namespace TSMapEditor.UI
         private void RefreshTileSets()
         {
             lbTileSetList.Clear();
-            var sortedTileSets = theaterGraphics.Theater.TileSets.ToList(); // TODO sort tilesets
+            IEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets; // TODO sort tilesets
+
+            switch (TileSetSortMode)
+            {
+                case TileSetSortMode.ID:
+                    break;
+                case TileSetSortMode.Name:
+                    sortedTileSets = sortedTileSets.OrderBy(ts => ts.SetName);
+                    break;
+            }
 
             foreach (TileSet tileSet in sortedTileSets)
             {
@@ -243,6 +285,13 @@ namespace TSMapEditor.UI
                         Tag = tileSet,
                         TextColor = tileSet.Color.HasValue ? tileSet.Color.Value : UISettings.ActiveSettings.AltColor
                     });
+
+                    if (tileSet == TileDisplay.TileSet)
+                    {
+                        lbTileSetList.SelectedIndexChanged -= LbTileSetList_SelectedIndexChanged;
+                        lbTileSetList.SelectedIndex = lbTileSetList.Items.Count;
+                        lbTileSetList.SelectedIndexChanged += LbTileSetList_SelectedIndexChanged;
+                    }
                 }
             }
         }

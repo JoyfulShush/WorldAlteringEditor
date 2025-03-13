@@ -80,7 +80,11 @@ namespace TSMapEditor.UI.CursorActions
                 Renderer.FillRectangle(GetDrawRectangleForMarker(pathCellCenterPoint), Color.Yellow);
             }
 
-            string text = "Path Length In Cells: " + pathLength + "\r\n\r\nClick to select new source coordinate, or right-click to exit";
+            int xDiff = cellCoords.X - source.Value.X;
+            int yDiff = cellCoords.Y - source.Value.Y;
+
+            string text = "Path Length In Cells: " + pathLength + Environment.NewLine + 
+                "(X Diff:" + xDiff + ", Y Diff: " + yDiff + ")" + Environment.NewLine + Environment.NewLine + "Click to select new source coordinate, or right-click to exit";
             DrawText(cellCoords, cameraTopLeftPoint, text, pathColor);
         }
 
@@ -121,10 +125,10 @@ namespace TSMapEditor.UI.CursorActions
 
                 currentPoint = currentPoint + new Point2D(xDiff, yDiff);
 
+                pathCellCoords.Add(currentPoint);
+
                 if (currentPoint == destination)
                     break;
-
-                pathCellCoords.Add(currentPoint);
             }
         }
     }

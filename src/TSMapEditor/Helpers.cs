@@ -387,6 +387,15 @@ namespace TSMapEditor
                     houseType.Side = side;
                     break;
                 }
+
+                if (side.EndsWith("Side") && side.Length > 4)
+                {
+                    if (houseType.ININame.StartsWith(side[..4]))
+                    {
+                        houseType.Side = side;
+                        break;
+                    }
+                }
             }
 
             if (string.IsNullOrWhiteSpace(houseType.Side))
@@ -397,6 +406,13 @@ namespace TSMapEditor
 
         public static string NormalizePath(string path)
         {
+            if (path.Contains("../") || path.Contains("..\\"))
+            {
+                return Path.GetFullPath(path)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .ToUpperInvariant();
+            }
+
             return Path.GetFullPath(new Uri(path).LocalPath)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 .ToUpperInvariant();
