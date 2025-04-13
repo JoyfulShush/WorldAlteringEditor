@@ -841,7 +841,7 @@ namespace TSMapEditor.Models
                 for (int i = 0; i < Houses.Count; i++)
                     Houses[i].ID = i;
 
-                LoadedINI.RemoveSection(house.ININame);
+                house.EraseFromIniFile(LoadedINI);
                 HousesChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -855,6 +855,8 @@ namespace TSMapEditor.Models
             {
                 for (int i = 0; i < HouseTypes.Count; i++)
                     HouseTypes[i].Index = i + (Constants.IsRA2YR ? Rules.RulesHouseTypes.Count : 0);
+
+                houseType.EraseFromIniFile(LoadedINI);
 
                 return true;
             }

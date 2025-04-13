@@ -135,7 +135,7 @@ namespace TSMapEditor.UI.Windows
             VehicleOptionsWindow = new VehicleOptionsWindow(windowParentControl.WindowManager, map, editorState, cursorActionTarget);
             Windows.Add(VehicleOptionsWindow);
 
-            InfantryOptionsWindow = new InfantryOptionsWindow(windowParentControl.WindowManager, map);
+            InfantryOptionsWindow = new InfantryOptionsWindow(windowParentControl.WindowManager, map, cursorActionTarget);
             Windows.Add(InfantryOptionsWindow);
 
             AircraftOptionsWindow = new AircraftOptionsWindow(windowParentControl.WindowManager, map);
