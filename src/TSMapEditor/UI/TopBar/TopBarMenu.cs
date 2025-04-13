@@ -105,6 +105,7 @@ namespace TSMapEditor.UI.TopBar
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem("Undo", () => mutationManager.Undo(), () => mutationManager.CanUndo(), null, null, () => KeyboardCommands.Instance.Undo.GetKeyDisplayString());
             editContextMenu.AddItem("Redo", () => mutationManager.Redo(), () => mutationManager.CanRedo(), null, null, () => KeyboardCommands.Instance.Redo.GetKeyDisplayString());
+            editContextMenu.AddItem("Action History", () => windowController.HistoryWindow.Open());
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem("Basic", () => windowController.BasicSectionConfigWindow.Open(), null, null, null);
             editContextMenu.AddItem("Map Size", () => windowController.MapSizeWindow.Open(), null, null, null, null);
