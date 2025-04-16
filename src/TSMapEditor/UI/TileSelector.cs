@@ -54,7 +54,8 @@ namespace TSMapEditor.UI
 
         private SortButton btnSort;
         private EditorSuggestionTextBox tbSearch;
-        private XNAListBox lbTileSetList;
+        private TileSetListBox lbTileSetList;
+        private XNAContextMenu tileSetContextMenu;
 
         private TileSetSortMode _tileSetSortMode;
         private TileSetSortMode TileSetSortMode
@@ -87,11 +88,12 @@ namespace TSMapEditor.UI
             UIHelpers.AddSearchTipsBoxToControl(tbSearch);
             tbSearch.TextChanged += TbSearch_TextChanged;
 
-            lbTileSetList = new XNAListBox(WindowManager);
+            lbTileSetList = new TileSetListBox(WindowManager, theaterGraphics.Theater.TileSets.Count);
             lbTileSetList.Name = nameof(lbTileSetList);
             lbTileSetList.Y = tbSearch.Bottom;
             lbTileSetList.Height = Height - tbSearch.Bottom;
             lbTileSetList.Width = TileSetListWidth;
+            lbTileSetList.AllowRightClickUnselect = false;
             lbTileSetList.SelectedIndexChanged += LbTileSetList_SelectedIndexChanged;
             AddChild(lbTileSetList);
 
@@ -114,6 +116,22 @@ namespace TSMapEditor.UI
 
             btnSort.LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
+            tileSetContextMenu = new EditorContextMenu(WindowManager);
+            tileSetContextMenu.Name = nameof(tileSetContextMenu);
+            tileSetContextMenu.Width = 200;
+            tileSetContextMenu.AddItem("Pin",
+                () => { lbTileSetList.SetTileSetAsFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+                null,
+                () => lbTileSetList.SelectedItem != null && !lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            tileSetContextMenu.AddItem("Unpin",
+                () => { lbTileSetList.ClearFavouriteStatus(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+                null,
+                () => lbTileSetList.SelectedItem != null && lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            tileSetContextMenu.AddItem("Unselect", () => lbTileSetList.SelectedIndex = -1);
+            AddChild(tileSetContextMenu);
+
+            lbTileSetList.RightClick += LbTileSetList_RightClick;
+
             base.Initialize();
 
             RefreshTileSets();
@@ -121,6 +139,14 @@ namespace TSMapEditor.UI
             KeyboardCommands.Instance.NextTileSet.Action = NextTileSet;
             KeyboardCommands.Instance.PreviousTileSet.Action = PreviousTileSet;
             WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;
+        }
+
+        private void LbTileSetList_RightClick(object sender, EventArgs e)
+        {
+            lbTileSetList.SelectedIndex = lbTileSetList.HoveredIndex;
+
+            if (lbTileSetList.SelectedItem != null)
+                tileSetContextMenu.Open(GetCursorPoint());
         }
 
         private void WindowManager_RenderResolutionChanged(object sender, EventArgs e)
@@ -261,14 +287,15 @@ namespace TSMapEditor.UI
         private void RefreshTileSets()
         {
             lbTileSetList.Clear();
-            IEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets; // TODO sort tilesets
+            IOrderedEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets.OrderBy(ts => !lbTileSetList.IsTileSetFavourite(ts.Index));
 
             switch (TileSetSortMode)
             {
                 case TileSetSortMode.ID:
+                    sortedTileSets = sortedTileSets.ThenBy(ts => ts.Index);
                     break;
                 case TileSetSortMode.Name:
-                    sortedTileSets = sortedTileSets.OrderBy(ts => ts.SetName);
+                    sortedTileSets = sortedTileSets.ThenBy(ts => ts.SetName);
                     break;
             }
 

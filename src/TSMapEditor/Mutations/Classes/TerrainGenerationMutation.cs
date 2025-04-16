@@ -351,7 +351,7 @@ namespace TSMapEditor.Mutations.Classes
 
         public string GetConfigString()
         {
-            return $",{OpenChance},{OverlapChance}," + string.Join(",", SmudgeTypes.Select(tt => tt.ININame));
+            return $"{OpenChance},{OverlapChance}," + string.Join(",", SmudgeTypes.Select(tt => tt.ININame));
         }
 
         public static TerrainGeneratorSmudgeGroup FromConfigString(List<SmudgeType> allSmudgeTypes, string config)
