@@ -61,6 +61,9 @@ namespace TSMapEditor.UI.Windows
 
         private Script editedScript;
 
+        private bool isAddingAction = false;
+        private int insertIndex = -1;
+
         private ScriptSortMode _scriptSortMode;
         private ScriptSortMode ScriptSortMode
         {
@@ -159,7 +162,7 @@ namespace TSMapEditor.UI.Windows
 
             actionListContextMenu = new EditorContextMenu(WindowManager);
             actionListContextMenu.Name = nameof(actionListContextMenu);
-            actionListContextMenu.Width = 150;
+            actionListContextMenu.Width = 180;
             actionListContextMenu.AddItem("Move Up", MoveActionUp, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex > 0);
             actionListContextMenu.AddItem("Move Down", MoveActionDown, () => editedScript != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
             actionListContextMenu.AddItem("Clone Action", CloneAction, () => editedScript != null && lbActions.SelectedItem != null);
@@ -226,14 +229,9 @@ namespace TSMapEditor.UI.Windows
             if (editedScript == null || lbActions.SelectedItem == null)
                 return;
 
-            int viewTop = lbActions.ViewTop;
-
-            int index = lbActions.SelectedIndex;
-            editedScript.Actions.Insert(index, new ScriptActionEntry());
-            EditScript(editedScript);
-            lbActions.SelectedIndex = index;
-
-            lbActions.ViewTop = viewTop;
+            isAddingAction = true;
+            insertIndex = lbActions.SelectedIndex;
+            selectScriptActionWindow.Open(null);
         }
 
         private void ActionListContextMenu_Delete()
@@ -363,10 +361,9 @@ namespace TSMapEditor.UI.Windows
             if (editedScript == null)
                 return;
 
-            editedScript.Actions.Add(new ScriptActionEntry(0, 0));
-            EditScript(editedScript);
-            lbActions.SelectedIndex = lbActions.Items.Count - 1;
-            lbActions.ScrollToBottom();
+            isAddingAction = true;
+            insertIndex = -1;
+            selectScriptActionWindow.Open(null);
         }
 
         private void BtnDeleteAction_LeftClick(object sender, EventArgs e)
@@ -433,24 +430,58 @@ namespace TSMapEditor.UI.Windows
 
             ScriptAction scriptAction = map.EditorConfig.ScriptActions.GetValueOrDefault(entry.Action);
 
+            isAddingAction = false;
             selectScriptActionWindow.Open(scriptAction);
         }
 
         private void SelectScriptActionDarkeningPanel_Hidden(object sender, EventArgs e)
         {
-            if (lbActions.SelectedItem == null || editedScript == null)
+            if (editedScript == null)
+            {
+                return;
+            }
+
+            if (!isAddingAction && lbActions.SelectedItem == null)
             {
                 return;
             }
 
             if (selectScriptActionWindow.SelectedObject != null)
             {
-                ScriptActionEntry entry = editedScript.Actions[lbActions.SelectedIndex];
-                entry.Action = selectScriptActionWindow.SelectedObject.ID;
-                lbActions.Items[lbActions.SelectedIndex].Text = GetActionEntryText(lbActions.SelectedIndex, entry);
+                if (isAddingAction)
+                {
+                    if (insertIndex > -1 && insertIndex < editedScript.Actions.Count)
+                    {
+                        int viewTop = lbActions.ViewTop;
+                        int index = lbActions.SelectedIndex;
+                        editedScript.Actions.Insert(index, new ScriptActionEntry(selectScriptActionWindow.SelectedObject.ID, 0));
+                        EditScript(editedScript);
+                        lbActions.SelectedIndex = index;
+                        lbActions.ViewTop = viewTop;
+                        insertIndex = -1;
+                    }
+                    else
+                    {
+                        editedScript.Actions.Add(new ScriptActionEntry(selectScriptActionWindow.SelectedObject.ID, 0));
+                        EditScript(editedScript);
+                        lbActions.SelectedIndex = lbActions.Items.Count - 1;
+                        lbActions.ScrollToBottom();
+                    }
+
+                    isAddingAction = false;
+                }
+                else
+                {
+                    ScriptActionEntry entry = editedScript.Actions[lbActions.SelectedIndex];
+                    entry.Action = selectScriptActionWindow.SelectedObject.ID;
+                    lbActions.Items[lbActions.SelectedIndex].Text = GetActionEntryText(lbActions.SelectedIndex, entry);
+                }
             }
 
             LbActions_SelectedIndexChanged(this, EventArgs.Empty);
+
+            // Reduce chance of the user accidentally using buttons to edit scripts after the script action selection window has been hidden
+            InputIgnoreTime = TimeSpan.FromSeconds(Constants.UIAccidentalClickPreventionTime);
         }
 
         private void LbActions_SelectedIndexChanged(object sender, EventArgs e)
@@ -460,6 +491,7 @@ namespace TSMapEditor.UI.Windows
                 selTypeOfAction.Text = string.Empty;
                 selTypeOfAction.Tag = null;
                 tbParameterValue.Text = string.Empty;
+                lblParameterDescription.Text = "Parameter:";
                 lblActionDescriptionValue.Text = string.Empty;
                 return;
             }
@@ -671,6 +703,7 @@ namespace TSMapEditor.UI.Windows
                 tbParameterValue.Text = string.Empty;
                 btnEditorPresetValues.ContextMenu.ClearItems();
                 lblActionDescriptionValue.Text = string.Empty;
+                lblParameterDescription.Text = "Parameter:";
                 ddScriptColor.SelectedIndex = -1;
 
                 return;

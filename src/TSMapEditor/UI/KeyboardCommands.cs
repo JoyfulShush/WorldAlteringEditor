@@ -143,8 +143,8 @@ namespace TSMapEditor.UI
         public KeyboardCommand PlaceConnectedTile { get; } = new KeyboardCommand("PlaceConnectedTile", "Place Connected Tile", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Alt));
         public KeyboardCommand RepeatConnectedTile { get; } = new KeyboardCommand("RepeatConnectedTile", "Repeat Last Connected Tile", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Ctrl));
         public KeyboardCommand CalculateCredits { get; } = new KeyboardCommand("CalculateCredits", "Calculate Credits", new KeyboardCommandInput(Keys.C, KeyboardModifiers.Shift));
-        public KeyboardCommand CheckDistance { get; } = new KeyboardCommand("CheckDistance", "Check Distance", new KeyboardCommandInput(Keys.D, KeyboardModifiers.Shift));
-        public KeyboardCommand CheckDistancePathfinding { get; } = new KeyboardCommand("CheckDistancePathfinding", "Check Distance (Pathfinding)", new KeyboardCommandInput(Keys.None, KeyboardModifiers.None));
+        public KeyboardCommand CheckDistance { get; } = new KeyboardCommand("CheckDistance", "Check Distance", new KeyboardCommandInput(Keys.B, KeyboardModifiers.None));
+        public KeyboardCommand CheckDistancePathfinding { get; } = new KeyboardCommand("CheckDistancePathfinding", "Check Distance (Pathfinding)", new KeyboardCommandInput(Keys.B, KeyboardModifiers.Shift));
 
         public KeyboardCommand BuildingMenu { get; } = new KeyboardCommand("BuildingMenu", "Building Menu", new KeyboardCommandInput(Keys.D1, KeyboardModifiers.None));
         public KeyboardCommand InfantryMenu { get; } = new KeyboardCommand("InfantryMenu", "Infantry Menu", new KeyboardCommandInput(Keys.D2, KeyboardModifiers.None));

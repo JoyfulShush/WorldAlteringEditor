@@ -841,7 +841,7 @@ namespace TSMapEditor.Models
                 for (int i = 0; i < Houses.Count; i++)
                     Houses[i].ID = i;
 
-                LoadedINI.RemoveSection(house.ININame);
+                house.EraseFromIniFile(LoadedINI);
                 HousesChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -855,6 +855,8 @@ namespace TSMapEditor.Models
             {
                 for (int i = 0; i < HouseTypes.Count; i++)
                     HouseTypes[i].Index = i + (Constants.IsRA2YR ? Rules.RulesHouseTypes.Count : 0);
+
+                houseType.EraseFromIniFile(LoadedINI);
 
                 return true;
             }
@@ -1069,6 +1071,13 @@ namespace TSMapEditor.Models
             AddWaypoint(waypoint);
         }
 
+        public void MoveCellTag(CellTag cellTag, Point2D newCoords)
+        {
+            RemoveCellTagFrom(cellTag.Position);
+            cellTag.Position = newCoords;
+            AddCellTag(cellTag);
+        }
+
         /// <summary>
         /// Determines whether an object can be moved to a specific location.
         /// </summary>
@@ -1081,6 +1090,12 @@ namespace TSMapEditor.Models
         {
             if (movable.WhatAmI() == RTTIType.Waypoint)
                 return true;
+
+            MapTile cell = GetTile(newCoords);
+            if (movable.WhatAmI() == RTTIType.CellTag)
+            {
+                return cell.CellTag == null;
+            }
 
             if (movable.WhatAmI() == RTTIType.Building)
             {
@@ -1101,7 +1116,6 @@ namespace TSMapEditor.Models
                 return canPlace;
             }
 
-            MapTile cell = GetTile(newCoords);
             return cell.CanAddObject((GameObject)movable, blocksSelf, overlapObjects);
         }
 
