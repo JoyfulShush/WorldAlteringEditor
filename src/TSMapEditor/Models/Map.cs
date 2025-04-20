@@ -39,6 +39,7 @@ namespace TSMapEditor.Models
         public event EventHandler<CellLightingEventArgs> CellLightingModified;
         public event EventHandler MapManuallySaved;
         public event EventHandler MapAutoSaved;
+        public event EventHandler MapSaveFailed;
         public event EventHandler PreSave;
         public event EventHandler PostSave;
 
@@ -329,6 +330,12 @@ namespace TSMapEditor.Models
         private void ReloadSections()
         {
             MapLoader.ReadBasicSection(this, LoadedINI);
+
+            // Refresh light posts in case they got their INI config changed - saves the user
+            // from having to reload the map to refresh lighting changes
+            Rules.BuildingTypes.ForEach(bt => initializer.ReadObjectTypePropertiesFromINI(bt, LoadedINI));
+            Structures.ForEach(s => s.LightTiles(Tiles));
+
             Lighting.ReadFromIniFile(LoadedINI);
         }
 
@@ -385,7 +392,16 @@ namespace TSMapEditor.Models
 
             string savePath = filePath ?? LoadedINI.FileName;
 
-            LoadedINI.WriteIniFile(savePath);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+                LoadedINI.WriteIniFile(savePath);
+            }
+            catch (IOException ex)
+            {
+                Logger.Log($"Saving map failed! Path: {savePath}, exception message: {ex.Message}");
+                MapSaveFailed?.Invoke(ex, EventArgs.Empty);
+            }
 
             PostSave?.Invoke(this, EventArgs.Empty);
         }
