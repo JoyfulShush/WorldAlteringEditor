@@ -301,7 +301,7 @@ namespace TSMapEditor.UI
 
         private void InitKeyboard()
         {
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown += Keyboard_OnKeyDown;
 
             KeyboardCommands.Instance = new KeyboardCommands();
             KeyboardCommands.Instance.Undo.Triggered += UndoAction;
@@ -315,7 +315,7 @@ namespace TSMapEditor.UI
 
         private void ClearKeyboard()
         {
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
             KeyboardCommands.Instance.ClearCommandSubscriptions();
         }
 
@@ -565,7 +565,7 @@ namespace TSMapEditor.UI
             overlayFrameSelector.ClientRectangleUpdated += UpdateTileAndOverlaySelectorArea;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        private void Keyboard_OnKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
             if (!WindowManager.HasFocus)
                 return;

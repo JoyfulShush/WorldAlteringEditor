@@ -150,7 +150,7 @@ namespace TSMapEditor.UI.Controls
 
                 // Only allow moving window if the active child is not a control that is used by dragging
                 // TODO this could be made more object-oriented with a property at XNAControl level
-                if (activeChild == null || !(activeChild is XNAPanel || activeChild is XNAScrollBar || activeChild is XNATrackbar))
+                if (activeChild == null || !(activeChild is XNAPanel || activeChild.HandlesDragging))
                 {
                     InteractedWith?.Invoke(this, EventArgs.Empty);
                     IsDragged = true;
