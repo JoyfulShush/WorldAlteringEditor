@@ -234,7 +234,7 @@ namespace TSMapEditor.GameMath
                 height = tile.Level;
             }
 
-            return ((CellTopLeftPointFromCellCoords(tile.CoordsToPoint(), map).Y + Constants.CellSizeY) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+            return ((CellTopLeftPointFromCellCoords(cellCoords, map).Y + Constants.CellSizeY) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
                 (height * Constants.DepthRenderStep);
         }
     }
