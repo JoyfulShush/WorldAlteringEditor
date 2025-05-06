@@ -25,8 +25,7 @@ namespace TSMapEditor.UI.Windows
         private EditorNumberTextBox tbPercent;
         private EditorNumberTextBox tbInitialTime;
         private EditorNumberTextBox tbHomeCell;
-        private EditorTextBox tbTheme;
-        private EditorButton btnThemePreset;
+        private EditorPopUpSelector selTheme;        
         private XNACheckBox chkEndOfGame;
         private XNACheckBox chkOneTimeOnly;
         private XNACheckBox chkSkipScore;
@@ -60,8 +59,7 @@ namespace TSMapEditor.UI.Windows
             tbHomeCell = FindChild<EditorNumberTextBox>(nameof(tbHomeCell));            
             tbHomeCell.MaximumTextLength = (Constants.MaxWaypoint - 1).ToString(CultureInfo.InvariantCulture).Length;
 
-            tbTheme = FindChild<EditorTextBox>(nameof(tbTheme));
-            btnThemePreset = FindChild<EditorButton>(nameof(btnThemePreset));
+            selTheme = FindChild<EditorPopUpSelector>(nameof(selTheme));
             chkEndOfGame = FindChild<XNACheckBox>(nameof(chkEndOfGame));
             chkOneTimeOnly = FindChild<XNACheckBox>(nameof(chkOneTimeOnly));
             chkSkipScore = FindChild<XNACheckBox>(nameof(chkSkipScore));
@@ -83,7 +81,7 @@ namespace TSMapEditor.UI.Windows
             var themeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectThemeWindow);
             themeDarkeningPanel.Hidden += ThemeDarkeningPanel_Hidden;
 
-            btnThemePreset.LeftClick += BtnThemePreset_LeftClick;
+            selTheme.LeftClick += SelTheme_LeftClick;
             btnApply.LeftClick += BtnApply_LeftClick;
         }
 
@@ -98,8 +96,8 @@ namespace TSMapEditor.UI.Windows
             tbInitialTime.Value = map.Basic.InitTime;
             tbHomeCell.Value = map.Basic.HomeCell;
 
-            tbTheme.Tag = map.Rules.Themes.GetByININame(map.Basic.Theme);
-            tbTheme.Text = tbTheme.Tag != null ? tbTheme.Tag.ToString() : string.Empty;
+            selTheme.Tag = map.Rules.Themes.GetByININame(map.Basic.Theme);
+            selTheme.Text = selTheme.Tag != null ? selTheme.Tag.ToString() : Constants.NoneValue2;
 
             chkEndOfGame.Checked = map.Basic.EndOfGame;
             chkOneTimeOnly.Checked = map.Basic.OneTimeOnly;
@@ -128,7 +126,7 @@ namespace TSMapEditor.UI.Windows
             map.Basic.Percent = tbPercent.Value;
             map.Basic.InitTime = tbInitialTime.Value;
             map.Basic.HomeCell = tbHomeCell.Value;
-            map.Basic.Theme = tbTheme.Tag != null ? ((Theme)tbTheme.Tag).ININame : null;
+            map.Basic.Theme = selTheme.Tag != null ? ((Theme)selTheme.Tag).ININame : null;
             map.Basic.EndOfGame = chkEndOfGame.Checked;
             map.Basic.OneTimeOnly = chkOneTimeOnly.Checked;
             map.Basic.SkipScore = chkSkipScore.Checked;
@@ -151,13 +149,13 @@ namespace TSMapEditor.UI.Windows
 
         private void ThemeDarkeningPanel_Hidden(object sender, EventArgs e)
         {
-            tbTheme.Tag = selectThemeWindow.SelectedObject;
-            tbTheme.Text = tbTheme.Tag != null ? selectThemeWindow.SelectedObject.ToString() : string.Empty;
+            selTheme.Tag = selectThemeWindow.SelectedObject;
+            selTheme.Text = selTheme.Tag != null ? selectThemeWindow.SelectedObject.ToString() : Constants.NoneValue2;
         }
 
-        private void BtnThemePreset_LeftClick(object sender, EventArgs e)
+        private void SelTheme_LeftClick(object sender, EventArgs e)
         {
-            Theme theme = (Theme)tbTheme.Tag;
+            Theme theme = (Theme)selTheme.Tag;
             selectThemeWindow.Open(theme);
         }
     }
