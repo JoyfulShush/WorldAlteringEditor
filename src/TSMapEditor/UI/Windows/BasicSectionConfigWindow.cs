@@ -40,8 +40,7 @@ namespace TSMapEditor.UI.Windows
         private XNACheckBox chkGrowingIce;
         private XNACheckBox chkTiberiumDeathToVisceroid;
         private XNACheckBox chkFreeRadar;
-        private XNACheckBox chkRequiredAddOn;
-        private EditorButton btnApply;
+        private XNACheckBox chkRequiredAddOn;        
 
         private SelectThemeWindow selectThemeWindow;
 
@@ -74,15 +73,15 @@ namespace TSMapEditor.UI.Windows
             chkGrowingIce = FindChild<XNACheckBox>(nameof(chkGrowingIce));
             chkTiberiumDeathToVisceroid = FindChild<XNACheckBox>(nameof(chkTiberiumDeathToVisceroid));
             chkFreeRadar = FindChild<XNACheckBox>(nameof(chkFreeRadar));
-            chkRequiredAddOn = FindChild<XNACheckBox>(nameof(chkRequiredAddOn));
-            btnApply = FindChild<EditorButton>(nameof(btnApply));
+            chkRequiredAddOn = FindChild<XNACheckBox>(nameof(chkRequiredAddOn));            
 
             selectThemeWindow = new SelectThemeWindow(WindowManager, map, true);
             var themeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectThemeWindow);
             themeDarkeningPanel.Hidden += ThemeDarkeningPanel_Hidden;
 
             selTheme.LeftClick += SelTheme_LeftClick;
-            btnApply.LeftClick += BtnApply_LeftClick;
+
+            FindChild<EditorButton>("btnApply").LeftClick += BtnApply_LeftClick;
         }
 
         public void Open()
