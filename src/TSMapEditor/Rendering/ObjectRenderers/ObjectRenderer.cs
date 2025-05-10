@@ -475,6 +475,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
 
+            // Shader scales lighting by 2x
+            remapColor = new Color(remapColor.R / 2, remapColor.G / 2, remapColor.B / 2, remapColor.A);
+
             RenderFrame(gameObject, frame, remapFrame, color, drawRemap, remapColor,
                 drawingBounds, null, lighting, depthAddition, 0.5f, compensateForBottomGap);
         }
@@ -517,7 +520,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                     (remapColor.B / 255.0f),
                     textureWidthCenterPoint);
 
-                // RenderDependencies.PalettedColorDrawEffect.Parameters["UseRemap"].SetValue(true);
                 RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(paletteTexture, remapFrame.Texture, drawingBounds, remapColor, true, false, depthAddition));
             }
         }

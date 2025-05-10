@@ -277,7 +277,7 @@ namespace TSMapEditor.UI.Windows
             var tutorialDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectTutorialLineWindow);
             tutorialDarkeningPanel.Hidden += TutorialDarkeningPanel_Hidden;
 
-            selectThemeWindow = new SelectThemeWindow(WindowManager, map);
+            selectThemeWindow = new SelectThemeWindow(WindowManager, map, false);
             var themeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectThemeWindow);
             themeDarkeningPanel.Hidden += ThemeDarkeningPanel_Hidden;
 
