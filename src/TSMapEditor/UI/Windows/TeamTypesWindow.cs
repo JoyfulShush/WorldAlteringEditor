@@ -494,6 +494,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var fuzzySearchTeamTypes = Helpers.FuzzySearch(tbFilter.Text, sortedTeamTypes.ToList(), teamType => teamType.Name, minimumFuzzySearchScore, false);
                 sortedTeamTypes = fuzzySearchTeamTypes.Select(fuzzySearchTeamType => fuzzySearchTeamType.Item);
+
                 shouldViewTop = true;
                 filtering = true;
             }

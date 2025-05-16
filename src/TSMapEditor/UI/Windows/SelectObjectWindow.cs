@@ -109,22 +109,21 @@ namespace TSMapEditor.UI.Windows
             }
             else
             {
-                var fuzzySearchItems = Helpers.FuzzySearch(tbSearch.Text, originalObjectList, item => item.Text, MinimumFuzzySearchScore);
+                var fuzzySearchItems = Helpers.FuzzySearch(tbSearch.Text, originalObjectList, item => item.Text, MinimumFuzzySearchScore, true);
 
                 lbObjectList.Clear();
 
                 lbObjectList.ViewTop = 0;
                 lbObjectList.SelectedIndex = -1;
 
-                for (int i = 0; i < fuzzySearchItems.Count; i++)
-                {
-                    var fuzzySearchItem = fuzzySearchItems[i];
-                    XNAListBoxItem listBoxItem = (XNAListBoxItem)fuzzySearchItem.Item;
+                foreach (var fuzzySearchItem in fuzzySearchItems)
+                {   
+                    var listBoxItem = fuzzySearchItem.Item;
 
                     lbObjectList.AddItem(listBoxItem);
 
                     if (lbObjectList.SelectedIndex == -1)
-                        lbObjectList.SelectedIndex = i;
+                        lbObjectList.SelectedIndex = 0;
                 }
             }
 

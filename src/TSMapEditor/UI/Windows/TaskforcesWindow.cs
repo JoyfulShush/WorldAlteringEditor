@@ -518,6 +518,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var fuzzySearchTaskForces = Helpers.FuzzySearch(tbFilter.Text, sortedTaskForces.ToList(), taskForce => taskForce.Name, minimumFuzzySearchScore, false);
                 sortedTaskForces = fuzzySearchTaskForces.Select(fuzzySearchTaskForce => fuzzySearchTaskForce.Item);
+
                 shouldViewTop = true;
                 filtering = true;
             }

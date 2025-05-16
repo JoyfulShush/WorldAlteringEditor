@@ -754,6 +754,7 @@ namespace TSMapEditor
             if (string.IsNullOrWhiteSpace(searchString))
                 return 100;
 
+            // Fuzzy Search method, used to calculate initial score
             int score = Fuzz.Ratio(searchString, targetString);
 
             List<string> nameParts = [];
@@ -764,9 +765,13 @@ namespace TSMapEditor
                 if (spaceIndex >= 0)
                 {
                     string firstPart = targetString.Substring(0, spaceIndex);
-                    string secondPart = targetString.Substring(spaceIndex + 1);                    
+                    string secondPart = targetString.Substring(spaceIndex + 1);
                     nameParts.Add(firstPart);
                     nameParts.Add(secondPart);
+                } 
+                else
+                {
+                    nameParts.Add(targetString);
                 }
             }
             else
@@ -803,11 +808,11 @@ namespace TSMapEditor
         /// <typeparam name="T">The type of items in the list.</typeparam>
         /// <param name="searchString">The string to search for.</param>
         /// <param name="itemsList">The list of items to search through.</param>
-        /// <param name="textSelector">A function to extract the text representation of an item.</param>
+        /// <param name="extractTextFromItem">A function to extract the name or relevant representation of an item.</param>
         /// <param name="minimumScore">The minimum score required for an item to be included in the results.</param>
-        /// <param name="checkParts">Whether to check individual parts of the item's text for matches.</param>
+        /// <param name="checkParts">Whether to check multiple parts separated by a space. Useful for texts that has ININame or ID, followed by the object name.</param>
         /// <returns>A list of fuzzy search results, each containing an item and a score.
-        public static List<FuzzySearchItem<T>> FuzzySearch<T>(string searchString, List<T> itemsList, Func<T, string> textSelector, int minimumScore, bool checkParts = true)
+        public static List<FuzzySearchItem<T>> FuzzySearch<T>(string searchString, List<T> itemsList, Func<T, string> extractTextFromItem, int minimumScore, bool checkParts)
         {
             searchString = searchString.ToLowerInvariant();
 
@@ -817,15 +822,15 @@ namespace TSMapEditor
             var results = itemsList
                 .Select(item =>
                 {
-                    string text = textSelector(item);
+                    string itemText = extractTextFromItem(item);
 
-                    if (text == Constants.NoneValue1 || text == Constants.NoneValue2)
+                    if (itemText == Constants.NoneValue1 || itemText == Constants.NoneValue2)
                         return new FuzzySearchItem<T>(item, 0);
 
-                    int score = CalculateFuzzySearchScore(searchString, text, checkParts);
+                    int score = CalculateFuzzySearchScore(searchString, itemText, checkParts);
                     return new FuzzySearchItem<T>(item, score);
                 })
-                .Where(item => item.Score > minimumScore)
+                .Where(item => item.Score >= minimumScore)
                 .OrderByDescending(item => item.Score)
                 .ToList();
 

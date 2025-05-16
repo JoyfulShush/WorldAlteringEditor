@@ -675,6 +675,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var fuzzySearchScripts = Helpers.FuzzySearch(tbFilter.Text, sortedScripts.ToList(), script => script.Name, minimumFuzzySearchScore, false);
                 sortedScripts = fuzzySearchScripts.Select(fuzzySearchScript => fuzzySearchScript.Item);
+
                 shouldViewTop = true;
                 filtering = true;
             }
