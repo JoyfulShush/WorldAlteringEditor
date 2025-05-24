@@ -28,9 +28,7 @@ namespace TSMapEditor.CCEngine
 
         public void ReadConfig()
         {
-            string configPath =
-                Helpers.NormalizePath(Path.Combine(Environment.CurrentDirectory, "Config", "FileManagerConfig.ini"));
-            var iniFile = new IniFile(configPath);
+            var iniFile = Helpers.ReadConfigINI("FileManagerConfig.ini");
 
             AddSearchDirectory(Environment.CurrentDirectory);
             iniFile.DoForEveryValueInSection("SearchDirectories", v => AddSearchDirectory(Path.Combine(GameDirectory, v)));

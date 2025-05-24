@@ -145,12 +145,12 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             VoxelModel model, bool affectedByLighting, float depthAddition,
             bool compensateForBottomGap)
         {
-            var unitTile = RenderDependencies.Map.GetTile(gameObject.Position.X, gameObject.Position.Y);
+            var unitTile = Map.GetTile(gameObject.Position.X, gameObject.Position.Y);
 
             if (unitTile == null)
                 return;
 
-            ITileImage tile = RenderDependencies.Map.TheaterInstance.GetTile(unitTile.TileIndex);
+            ITileImage tile = Map.TheaterInstance.GetTile(unitTile.TileIndex);
             ISubTileImage subTile = tile.GetSubTile(unitTile.SubTileIndex);
             RampType ramp = subTile.TmpImage.RampType;
 

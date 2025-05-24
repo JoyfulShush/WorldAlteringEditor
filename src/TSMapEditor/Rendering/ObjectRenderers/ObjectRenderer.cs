@@ -66,9 +66,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         public bool IsWithinCamera(T gameObject)
         {
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+            var mapCell = Map.GetTile(gameObject.Position);
             int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -87,9 +87,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         public virtual Point2D GetDrawPoint(T gameObject)
         {
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+            var mapCell = Map.GetTile(gameObject.Position);
             int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -117,9 +117,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             if (ShouldRenderReplacementText(gameObject))
             {
-                Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+                Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-                var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+                var mapCell = Map.GetTile(gameObject.Position);
                 int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
                 Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
@@ -420,12 +420,12 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 if (affectedByLighting && image.SubjectToLighting)
                 {
                     lighting = mapCell.CellLighting.ToXNAVector4(extraLight);
-                    remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+                    remapColor = ScaleColorToAmbient(remapColor, lighting);
                 }
                 else if (affectedByAmbient)
                 {
                     lighting = mapCell.CellLighting.ToXNAVector4Ambient(extraLight);
-                    remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+                    remapColor = ScaleColorToAmbient(remapColor, lighting);
                 }
             }
 
@@ -473,7 +473,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             depthAddition += GetDepthFromPosition(gameObject, drawingBounds);
             depthAddition += GetDepthAddition(gameObject);
 
-            remapColor = ScaleColorToAmbient(remapColor, mapCell.CellLighting);
+            remapColor = ScaleColorToAmbient(remapColor, lighting);
 
             // Shader scales lighting by 2x
             remapColor = new Color(remapColor.R / 2, remapColor.G / 2, remapColor.B / 2, remapColor.A);
@@ -530,6 +530,16 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         protected Color ScaleColorToAmbient(Color color, MapColor mapColor)
         {
             double highestComponent = Math.Max(mapColor.R, Math.Max(mapColor.G, mapColor.B));
+
+            return new Color((int)(color.R * highestComponent),
+                (int)(color.G * highestComponent),
+                (int)(color.B * highestComponent),
+                color.A);
+        }
+
+        protected Color ScaleColorToAmbient(Color color, Vector4 vector)
+        {
+            double highestComponent = Math.Max(vector.X, Math.Max(vector.Y, vector.Z));
 
             return new Color((int)(color.R * highestComponent),
                 (int)(color.G * highestComponent),

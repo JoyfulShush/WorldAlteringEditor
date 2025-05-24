@@ -5,7 +5,7 @@ namespace TSMapEditor
 {
     public static class Constants
     {
-        public const string ReleaseVersion = "1.4.9";
+        public const string ReleaseVersion = "1.4.11";
 
         public static int CellSizeX = 48;
         public static int CellSizeY = 24;
@@ -125,7 +125,7 @@ namespace TSMapEditor
             const string ConstantsSectionName = "Constants";
             const string FilePathsSectionName = "FilePaths";
 
-            IniFile constantsIni = new IniFile(Environment.CurrentDirectory + "/Config/Constants.ini");
+            IniFile constantsIni = Helpers.ReadConfigINI("Constants.ini");
 
             CellSizeX = constantsIni.GetIntValue(ConstantsSectionName, nameof(CellSizeX), CellSizeX);
             MaxMapWidth = TextureSizeLimit / CellSizeX;
@@ -186,7 +186,7 @@ namespace TSMapEditor
 
         public static void InitUIConstants()
         {
-            IniFile uiConstantsIni = new IniFile(Environment.CurrentDirectory + "/Config/UI/UIConstants.ini");
+            IniFile uiConstantsIni = Helpers.ReadConfigINI("UI/UIConstants.ini");
 
             UITreeViewLineHeight = uiConstantsIni.GetIntValue("UI", nameof(UITreeViewLineHeight), UITreeViewLineHeight);
         }

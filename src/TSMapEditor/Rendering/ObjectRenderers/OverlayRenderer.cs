@@ -56,9 +56,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             if (gameObject.OverlayType.HighBridgeDirection == BridgeDirection.None)
                 return base.GetDrawPoint(gameObject);
 
-            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, RenderDependencies.Map);
+            Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
-            var mapCell = RenderDependencies.Map.GetTile(gameObject.Position);
+            var mapCell = Map.GetTile(gameObject.Position);
             int heightOffset = 0;
 
             if (!RenderDependencies.EditorState.Is2DMode)

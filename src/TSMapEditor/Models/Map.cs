@@ -229,7 +229,7 @@ namespace TSMapEditor.Models
             InitEditorConfig();
             InitializeRules(gameConfigINIFiles);
             LoadedINI = new IniFileEx();
-            var baseMap = new IniFileEx(Environment.CurrentDirectory + "/Config/BaseMap.ini", ccFileManager);
+            var baseMap = Helpers.ReadConfigINIEx("BaseMap.ini", ccFileManager);
             baseMap.RemoveSection("INISystem");
             baseMap.FileName = string.Empty;
             baseMap.SetStringValue("Map", "Theater", theaterName);
@@ -1570,7 +1570,7 @@ namespace TSMapEditor.Models
                     Rules.InitArt(gameConfigINIFiles.ArtFSIni, initializer);
             }
 
-            var editorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
+            var editorRulesIni = Helpers.ReadConfigINI("EditorRules.ini");
             Rules.InitEditorOverrides(editorRulesIni);
 
             Rules.InitFromINI(editorRulesIni, initializer, false);
@@ -1584,7 +1584,7 @@ namespace TSMapEditor.Models
                 Rules.InitAI(gameConfigINIFiles.AIFSIni, EditorConfig.TeamTypeFlags);
 
             // Load impassable cell information for terrain types
-            var impassableTerrainObjectsIni = new IniFile(Environment.CurrentDirectory + "/Config/TerrainTypeImpassability.ini");
+            var impassableTerrainObjectsIni = Helpers.ReadConfigINI("TerrainTypeImpassability.ini");
 
             Rules.TerrainTypes.ForEach(tt =>
             {

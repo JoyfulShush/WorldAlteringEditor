@@ -248,7 +248,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
         {
             ddPresets.Items.Clear();
 
-            var presetsIni = new IniFile(Environment.CurrentDirectory + "/Config/TerrainGeneratorPresets.ini");
+            var presetsIni = Helpers.ReadConfigINI("TerrainGeneratorPresets.ini");
             foreach (string sectionName in presetsIni.GetSections())
             {
                 string theater = presetsIni.GetStringValue(sectionName, "Theater", string.Empty);
