@@ -760,5 +760,18 @@ namespace TSMapEditor
 
             return new IniFileEx(defaultPath, fileManager);
         }
+
+        public static bool IsCellOfLandType(MapTile cell, LandType landType, TheaterGraphics theaterGraphics)
+        {            
+            TileImage tileGraphics = theaterGraphics.GetTileGraphics(cell.TileIndex);
+            MGTMPImage subCellImage = cell.SubTileIndex < tileGraphics.TMPImages.Length ? tileGraphics.TMPImages[cell.SubTileIndex] : null;
+            if (subCellImage != null && subCellImage.TmpImage != null)
+            {
+                var cellTerrainType = subCellImage.TmpImage.TerrainType;
+                return cellTerrainType == LandTypeToInt(landType);
+            }
+
+            return false;
+        }
     }
 }
