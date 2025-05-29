@@ -469,7 +469,7 @@ namespace TSMapEditor.Mutations.Classes
                 {
                     // Don't place terrain objects on roads
                     var cell = Map.GetTile(cellCoords);
-                    if (Helpers.IsCellOfLandType(cell, LandType.Road, MutationTarget.TheaterGraphics))
+                    if (cell.MatchesLandType(LandType.Road))
                         continue;
 
                     bool isOccupied = occupiedCells.Contains(cellCoords);
