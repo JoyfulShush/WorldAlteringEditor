@@ -759,6 +759,6 @@ namespace TSMapEditor
                 return new IniFileEx(customPath, fileManager);
 
             return new IniFileEx(defaultPath, fileManager);
-        }        
+        }
     }
 }
