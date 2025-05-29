@@ -333,6 +333,8 @@ namespace TSMapEditor.Models
 
             // Refresh light posts in case they got their INI config changed - saves the user
             // from having to reload the map to refresh lighting changes
+            // Lighting.ReadFromIniFile will afterwards refresh lighting of all cells, so we don't
+            // need to do it separately for cells lit by the building
             Rules.BuildingTypes.ForEach(bt => initializer.ReadObjectTypePropertiesFromINI(bt, LoadedINI));
             Structures.ForEach(s => s.LightTiles(Tiles));
 

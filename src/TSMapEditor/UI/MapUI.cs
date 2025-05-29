@@ -189,21 +189,7 @@ namespace TSMapEditor.UI
             KeyboardCommands.Instance.RotateUnitOneStep.Triggered += RotateUnitOneStep_Triggered;
 
             windowController.Initialized += PostWindowControllerInit;
-            Map.LocalSizeChanged += (s, e) => InvalidateMap();
             Map.MapResized += Map_MapResized;
-            Map.MapHeightChanged += (s, e) => InvalidateMap();
-            Map.Lighting.ColorsRefreshed += (s, e) => Map_LightingColorsRefreshed();
-            Map.CellLightingModified += Map_CellLightingModified;
-
-            Map.HouseColorChanged += (s, e) => InvalidateMap();
-            EditorState.HighlightImpassableCellsChanged += (s, e) => InvalidateMap();
-            EditorState.HighlightIceGrowthChanged += (s, e) => InvalidateMap();
-            EditorState.DrawMapWideOverlayChanged += (s, e) => MapWideOverlay.Enabled = EditorState.DrawMapWideOverlay;
-            EditorState.MarbleMadnessChanged += (s, e) => InvalidateMapForMinimap();
-            EditorState.Is2DModeChanged += (s, e) => InvalidateMapForMinimap();
-            EditorState.IsLightingChanged += (s, e) => LightingChanged();
-            EditorState.LightingPreviewStateChanged += (s, e) => LightingChanged();
-            EditorState.RenderedObjectsChanged += (s, e) => InvalidateMapForMinimap();
 
             windowController.RenderResolutionChanged += WindowController_RenderResolutionChanged;
 
@@ -227,8 +213,6 @@ namespace TSMapEditor.UI
             windowController.RunScriptWindow.ScriptRun += (s, e) => InvalidateMap();
             windowController.StructureOptionsWindow.EnabledChanged += (s, e) => { if (!((StructureOptionsWindow)s).Enabled) InvalidateMap(); };
             windowController.MegamapGenerationOptionsWindow.OnGeneratePreview += MegamapGenerationOptionsWindow_OnGeneratePreview;
-
-            Map_LightingColorsRefreshed();
         }
 
         private void MegamapGenerationOptionsWindow_OnGeneratePreview(object sender, MegamapRenderOptions e)
@@ -329,37 +313,6 @@ namespace TSMapEditor.UI
 
             // And then re-draw the whole map
             InvalidateMap();
-        }
-
-        private void Map_CellLightingModified(object sender, CellLightingEventArgs e)
-        {
-            if (EditorState.IsLighting && EditorState.LightingPreviewState != LightingPreviewMode.NoLighting)
-                Map.RefreshCellLighting(EditorState.LightingPreviewState, e.AffectedTiles);
-        }
-
-        private void LightingChanged()
-        {
-            Map.RefreshCellLighting(EditorState.IsLighting ? EditorState.LightingPreviewState : LightingPreviewMode.NoLighting, null);
-
-            InvalidateMapForMinimap();
-            if (Constants.VoxelsAffectedByLighting)
-                TheaterGraphics.InvalidateVoxelCache();
-        }
-
-        private void Map_LightingColorsRefreshed()
-        {
-            MapColor? color = EditorState.LightingPreviewState switch
-            {
-                LightingPreviewMode.Normal => Map.Lighting.NormalColor,
-                LightingPreviewMode.IonStorm => Map.Lighting.IonColor,
-                LightingPreviewMode.Dominator => Map.Lighting.DominatorColor,
-                _ => null,
-            };
-
-            if (color != null)
-                TheaterGraphics.ApplyLightingToPalettes((MapColor)color);
-
-            LightingChanged();
         }
 
         private void MinimapWindow_MegamapClicked(object sender, MegamapClickedEventArgs e)
