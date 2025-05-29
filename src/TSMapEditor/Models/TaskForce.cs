@@ -131,6 +131,7 @@ namespace TSMapEditor.Models
             StringBuilder sb = new StringBuilder();
             sb.Append("Contains:");
 
+            int totalCost = 0;
             foreach (var entry in TechnoTypes)
             {
                 if (entry == null)
@@ -141,7 +142,13 @@ namespace TSMapEditor.Models
                 sb.Append(entry.Count);
                 sb.Append("x ");
                 sb.Append(entry.TechnoType.GetEditorDisplayName());
+
+                totalCost += entry.TechnoType.Cost * entry.Count;
             }
+
+            sb.Append(Environment.NewLine);
+            sb.Append(Environment.NewLine);
+            sb.Append("Total Cost: $" + totalCost);
 
             return sb.ToString();
         }
