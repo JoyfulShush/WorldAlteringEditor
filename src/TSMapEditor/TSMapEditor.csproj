@@ -155,22 +155,22 @@
     <None Update="Config\Default\UI\Windows\MegamapGenerationOptionsWindow.ini">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Update="Config\UI\Windows\GeneralSettingsWizardStepWindow.ini">
+	<None Update="Config\Default\UI\Windows\GeneralSettingsWizardStepWindow.ini">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Update="Config\UI\Windows\TaskForceWizardStepWindow.ini">
+	<None Update="Config\Default\UI\Windows\TaskForceWizardStepWindow.ini">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Update="Config\UI\Windows\ScriptWizardStepWindow.ini">
+	<None Update="Config\Default\UI\Windows\ScriptWizardStepWindow.ini">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Update="Config\UI\Windows\TeamTypesWizardStepWindow.ini">
+	<None Update="Config\Default\UI\Windows\TeamTypesWizardStepWindow.ini">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Update="Config\UI\Windows\AITriggersWizardStepWindow.ini">
+	<None Update="Config\Default\UI\Windows\AITriggersWizardStepWindow.ini">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-    <None Update="Config\UI\Windows\ApplyINICodeWindow.ini">
+    <None Update="Config\Default\UI\Windows\ApplyINICodeWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\UI\Windows\RenderedObjectsConfigurationWindow.ini">
