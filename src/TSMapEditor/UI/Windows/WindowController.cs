@@ -41,6 +41,7 @@ namespace TSMapEditor.UI.Windows
         public TeamTypesWindow TeamTypesWindow { get; private set; }
         public TriggersWindow TriggersWindow { get; private set; }
         public AITriggersWindow AITriggersWindow { get; private set; }
+        public AddRandomBasedTriggerWindow AddRandomBasedTriggerWindow { get; private set; }
         public PlaceWaypointWindow PlaceWaypointWindow { get; private set; }
         public LocalVariablesWindow LocalVariablesWindow { get; private set; }
         public StructureOptionsWindow StructureOptionsWindow { get; private set; }
@@ -123,6 +124,9 @@ namespace TSMapEditor.UI.Windows
 
             AITriggersWindow = new AITriggersWindow(windowParentControl.WindowManager, map);
             Windows.Add(AITriggersWindow);
+
+            AddRandomBasedTriggerWindow = new AddRandomBasedTriggerWindow(windowParentControl.WindowManager, map);
+            Windows.Add(AddRandomBasedTriggerWindow);
 
             PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
             Windows.Add(PlaceWaypointWindow);
@@ -219,6 +223,8 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.TagOpened += Window_TagOpened;
             AITriggersWindow.TeamTypeOpened += AITriggersWindow_TeamTypeOpened;
             TriggersWindow.TeamTypeOpened += TriggersWindow_TeamTypeOpened;
+            TriggersWindow.AddRandomBasedTriggersOpened += AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened;
+            AddRandomBasedTriggerWindow.RandomBasedTriggersCreated += AddRandomBasedTriggersWindow_TriggersCreated;
             StructureOptionsWindow.TagOpened += Window_TagOpened;
             VehicleOptionsWindow.TagOpened += Window_TagOpened;
             InfantryOptionsWindow.TagOpened += Window_TagOpened;
@@ -259,6 +265,12 @@ namespace TSMapEditor.UI.Windows
             TriggersWindow.SelectTrigger(e.Tag.Trigger);
         }
 
+        private void AddRandomBasedTriggersWindow_TriggersCreated(object sender, RandomBasedTriggersCreatedEventArgs e)
+        {
+            TriggersWindow.Open();
+            TriggersWindow.SelectTrigger(e.BaseTrigger);
+        }
+
         private void MapSizeWindow_OnResizeMapButtonClicked(object sender, EventArgs e)
         {
             ExpandMapWindow.Open();
@@ -297,6 +309,11 @@ namespace TSMapEditor.UI.Windows
 
         private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);
 
+        private void AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened(object sender, EventArgs e)
+        {
+            AddRandomBasedTriggerWindow.Open();
+        }
+
         private void ClearFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
         {
             foreach (var child in control.Children)
@@ -316,6 +333,8 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.TagOpened -= Window_TagOpened;
             AITriggersWindow.TeamTypeOpened -= AITriggersWindow_TeamTypeOpened;
             TriggersWindow.TeamTypeOpened -= TriggersWindow_TeamTypeOpened;
+            TriggersWindow.AddRandomBasedTriggersOpened -= AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened;
+            AddRandomBasedTriggerWindow.RandomBasedTriggersCreated -= AddRandomBasedTriggersWindow_TriggersCreated;
             StructureOptionsWindow.TagOpened -= Window_TagOpened;
             VehicleOptionsWindow.TagOpened -= Window_TagOpened;
             InfantryOptionsWindow.TagOpened -= Window_TagOpened;
