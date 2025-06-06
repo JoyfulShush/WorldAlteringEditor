@@ -22,7 +22,7 @@ namespace TSMapEditor.UI.Windows
         Name,
         Color,
         ColorThenName,
-    }        
+    }
 
     public class TriggersWindow : INItializableWindow
     {

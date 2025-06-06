@@ -40,7 +40,7 @@ namespace TSMapEditor.UI.Windows
         public ScriptsWindow ScriptsWindow { get; private set; }
         public TeamTypesWindow TeamTypesWindow { get; private set; }
         public TriggersWindow TriggersWindow { get; private set; }
-        public AITriggersWindow AITriggersWindow { get; private set; }        
+        public AITriggersWindow AITriggersWindow { get; private set; }
         public PlaceWaypointWindow PlaceWaypointWindow { get; private set; }
         public LocalVariablesWindow LocalVariablesWindow { get; private set; }
         public StructureOptionsWindow StructureOptionsWindow { get; private set; }
@@ -122,7 +122,7 @@ namespace TSMapEditor.UI.Windows
             Windows.Add(TriggersWindow);
 
             AITriggersWindow = new AITriggersWindow(windowParentControl.WindowManager, map);
-            Windows.Add(AITriggersWindow);            
+            Windows.Add(AITriggersWindow);
 
             PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
             Windows.Add(PlaceWaypointWindow);
@@ -218,7 +218,7 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.ScriptOpened += TeamTypesWindow_ScriptOpened;
             TeamTypesWindow.TagOpened += Window_TagOpened;
             AITriggersWindow.TeamTypeOpened += AITriggersWindow_TeamTypeOpened;
-            TriggersWindow.TeamTypeOpened += TriggersWindow_TeamTypeOpened;            
+            TriggersWindow.TeamTypeOpened += TriggersWindow_TeamTypeOpened;
             StructureOptionsWindow.TagOpened += Window_TagOpened;
             VehicleOptionsWindow.TagOpened += Window_TagOpened;
             InfantryOptionsWindow.TagOpened += Window_TagOpened;
@@ -257,7 +257,7 @@ namespace TSMapEditor.UI.Windows
 
             TriggersWindow.Open();
             TriggersWindow.SelectTrigger(e.Tag.Trigger);
-        }        
+        }
 
         private void MapSizeWindow_OnResizeMapButtonClicked(object sender, EventArgs e)
         {
@@ -295,7 +295,7 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.SelectTeamType(e.TeamType);
         }
 
-        private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);        
+        private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);
 
         private void ClearFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
         {
@@ -315,7 +315,7 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.ScriptOpened -= TeamTypesWindow_ScriptOpened;
             TeamTypesWindow.TagOpened -= Window_TagOpened;
             AITriggersWindow.TeamTypeOpened -= AITriggersWindow_TeamTypeOpened;
-            TriggersWindow.TeamTypeOpened -= TriggersWindow_TeamTypeOpened;            
+            TriggersWindow.TeamTypeOpened -= TriggersWindow_TeamTypeOpened;
             StructureOptionsWindow.TagOpened -= Window_TagOpened;
             VehicleOptionsWindow.TagOpened -= Window_TagOpened;
             InfantryOptionsWindow.TagOpened -= Window_TagOpened;
