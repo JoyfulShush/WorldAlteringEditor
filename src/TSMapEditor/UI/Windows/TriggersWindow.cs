@@ -24,6 +24,11 @@ namespace TSMapEditor.UI.Windows
         ColorThenName,
     }
 
+    public class AddRandomBasedTriggersEventArgs : EventArgs
+    {
+        public AddRandomBasedTriggersEventArgs() { }
+    }
+
     public class TriggersWindow : INItializableWindow
     {
         public TriggersWindow(WindowManager windowManager, Map map, EditorState editorState, ICursorActionTarget cursorActionTarget) : base(windowManager)
@@ -37,6 +42,7 @@ namespace TSMapEditor.UI.Windows
         }
 
         public event EventHandler<TeamTypeEventArgs> TeamTypeOpened;
+        public event EventHandler<AddRandomBasedTriggersEventArgs> AddRandomBasedTriggersOpened;
 
         private readonly Map map;
         private readonly ICursorActionTarget cursorActionTarget;
@@ -104,6 +110,7 @@ namespace TSMapEditor.UI.Windows
         private SelectSpeechWindow selectSpeechWindow;
         private SelectSoundWindow selectSoundWindow;
         private SelectParticleSystemTypeWindow selectParticleSystemTypeWindow;
+        private AddRandomBasedTriggerWindow addRandomBasedTriggerWindow;
 
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
@@ -217,6 +224,7 @@ namespace TSMapEditor.UI.Windows
                 ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
             ddActions.AddItem(new XNADropDownItem() { Text = "Re-generate Trigger IDs", Tag = new Action(RegenerateIDs) });
+            ddActions.AddItem(new XNADropDownItem() { Text = "Add Random Based Triggers", Tag = new Action(OpenAddRandomBasedTriggersWindow) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -2330,6 +2338,12 @@ namespace TSMapEditor.UI.Windows
         private void OpenTeamType(TeamType teamType)
         {
             TeamTypeOpened?.Invoke(this, new TeamTypeEventArgs(teamType));
+            PutOnBackground();
+        }
+
+        private void OpenAddRandomBasedTriggersWindow()
+        {
+            AddRandomBasedTriggersOpened?.Invoke(this, new AddRandomBasedTriggersEventArgs());
             PutOnBackground();
         }
     }
