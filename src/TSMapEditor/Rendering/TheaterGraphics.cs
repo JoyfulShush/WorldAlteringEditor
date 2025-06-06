@@ -424,7 +424,7 @@ namespace TSMapEditor.Rendering
         public int TileCount => terrainGraphicsList.Count;
 
         public TileImage GetTileGraphics(int id) => terrainGraphicsList[id][random.Next(terrainGraphicsList[id].Length)];
-        public TileImage GetTileGraphics(int id, int randomId) => terrainGraphicsList[id][randomId];
+        public TileImage GetTileGraphics(int id, int variantId) => terrainGraphicsList[id][variantId];
         public TileImage GetMarbleMadnessTileGraphics(int id) => mmTerrainGraphicsList[id][0];
         public bool HasSeparateMarbleMadnessTileGraphics(int id) => hasMMGraphics[id];
 
@@ -553,7 +553,7 @@ namespace TSMapEditor.Rendering
                         {
                             if (v == 0)
                             {
-                                tileGraphics.Add(new TileImage(0, 0, tsId, i, currentTileIndex, new MGTMPImage[0]));
+                                tileGraphics.Add(new TileImage(0, 0, tsId, i, currentTileIndex, Array.Empty<MGTMPImage>()));
                                 break;
                             }
                             else

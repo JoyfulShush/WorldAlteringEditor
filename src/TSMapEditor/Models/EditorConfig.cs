@@ -14,7 +14,7 @@ namespace TSMapEditor.Models
     {
         public EditorConfig() 
         {
-            EditorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
+            EditorRulesIni = Helpers.ReadConfigINI("EditorRules.ini");
         }
 
         private const string IniSystemSectionName = "INISystem";

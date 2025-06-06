@@ -90,7 +90,16 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             Point2D drawPointWithoutCellHeight = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map);
 
             var mapCell = Map.GetTile(gameObject.Position);
-            int heightOffset = RenderDependencies.EditorState.Is2DMode ? 0 : mapCell.Level * Constants.CellHeight;
+            int heightOffset = 0;
+
+            if (!RenderDependencies.EditorState.Is2DMode)
+            {
+                heightOffset = mapCell.Level * Constants.CellHeight;
+
+                if (gameObject.IsOnBridge())
+                    heightOffset += Constants.CellHeight * Constants.HighBridgeHeight;
+            }
+
             Point2D drawPoint = new Point2D(drawPointWithoutCellHeight.X, drawPointWithoutCellHeight.Y - heightOffset);
 
             return drawPoint;
@@ -289,7 +298,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             float textureHeight = (regularFrame != null && regularFrame.Texture != null) ? (float)regularFrame.Texture.Height : shadowFrame.Texture.Height;
 
-            float depth = GetDepthFromPosition(gameObject, drawingBounds);
+            float depth = GetShadowDepthFromPosition(gameObject, drawingBounds);
             // depth += GetDepthAddition(gameObject);
             depth += textureHeight / Map.HeightInPixelsWithCellHeight;
 
@@ -329,6 +338,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return ((cellY + (height * Constants.CellHeight)) / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
                 (height * Constants.DepthRenderStep);
         }
+
+        protected virtual float GetShadowDepthFromPosition(T gameObject, Rectangle drawingBounds) => GetDepthFromPosition(gameObject, drawingBounds);
 
         protected MapTile GetSouthernmostCell(T gameObject)
         {
@@ -488,9 +499,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             Texture2D texture = frame.Texture;
 
-            if (depthAddition > 1.0f)
-                depthAddition = 1.0f;
-
             // Add extra depth so objects show above terrain despite float imprecision
             // depthAddition += Constants.DepthEpsilon;
 
@@ -505,6 +513,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                     depthAddition += ((southermostCellBottomPixelCoord - drawingBounds.Bottom) / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace;
                 }
             }
+
+            if (depthAddition > 1.0f)
+                depthAddition = 1.0f;
 
             color = new Color((color.R / 255.0f) * lightingColor.X / 2f,
                 (color.B / 255.0f) * lightingColor.Y / 2f,

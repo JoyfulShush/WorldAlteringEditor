@@ -18,7 +18,7 @@ namespace TSMapEditor.UI.Controls
         {
         }
 
-        protected IniFile ConfigIni { get; private set; }
+        protected IniFile ConfigIni { get; set; }
 
         private bool _initialized = false;
 
@@ -58,15 +58,19 @@ namespace TSMapEditor.UI.Controls
                 throw new InvalidOperationException("INItializableWindow cannot be initialized twice.");
 
             var dsc = Path.DirectorySeparatorChar;
-            string defaultConfigIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "Default", "UI", SubDirectory, Name + ".ini");
-            string configIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "UI", SubDirectory, Name + ".ini");
 
-            if (File.Exists(configIniPath))
-                ConfigIni = new IniFile(configIniPath);
-            else if (File.Exists(defaultConfigIniPath))
-                ConfigIni = new IniFile(defaultConfigIniPath);
-            else
-                throw new FileNotFoundException("Config INI not found: " + configIniPath);
+            if (ConfigIni == null)
+            {
+                string defaultConfigIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "Default", "UI", SubDirectory, Name + ".ini");
+                string configIniPath = Path.Combine(Environment.CurrentDirectory, "Config", "UI", SubDirectory, Name + ".ini");
+
+                if (File.Exists(configIniPath))
+                    ConfigIni = new IniFile(configIniPath);
+                else if (File.Exists(defaultConfigIniPath))
+                    ConfigIni = new IniFile(defaultConfigIniPath);
+                else
+                    throw new FileNotFoundException("Config INI not found: " + configIniPath);
+            }
 
             Parser.Instance.SetPrimaryControl(this);
             ReadINIForControl(this);

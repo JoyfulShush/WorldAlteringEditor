@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -57,12 +58,6 @@ namespace TSMapEditor.UI.Controls
             base.Kill();
         }
 
-        private void CloseButton_LeftClick(object sender, EventArgs e)
-        {
-            Hide();
-            Closed?.Invoke(this, EventArgs.Empty);
-        }
-
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == nameof(CanBeMoved))
@@ -118,7 +113,10 @@ namespace TSMapEditor.UI.Controls
             base.Update(gameTime);
 
             if (Alpha <= 0f && AlphaRate < 0.0f)
+            {
+                Closed?.Invoke(this, EventArgs.Empty);
                 Disable();
+            }
 
             if (IsDragged)
             {

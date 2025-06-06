@@ -654,7 +654,23 @@ namespace TSMapEditor.Rendering
             Point2D drawPoint = CellMath.CellTopLeftPointFromCellCoords(new Point2D(tile.X, tile.Y), Map);
 
             if (tile.TileImage == null)
-                tile.TileImage = TheaterGraphics.GetTileGraphics(tile.TileIndex);
+            {
+                var theater = TheaterGraphics.Theater;
+
+                // Hardcode variant 0 for bridges and train bridges so they don't appear damaged
+                // Ideally we'd need to check HasDamagedData in the subcell's TmpImage, but that
+                // would be very messy..
+                if (theater.BridgeTileSet.ContainsTile(tile.TileIndex) ||
+                    theater.TrainBridgeTileSet.ContainsTile(tile.TileIndex) ||
+                    (theater.WoodBridgeTileSet != null && theater.WoodBridgeTileSet.ContainsTile(tile.TileIndex)))
+                {
+                    tile.TileImage = TheaterGraphics.GetTileGraphics(tile.TileIndex, 0);
+                }
+                else
+                {
+                    tile.TileImage = TheaterGraphics.GetTileGraphics(tile.TileIndex);
+                }
+            }
 
             TileImage tileImage;
             int subTileIndex;
@@ -1177,39 +1193,41 @@ namespace TSMapEditor.Rendering
             double range = techno.GetWeaponRange();
             if (range > 0.0)
             {
-                DrawRangeIndicator(techno.Position, range, techno.Owner.XNAColor);
+                DrawRangeIndicator(techno, range, techno.Owner.XNAColor);
             }
 
             range = techno.GetGuardRange();
             if (range > 0.0)
             {
-                DrawRangeIndicator(techno.Position, range, techno.Owner.XNAColor * 0.25f);
+                DrawRangeIndicator(techno, range, techno.Owner.XNAColor * 0.25f);
             }
 
             range = techno.GetGapGeneratorRange();
             if (range > 0.0)
             {
-                DrawRangeIndicator(techno.Position, range, Color.Black * 0.75f);
+                DrawRangeIndicator(techno, range, Color.Black * 0.75f);
             }
 
             range = techno.GetCloakGeneratorRange();
             if (range > 0.0)
             {
-                DrawRangeIndicator(techno.Position, range, techno.GetRadialColor());
+                DrawRangeIndicator(techno, range, techno.GetRadialColor());
             }
 
             range = techno.GetSensorArrayRange();
             if (range > 0.0)
             {
-                DrawRangeIndicator(techno.Position, range, techno.GetRadialColor());
+                DrawRangeIndicator(techno, range, techno.GetRadialColor());
             }
         }
 
-        private void DrawRangeIndicator(Point2D cellCoords, double range, Color color)
+        private void DrawRangeIndicator(TechnoBase techno, double range, Color color)
         {
             Point2D center = EditorState.Is2DMode ? 
-                CellMath.CellCenterPointFromCellCoords(cellCoords, Map) : 
-                CellMath.CellCenterPointFromCellCoords_3D(cellCoords, Map);
+                CellMath.CellCenterPointFromCellCoords(techno.Position, Map) : 
+                CellMath.CellCenterPointFromCellCoords_3D(techno.Position, Map);
+
+            int bridgeHeightOffset = techno.IsOnBridge() ? (Constants.CellHeight * Constants.HighBridgeHeight) : 0;
 
             // Range is specified in "tile edge lengths",
             // so we need a bit of trigonometry
@@ -1217,9 +1235,9 @@ namespace TSMapEditor.Rendering
             double verticalPixelRange = Constants.CellSizeY / Math.Sqrt(2.0);
 
             int startX = center.X - (int)(range * horizontalPixelRange);
-            int startY = center.Y - (int)(range * verticalPixelRange);
+            int startY = center.Y - bridgeHeightOffset - (int)(range * verticalPixelRange);
             int endX = center.X + (int)(range * horizontalPixelRange);
-            int endY = center.Y + (int)(range * verticalPixelRange);
+            int endY = center.Y - bridgeHeightOffset + (int)(range * verticalPixelRange);
 
             // startX = Camera.ScaleIntWithZoom(startX - Camera.TopLeftPoint.X);
             // startY = Camera.ScaleIntWithZoom(startY - Camera.TopLeftPoint.Y);
@@ -1267,7 +1285,11 @@ namespace TSMapEditor.Rendering
                 
                 if (startCell != null)
                 {
-                    startDrawPoint -= new Point2D(0, startCell.Level * Constants.CellHeight);
+                    if (!EditorState.Is2DMode)
+                        startDrawPoint -= new Point2D(0, startCell.Level * Constants.CellHeight);
+
+                    if (draggedOrRotatedObject.IsOnBridge())
+                        startDrawPoint -= new Point2D(0, Constants.HighBridgeHeight * Constants.CellHeight);
 
                     if (draggedOrRotatedObject.WhatAmI() == RTTIType.Infantry)
                         startDrawPoint += CellMath.GetSubCellOffset(((Infantry)draggedOrRotatedObject).SubCell) - new Point2D(0, Constants.CellHeight / 2);
@@ -1275,7 +1297,11 @@ namespace TSMapEditor.Rendering
 
                 Point2D endDrawPoint = CellMath.CellTopLeftPointFromCellCoords(tileUnderCursor.CoordsToPoint(), Map) + cameraAndCellCenterOffset;
 
-                endDrawPoint -= new Point2D(0, tileUnderCursor.Level * Constants.CellHeight);
+                if (!EditorState.Is2DMode)
+                    endDrawPoint -= new Point2D(0, tileUnderCursor.Level * Constants.CellHeight);
+
+                if (draggedOrRotatedObject.IsOnBridge())
+                    endDrawPoint -= new Point2D(0, Constants.HighBridgeHeight * Constants.CellHeight);
 
                 startDrawPoint = startDrawPoint.ScaleBy(Camera.ZoomLevel);
                 endDrawPoint = endDrawPoint.ScaleBy(Camera.ZoomLevel);
@@ -1297,7 +1323,11 @@ namespace TSMapEditor.Rendering
                 
                 if (startCell != null)
                 {
-                    startDrawPoint -= new Point2D(0, Map.GetTile(draggedOrRotatedObject.Position).Level * Constants.CellHeight);
+                    if (!EditorState.Is2DMode)
+                        startDrawPoint -= new Point2D(0, Map.GetTile(draggedOrRotatedObject.Position).Level * Constants.CellHeight);
+
+                    if (draggedOrRotatedObject.IsOnBridge())
+                        startDrawPoint -= new Point2D(0, Constants.HighBridgeHeight * Constants.CellHeight);
 
                     if (draggedOrRotatedObject.WhatAmI() == RTTIType.Infantry)
                         startDrawPoint += CellMath.GetSubCellOffset(((Infantry)draggedOrRotatedObject).SubCell) - new Point2D(0, Constants.CellHeight / 2);
@@ -1305,7 +1335,11 @@ namespace TSMapEditor.Rendering
 
                 Point2D endDrawPoint = CellMath.CellTopLeftPointFromCellCoords(tileUnderCursor.CoordsToPoint(), Map) + cameraAndCellCenterOffset;
 
-                endDrawPoint -= new Point2D(0, tileUnderCursor.Level * Constants.CellHeight);
+                if (!EditorState.Is2DMode)
+                    endDrawPoint -= new Point2D(0, tileUnderCursor.Level * Constants.CellHeight);
+
+                if (draggedOrRotatedObject.IsOnBridge())
+                    endDrawPoint -= new Point2D(0, Constants.HighBridgeHeight * Constants.CellHeight);
 
                 startDrawPoint = startDrawPoint.ScaleBy(Camera.ZoomLevel);
                 endDrawPoint = endDrawPoint.ScaleBy(Camera.ZoomLevel);
@@ -1345,7 +1379,16 @@ namespace TSMapEditor.Rendering
             Color lineColor = new Color(96, 168, 96, 128);
             Point2D cellTopLeftPoint = CellMath.CellTopLeftPointFromCellCoords(new Point2D(tileUnderCursor.X, tileUnderCursor.Y), Map) - Camera.TopLeftPoint;
 
-            int height = EditorState.Is2DMode ? 0 : tileUnderCursor.Level * Constants.CellHeight;
+            int height = 0;
+
+            if (!EditorState.Is2DMode)
+            {
+                height = tileUnderCursor.Level * Constants.CellHeight;
+
+                var techno = tileUnderCursor.GetTechno();
+                if (techno != null && techno.IsOnBridge())
+                    height += Constants.HighBridgeHeight * Constants.CellHeight;
+            }
 
             cellTopLeftPoint = new Point2D((int)(cellTopLeftPoint.X * Camera.ZoomLevel), (int)((cellTopLeftPoint.Y - height) * Camera.ZoomLevel));
 

@@ -44,8 +44,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                         throw new InvalidOperationException($"{nameof(OverlayRenderer)}.{nameof(GetExtraLight)}: Unknown lighting preview state");
                 }
 
-                const int highBridgeHeight = 4;
-                return level * highBridgeHeight;
+                return level * Constants.HighBridgeHeight;
             }
 
             return 0.0;
@@ -88,10 +87,19 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 return Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay;
             }
 
-            const int bridgeHeight = 4;
-
             var tile = Map.GetTile(gameObject.Position);
-            return (Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay) + ((tile.Level + bridgeHeight) * Constants.CellHeight / (float)Map.HeightInPixelsWithCellHeight);
+            return (Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay) + ((tile.Level + Constants.HighBridgeHeight) * Constants.CellHeight / (float)Map.HeightInPixelsWithCellHeight);
+        }
+
+        protected override float GetShadowDepthFromPosition(Overlay gameObject, Rectangle drawingBounds)
+        {
+            // Hack to prevent high bridge shadows from overlapping terrain on higher ground on bridge ends
+            if (gameObject.OverlayType.HighBridgeDirection != BridgeDirection.None)
+            {
+                return base.GetShadowDepthFromPosition(gameObject, new Rectangle(drawingBounds.X, drawingBounds.Y - (Constants.CellSizeY * 4), drawingBounds.Width, drawingBounds.Height));
+            }
+
+            return base.GetShadowDepthFromPosition(gameObject, drawingBounds);
         }
 
         protected override void Render(Overlay gameObject, Point2D drawPoint, in CommonDrawParams drawParams)

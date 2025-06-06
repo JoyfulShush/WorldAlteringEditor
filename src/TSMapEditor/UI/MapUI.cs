@@ -552,6 +552,36 @@ namespace TSMapEditor.UI
             base.OnRightClick();
         }
 
+        private MapTile CalculateBestTileUnderCursor()
+        {
+            Point2D cursorMapPoint = GetCursorMapPoint();
+            Point2D tileCoords = EditorState.Is2DMode ?
+                CellMath.CellCoordsFromPixelCoords_2D(cursorMapPoint, Map) :
+                CellMath.CellCoordsFromPixelCoords(cursorMapPoint, Map, CursorAction == null || CursorAction.SeeThrough);
+
+            var tile = Map.GetTile(tileCoords.X, tileCoords.Y);
+
+            if (tile != null && (CursorAction == null || CursorAction.UseOnBridge) && !Constants.IsFlatWorld && !EditorState.Is2DMode)
+            {
+                if (tile.GetTechno() == null)
+                {
+                    // If the tile has no Technos, check whether there'd be high infantry or vehicles two cells below.
+                    // If yes, the user might be pointing at a bridge that contains draw-offset units.
+
+                    var otherTile = Map.GetTile(tileCoords.X + 2, tileCoords.Y + 2);
+
+                    if (otherTile != null)
+                    {
+                        var techno = otherTile.GetTechno();
+                        if (techno != null && techno.IsOnBridge())
+                            return otherTile;
+                    }
+                }
+            }
+
+            return tile;
+        }
+
         public override void Update(GameTime gameTime)
         {
             // Make scroll rate independent of FPS
@@ -583,12 +613,7 @@ namespace TSMapEditor.UI
 
             windowController.MinimapWindow.CameraRectangle = new Rectangle(Camera.TopLeftPoint.ToXNAPoint(), new Point2D(Width, Height).ScaleBy(1.0 / Camera.ZoomLevel).ToXNAPoint());
 
-            Point2D cursorMapPoint = GetCursorMapPoint();
-            Point2D tileCoords = EditorState.Is2DMode ?
-                CellMath.CellCoordsFromPixelCoords_2D(cursorMapPoint, Map) :
-                CellMath.CellCoordsFromPixelCoords(cursorMapPoint, Map, CursorAction == null || CursorAction.SeeThrough);
-
-            var tile = Map.GetTile(tileCoords.X, tileCoords.Y);
+            var tile = CalculateBestTileUnderCursor();
 
             tileUnderCursor = tile;
             TileInfoDisplay.MapTile = tile;

@@ -1,20 +1,64 @@
 ﻿using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.IO;
 using System.Reflection;
 using TSMapEditor.Models;
+using TSMapEditor.Rendering;
+using TSMapEditor.UI;
+using TSMapEditor.UI.Windows;
 using Westwind.Scripting;
 
 namespace TSMapEditor.Scripts
 {
+    // Has to be a class, Westwind.Scripting does not appear to recognize this if it is a struct.
+    public class ScriptDependencies
+    {
+        public Map Map;
+        public ICursorActionTarget CursorActionTarget;
+        public EditorState EditorState;
+        public WindowManager WindowManager;
+        public WindowController WindowController;
+
+        public ScriptDependencies(Map map, ICursorActionTarget cursorActionTarget, EditorState editorState, WindowManager windowManager, WindowController windowController)
+        {
+            Map = map;
+            CursorActionTarget = cursorActionTarget;
+            EditorState = editorState;
+            WindowManager = windowManager;
+            WindowController = windowController;
+        }
+    }
+
     public static class ScriptRunner
     {
         private static object scriptClassInstance;
-        private static MethodInfo getDescriptionMethod;
-        private static MethodInfo performMethod;
-        private static MethodInfo getSuccessMessageMethod;
 
-        public static string RunScript(Map map, string scriptPath)
+        private static MethodInfo getDescriptionMethod; // V1 only
+        private static MethodInfo performMethod;
+        private static MethodInfo getSuccessMessageMethod; // V1 only
+
+        public static int ActiveScriptAPIVersion;
+
+        public static string CompileScript(ScriptDependencies scriptDependencies, string scriptPath)
+        {
+            if (!File.Exists(scriptPath))
+                return "The script file does not exist!";
+
+            var sourceCode = File.ReadAllText(scriptPath);
+            string error = CompileSource(scriptDependencies, sourceCode);
+            if (error != null)
+                return error;
+
+            return null;
+        }
+
+        public static string GetDescriptionFromScriptV1()
+        {
+            return (string)getDescriptionMethod.Invoke(scriptClassInstance, null);
+        }
+
+        public static string RunScriptV1(Map map, string scriptPath)
         {
             if (scriptClassInstance == null || performMethod == null || getSuccessMessageMethod == null)
                 throw new InvalidOperationException("Script not properly compiled!");
@@ -26,7 +70,7 @@ namespace TSMapEditor.Scripts
                 performMethod.Invoke(scriptClassInstance, new object[] { map });
                 return (string)getSuccessMessageMethod.Invoke(scriptClassInstance, null);
             }
-            catch (Exception ex) // rare case where catching Exception is OK, we cannot know what the script can throw
+            catch (Exception ex) // catching Exception is OK, we cannot know what the script can throw
             {
                 string errorMessage = ex.Message;
 
@@ -44,20 +88,33 @@ namespace TSMapEditor.Scripts
             }
         }
 
-        public static (string error, string description) GetDescriptionFromScript(Map map, string scriptPath)
+        public static string RunScriptV2()
         {
-            if (!File.Exists(scriptPath))
-                return ("The script file does not exist!", null);
+            try
+            {
+                performMethod.Invoke(scriptClassInstance, null);
+            }
+            catch (Exception ex) // catching Exception is OK, we cannot know what the script can throw
+            {
+                string errorMessage = ex.Message;
 
-            var sourceCode = File.ReadAllText(scriptPath);
-            string error = CompileSource(map, sourceCode);
-            if (error != null)
-                return (error, null);
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                    errorMessage += Environment.NewLine + Environment.NewLine +
+                        "Inner exception message: " + ex.Message + Environment.NewLine +
+                        "Stack trace: " + ex.StackTrace;
+                }
 
-            return (null, (string)getDescriptionMethod.Invoke(scriptClassInstance, null));
+                Logger.Log("Exception while running script. Returned exception message: " + errorMessage);
+
+                return "An error occurred while running the script. Returned error message: " + Environment.NewLine + Environment.NewLine + errorMessage;
+            }
+
+            return null;
         }
 
-        private static string CompileSource(Map map, string source)
+        private static string CompileSource(ScriptDependencies scriptDependencies, string source)
         {
             var script = new CSharpScriptExecution() { SaveGeneratedCode = true };
             script.AddLoadedReferences();
@@ -65,6 +122,9 @@ namespace TSMapEditor.Scripts
             script.AddNamespace("TSMapEditor.Models");
             script.AddNamespace("TSMapEditor.Rendering");
             script.AddNamespace("TSMapEditor.GameMath");
+            script.AddNamespace("TSMapEditor.Scripts");
+            script.AddNamespace("TSMapEditor.UI");
+            script.AddNamespace("TSMapEditor.UI.Controls");
 
             getDescriptionMethod = null;
             performMethod = null;
@@ -77,8 +137,80 @@ namespace TSMapEditor.Scripts
                 return script.ErrorMessage;
             }
 
+            int version = 1;
+            Type classType = instance.GetType();
+            var properties = classType.GetProperties();
+            var apiVersionProperty = Array.Find(properties, prop => prop.Name == "ApiVersion");
+            if (apiVersionProperty != null)
+            {
+                if (apiVersionProperty.PropertyType != typeof(int))
+                {
+                    return "ApiVersion property is not an integer!";
+                }
+
+                version = (int)apiVersionProperty.GetValue(instance);
+            }
+
+            ActiveScriptAPIVersion = version;
+
+            if (version == 1)
+            {
+                return ExtractScriptV1(instance);
+            }
+            else if (version == 2)
+            {
+                return ExtractScriptV2(instance, scriptDependencies);
+            }
+
+            return $"Unsupported scripting API version: {version}. Contact the script's author for troubleshooting.";
+        }
+
+        private static string ExtractScriptV2(object instance, ScriptDependencies scriptDependencies)
+        {
             scriptClassInstance = instance;
             Type classType = instance.GetType();
+
+            var methods = classType.GetMethods();
+            foreach (MethodInfo method in methods)
+            {
+                if (method.Name == "Perform")
+                {
+                    performMethod = method;
+                    if (performMethod.GetParameters().Length > 0)
+                    {
+                        return "The Perform method has one or more parameters." + Environment.NewLine +
+                            "It should have no parameters in a V2 script." + Environment.NewLine +
+                            "To access map data, access ScriptDependencies.Map.";
+                    }
+                }
+            }
+
+            var properties = classType.GetProperties();
+            foreach (PropertyInfo property in properties)
+            {
+                var setter = property.GetSetMethod();
+                if (setter == null)
+                    continue;
+
+                if (property.Name == "ScriptDependencies")
+                {
+                    setter.Invoke(instance, [scriptDependencies]);
+                }
+            }
+
+            if (performMethod == null)
+            {
+                return "The script does not declare the Perform method.";
+            }
+
+            return null;
+        }
+
+        private static string ExtractScriptV1(object instance)
+        {
+            scriptClassInstance = instance;
+            Type classType = instance.GetType();
+
             var methods = classType.GetMethods();
             foreach (MethodInfo method in methods)
             {

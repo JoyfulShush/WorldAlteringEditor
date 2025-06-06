@@ -21,6 +21,8 @@ namespace TSMapEditor.Models
         public string StructureTypeName { get; set; }
         public Point2D Position { get; set; }
 
+        public bool IsOnBridge() => false;
+
         public static BaseNode FromIniString(string iniString)
         {
             if (string.IsNullOrWhiteSpace(iniString))
