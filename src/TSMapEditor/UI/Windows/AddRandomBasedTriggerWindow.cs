@@ -163,11 +163,9 @@ namespace TSMapEditor.UI.Windows
 
                 if (diffGlobalVariableIndex < 0)
                 {
-                    Logger.Log($"{nameof(AddRandomBasedTriggerWindow)}.{nameof(CreateBaseTrigger)}: {difficulty} difficulty global variable not found!");
-
-                    EditorMessageBox.Show(WindowManager, "Invalid Difficulty",
-                        $"The difficulty '{difficulty}' is not defined in the map's rules. Skipping Global Is Set event assignment to trigger", MessageBoxButtons.OK);
-                } else
+                    Logger.Log($"{nameof(AddRandomBasedTriggerWindow)}.{nameof(CreateBaseTrigger)}: {difficulty} difficulty global variable not found!");                    
+                } 
+                else
                 {
                     var globalSetCondition = new TriggerCondition();
                     globalSetCondition.ConditionIndex = 27; // Global Is Set
