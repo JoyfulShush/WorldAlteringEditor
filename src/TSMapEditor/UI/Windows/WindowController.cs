@@ -146,6 +146,7 @@ namespace TSMapEditor.UI.Windows
 
             AITriggersWizardStepWindow = new AITriggersWizardStepWindow(windowParentControl.WindowManager, map);
             Windows.Add(AITriggersWizardStepWindow);            
+			
             AddRandomBasedTriggerWindow = new AddRandomBasedTriggerWindow(windowParentControl.WindowManager, map);
             Windows.Add(AddRandomBasedTriggerWindow);
 
