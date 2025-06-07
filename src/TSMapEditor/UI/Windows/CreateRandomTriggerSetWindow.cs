@@ -3,17 +3,14 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TSMapEditor.Models;
 using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
 {
-    public class RandomBasedTriggersCreatedEventArgs : EventArgs
+    public class RandomTriggerSetTriggersCreatedEventArgs : EventArgs
     {
-        public RandomBasedTriggersCreatedEventArgs(Trigger baseTrigger)
+        public RandomTriggerSetTriggersCreatedEventArgs(Trigger baseTrigger)
         {
             BaseTrigger = baseTrigger;
         }
@@ -21,9 +18,9 @@ namespace TSMapEditor.UI.Windows
         public Trigger BaseTrigger { get; }
     }
 
-    public class AddRandomBasedTriggerWindow : INItializableWindow
+    public class CreateRandomTriggerSetWindow : INItializableWindow
     {
-        public AddRandomBasedTriggerWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public CreateRandomTriggerSetWindow(WindowManager windowManager, Map map) : base(windowManager)
         {
             this.map = map;
         }
@@ -38,11 +35,11 @@ namespace TSMapEditor.UI.Windows
         private XNACheckBox cbEveryDiff;
         private EditorButton btnApply;
 
-        public event EventHandler<RandomBasedTriggersCreatedEventArgs> RandomBasedTriggersCreated;
+        public event EventHandler<RandomTriggerSetTriggersCreatedEventArgs> RandomTriggerSetTriggersCreated;
 
         public override void Initialize()
         {
-            Name = nameof(AddRandomBasedTriggerWindow);
+            Name = nameof(CreateRandomTriggerSetWindow);
             base.Initialize();
 
             tbName = FindChild<EditorTextBox>(nameof(tbName));
@@ -80,20 +77,20 @@ namespace TSMapEditor.UI.Windows
 
             if (createForEveryDifficulty)
             {
-                baseTriggers.Add(CreateRandomBasedTriggers(name, elapsedTime, count, delay, color, Difficulty.Hard));
-                baseTriggers.Add(CreateRandomBasedTriggers(name, elapsedTime, count, delay, color, Difficulty.Medium));
-                baseTriggers.Add(CreateRandomBasedTriggers(name, elapsedTime, count, delay, color, Difficulty.Easy));
+                baseTriggers.Add(CreateRandomTriggersSet(name, elapsedTime, count, delay, color, Difficulty.Hard));
+                baseTriggers.Add(CreateRandomTriggersSet(name, elapsedTime, count, delay, color, Difficulty.Medium));
+                baseTriggers.Add(CreateRandomTriggersSet(name, elapsedTime, count, delay, color, Difficulty.Easy));
             } 
             else
             {
-                baseTriggers.Add(CreateRandomBasedTriggers(name, elapsedTime, count, delay, color));
+                baseTriggers.Add(CreateRandomTriggersSet(name, elapsedTime, count, delay, color));
             }
 
             Hide();
-            RandomBasedTriggersCreated?.Invoke(this, new RandomBasedTriggersCreatedEventArgs(baseTriggers[0]));
+            RandomTriggerSetTriggersCreated?.Invoke(this, new RandomTriggerSetTriggersCreatedEventArgs(baseTriggers[0]));
         }
 
-        private Trigger CreateRandomBasedTriggers(string name, int elapsedTime, int count, int delay, string color, Difficulty? difficulty = null)
+        private Trigger CreateRandomTriggersSet(string name, int elapsedTime, int count, int delay, string color, Difficulty? difficulty = null)
         {
             if (difficulty != null)
             {
@@ -163,7 +160,7 @@ namespace TSMapEditor.UI.Windows
 
                 if (diffGlobalVariableIndex < 0)
                 {
-                    Logger.Log($"{nameof(AddRandomBasedTriggerWindow)}.{nameof(CreateBaseTrigger)}: {difficulty} difficulty global variable not found!");                    
+                    Logger.Log($"{nameof(CreateRandomTriggerSetWindow)}.{nameof(CreateBaseTrigger)}: {difficulty} difficulty global variable not found!");                    
                 } 
                 else
                 {
