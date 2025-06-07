@@ -47,8 +47,7 @@ namespace TSMapEditor.UI.Windows
         public TaskForceWizardStepWindow TaskForceWizardStepWindow { get; private set; }
         public ScriptWizardStepWindow ScriptWizardStepWindow { get; private set; }
         public TeamTypesWizardStepWindow TeamTypesWizardStepWindow { get; private set; }
-        public AITriggersWizardStepWindow AITriggersWizardStepWindow { get; private set; }
-        public AddRandomBasedTriggerWindow AddRandomBasedTriggerWindow { get; private set; }
+        public AITriggersWizardStepWindow AITriggersWizardStepWindow { get; private set; }        
         public PlaceWaypointWindow PlaceWaypointWindow { get; private set; }
         public LocalVariablesWindow LocalVariablesWindow { get; private set; }
         public StructureOptionsWindow StructureOptionsWindow { get; private set; }
@@ -146,9 +145,6 @@ namespace TSMapEditor.UI.Windows
 
             AITriggersWizardStepWindow = new AITriggersWizardStepWindow(windowParentControl.WindowManager, map);
             Windows.Add(AITriggersWizardStepWindow);            
-			
-            AddRandomBasedTriggerWindow = new AddRandomBasedTriggerWindow(windowParentControl.WindowManager, map);
-            Windows.Add(AddRandomBasedTriggerWindow);
 
             PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
             Windows.Add(PlaceWaypointWindow);
@@ -244,9 +240,7 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.ScriptOpened += TeamTypesWindow_ScriptOpened;
             TeamTypesWindow.TagOpened += Window_TagOpened;
             AITriggersWindow.TeamTypeOpened += AITriggersWindow_TeamTypeOpened;
-            TriggersWindow.TeamTypeOpened += TriggersWindow_TeamTypeOpened;
-            TriggersWindow.AddRandomBasedTriggersOpened += AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened;
-            AddRandomBasedTriggerWindow.RandomBasedTriggersCreated += AddRandomBasedTriggersWindow_TriggersCreated;
+            TriggersWindow.TeamTypeOpened += TriggersWindow_TeamTypeOpened;            
             StructureOptionsWindow.TagOpened += Window_TagOpened;
             VehicleOptionsWindow.TagOpened += Window_TagOpened;
             InfantryOptionsWindow.TagOpened += Window_TagOpened;
@@ -291,12 +285,6 @@ namespace TSMapEditor.UI.Windows
 
             TriggersWindow.Open();
             TriggersWindow.SelectTrigger(e.Tag.Trigger);
-        }
-
-        private void AddRandomBasedTriggersWindow_TriggersCreated(object sender, RandomBasedTriggersCreatedEventArgs e)
-        {
-            TriggersWindow.Open();
-            TriggersWindow.SelectTrigger(e.BaseTrigger);
         }
 
         private void MapSizeWindow_OnResizeMapButtonClicked(object sender, EventArgs e)
@@ -378,12 +366,7 @@ namespace TSMapEditor.UI.Windows
             AITriggersWizardStepWindow.Open();
         }
 
-        private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);
-
-        private void AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened(object sender, EventArgs e)
-        {
-            AddRandomBasedTriggerWindow.Open();
-        }
+        private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);        
 
         private void ClearFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
         {
@@ -434,8 +417,6 @@ namespace TSMapEditor.UI.Windows
             TeamTypesWindow.TagOpened -= Window_TagOpened;
             AITriggersWindow.TeamTypeOpened -= AITriggersWindow_TeamTypeOpened;
             TriggersWindow.TeamTypeOpened -= TriggersWindow_TeamTypeOpened;
-            TriggersWindow.AddRandomBasedTriggersOpened -= AddRandomBasedTriggersWindow_AddRandomBasedTriggersOpened;
-            AddRandomBasedTriggerWindow.RandomBasedTriggersCreated -= AddRandomBasedTriggersWindow_TriggersCreated;
             StructureOptionsWindow.TagOpened -= Window_TagOpened;
             VehicleOptionsWindow.TagOpened -= Window_TagOpened;
             InfantryOptionsWindow.TagOpened -= Window_TagOpened;
