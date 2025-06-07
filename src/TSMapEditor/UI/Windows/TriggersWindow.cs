@@ -24,11 +24,6 @@ namespace TSMapEditor.UI.Windows
         ColorThenName,
     }
 
-    public class AddRandomBasedTriggersEventArgs : EventArgs
-    {
-        public AddRandomBasedTriggersEventArgs() { }
-    }
-
     public class TriggersWindow : INItializableWindow
     {
         public TriggersWindow(WindowManager windowManager, Map map, EditorState editorState, ICursorActionTarget cursorActionTarget) : base(windowManager)
@@ -42,7 +37,6 @@ namespace TSMapEditor.UI.Windows
         }
 
         public event EventHandler<TeamTypeEventArgs> TeamTypeOpened;
-        public event EventHandler<AddRandomBasedTriggersEventArgs> AddRandomBasedTriggersOpened;
 
         private readonly Map map;
         private readonly ICursorActionTarget cursorActionTarget;
