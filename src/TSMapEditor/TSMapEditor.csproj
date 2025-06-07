@@ -342,7 +342,7 @@
     <None Update="Config\Default\UI\Windows\VehicleOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Default\UI\Windows\AddRandomBasedTriggerWindow.ini">
+    <None Update="Config\Default\UI\Windows\CreateRandomTriggerSetWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Content\celltag.png">

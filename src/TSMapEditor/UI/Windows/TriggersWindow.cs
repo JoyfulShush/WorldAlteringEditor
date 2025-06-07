@@ -110,7 +110,7 @@ namespace TSMapEditor.UI.Windows
         private SelectSpeechWindow selectSpeechWindow;
         private SelectSoundWindow selectSoundWindow;
         private SelectParticleSystemTypeWindow selectParticleSystemTypeWindow;
-        private AddRandomBasedTriggerWindow addRandomBasedTriggerWindow;
+        private CreateRandomTriggerSetWindow createRandomTriggerSetWindow;
 
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
@@ -224,7 +224,7 @@ namespace TSMapEditor.UI.Windows
                 ddActions.AddItem(new XNADropDownItem() { Text = contextMenuOption.Text, Tag = contextMenuOption.SelectAction });
             }
             ddActions.AddItem(new XNADropDownItem() { Text = "Re-generate Trigger IDs", Tag = new Action(RegenerateIDs) });
-            ddActions.AddItem(new XNADropDownItem() { Text = "Add Random Based Triggers", Tag = new Action(OpenAddRandomBasedTriggersWindow) });
+            ddActions.AddItem(new XNADropDownItem() { Text = "Create Random Trigger Set", Tag = new Action(OpenCreateRandomTriggersSetWindow) });
 
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;
@@ -314,6 +314,10 @@ namespace TSMapEditor.UI.Windows
             var particleSystemTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectParticleSystemTypeWindow);
             particleSystemTypeDarkeningPanel.Hidden += ParticleSystemTypeDarkeningPanel_Hidden;
 
+            createRandomTriggerSetWindow = new CreateRandomTriggerSetWindow(WindowManager, map);
+            var createRandomTriggersSetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createRandomTriggerSetWindow);
+            createRandomTriggerSetWindow.RandomTriggerSetTriggersCreated += CreateRandomTriggerSetWindow_RandomTriggersSetCreated;
+
             eventContextMenu = new EditorContextMenu(WindowManager);
             eventContextMenu.Name = nameof(eventContextMenu);
             eventContextMenu.Width = lbEvents.Width;
@@ -353,7 +357,13 @@ namespace TSMapEditor.UI.Windows
             lbTriggers.RightClick += (s, e) => { lbTriggers.SelectedIndex = lbTriggers.HoveredIndex; if (lbTriggers.SelectedItem != null) triggerContextMenu.Open(GetCursorPoint()); };
             lbTriggers.SelectedIndexChanged += LbTriggers_SelectedIndexChanged;
 
-            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
+            WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;            
+        }
+
+        private void CreateRandomTriggerSetWindow_RandomTriggersSetCreated(object sender, RandomTriggerSetTriggersCreatedEventArgs e)
+        {
+            ListTriggers();
+            SelectTrigger(e.BaseTrigger);
         }
 
         private void WindowManager_WindowSizeChangedByUser(object sender, EventArgs e)
@@ -2341,9 +2351,9 @@ namespace TSMapEditor.UI.Windows
             PutOnBackground();
         }
 
-        private void OpenAddRandomBasedTriggersWindow()
+        private void OpenCreateRandomTriggersSetWindow()
         {
-            AddRandomBasedTriggersOpened?.Invoke(this, new AddRandomBasedTriggersEventArgs());
+            createRandomTriggerSetWindow.Open();
             PutOnBackground();
         }
     }
