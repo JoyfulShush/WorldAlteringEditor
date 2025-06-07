@@ -103,7 +103,7 @@ namespace TSMapEditor.UI.Windows
         private SelectSpeechWindow selectSpeechWindow;
         private SelectSoundWindow selectSoundWindow;
         private SelectParticleSystemTypeWindow selectParticleSystemTypeWindow;
-        private CreateRandomTriggerSetWindow CreateRandomTriggerSetWindow;
+        private CreateRandomTriggerSetWindow createRandomTriggerSetWindow;
 
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
@@ -307,9 +307,9 @@ namespace TSMapEditor.UI.Windows
             var particleSystemTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectParticleSystemTypeWindow);
             particleSystemTypeDarkeningPanel.Hidden += ParticleSystemTypeDarkeningPanel_Hidden;
 
-            CreateRandomTriggerSetWindow = new CreateRandomTriggerSetWindow(WindowManager, map);
-            var createRandomTriggersSetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, CreateRandomTriggerSetWindow);
-            CreateRandomTriggerSetWindow.RandomTriggerSetTriggersCreated += CreateRandomTriggerSetWindow_RandomTriggersSetCreated;
+            createRandomTriggerSetWindow = new CreateRandomTriggerSetWindow(WindowManager, map);
+            var createRandomTriggersSetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createRandomTriggerSetWindow);
+            createRandomTriggerSetWindow.RandomTriggerSetTriggersCreated += CreateRandomTriggerSetWindow_RandomTriggersSetCreated;
 
             eventContextMenu = new EditorContextMenu(WindowManager);
             eventContextMenu.Name = nameof(eventContextMenu);
@@ -2339,7 +2339,7 @@ namespace TSMapEditor.UI.Windows
 
         private void OpenCreateRandomTriggersSetWindow()
         {
-            CreateRandomTriggerSetWindow.Open();
+            createRandomTriggerSetWindow.Open();
             PutOnBackground();
         }
     }
