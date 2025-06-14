@@ -295,9 +295,13 @@ namespace TSMapEditor.UI
                 return;            
 
             var nodeBuildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == baseNode.StructureTypeName);
+            var house = map.Houses.Find(house => house.BaseNodes.Contains(baseNode));
+
+            if (nodeBuildingType == null || house == null)
+                return;
 
             textRenderer.AddTextLine(new XNATextPart("Base Node: ", Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(nodeBuildingType.Name + " (" + nodeBuildingType.ININame + ")", Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart($"{nodeBuildingType.Name} ({nodeBuildingType.ININame}) ({house.ININame})", Constants.UIDefaultFont, Color.White));
         }
 
         private void AddTerrainObjectInformation(TerrainObject terrainObject)
@@ -306,7 +310,7 @@ namespace TSMapEditor.UI
                 return;
 
             textRenderer.AddTextLine(new XNATextPart("Terrain Object: ", Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(terrainObject.TerrainType.Name + " (" + terrainObject.TerrainType.ININame + ")", Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart($"{terrainObject.TerrainType.Name} (${terrainObject.TerrainType.ININame})", Constants.UIDefaultFont, Color.White));
         }
     }
 }
