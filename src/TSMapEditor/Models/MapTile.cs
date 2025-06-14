@@ -5,6 +5,7 @@ using TSMapEditor.GameMath;
 using TSMapEditor.Models.Enums;
 using TSMapEditor.Models.MapFormat;
 using TSMapEditor.Rendering;
+using TSMapEditor.UI;
 
 namespace TSMapEditor.Models
 {
@@ -254,7 +255,7 @@ namespace TSMapEditor.Models
             {
                 action(waypoint);
             }
-        }       
+        }
 
         public SubCell GetSubCellClosestToPosition(Point2D position, bool onlyOccupiedCells)
         {
@@ -445,6 +446,40 @@ namespace TSMapEditor.Models
             TileImage = null;
             TileIndex = newTileIndex;
             SubTileIndex = newSubTileIndex;
+        }
+
+        public BaseNode GetBaseNode(Map map)
+        {
+            foreach (House house in map.Houses)
+            {
+                foreach (BaseNode baseNode in house.BaseNodes)
+                {
+                    var nodeStructureType = map.Rules.BuildingTypes.Find(bt => bt.ININame == baseNode.StructureTypeName);
+
+                    if (nodeStructureType == null)
+                        continue;
+
+                    if (baseNode.Position == CoordsToPoint())
+                    {
+                        return baseNode;
+                    }
+
+                    bool baseNodeExistsOnFoundation = false;
+                    nodeStructureType.ArtConfig.DoForFoundationCoords(foundationOffset =>
+                    {
+                        Point2D foundationCellCoords = baseNode.Position + foundationOffset;
+                        if (foundationCellCoords == CoordsToPoint())
+                            baseNodeExistsOnFoundation = true;
+                    });
+
+                    if (baseNodeExistsOnFoundation)
+                    {
+                        return baseNode;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public Point2D CoordsToPoint() => new Point2D(X, Y);
