@@ -626,7 +626,10 @@ namespace TSMapEditor.UI.Windows
                 }
             }
 
-            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text == entry.Argument.ToString());
+            if (fittingItem == null)
+                fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+
             if (fittingItem != null)
                 tbParameterValue.Text = fittingItem.Text;
         }
