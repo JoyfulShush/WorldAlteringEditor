@@ -5,7 +5,6 @@ using TSMapEditor.GameMath;
 using TSMapEditor.Models.Enums;
 using TSMapEditor.Models.MapFormat;
 using TSMapEditor.Rendering;
-using TSMapEditor.UI;
 
 namespace TSMapEditor.Models
 {
@@ -255,7 +254,7 @@ namespace TSMapEditor.Models
             {
                 action(waypoint);
             }
-        }
+        }       
 
         public SubCell GetSubCellClosestToPosition(Point2D position, bool onlyOccupiedCells)
         {
