@@ -6,12 +6,25 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using TSMapEditor.CCEngine;
+using TSMapEditor.GameMath;
 using TSMapEditor.Models;
 using TSMapEditor.Rendering;
 using TSMapEditor.UI.CursorActions;
 
 namespace TSMapEditor.UI
 {
+    class ConnectionCoords
+    {
+        public ConnectionCoords(Point2D coords, byte connectionMask)
+        {
+            Coords = coords;            
+            ConnectionMask = connectionMask;
+        }
+
+        public Point2D Coords;        
+        public byte ConnectionMask;
+    }
+
     class TileDisplayTile
     {
         public TileDisplayTile(Point location, Point offset, Point size, TileImage tileImageToDisplay, TileImage tileImageToPlace)
@@ -41,8 +54,9 @@ namespace TSMapEditor.UI
         {
             this.theaterGraphics = theaterGraphics;
             this.map = map;
-            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
-            placeTerrainCursorAction.ActionExited += (s, e) => _selectedTile = null;
+            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;            
+            placeTerrainCursorAction.ActionExited += OnCursorActionExited;
+            placeTerrainCursorAction.TerrainTilePlaced += OnTilePlaced;
             this.editorState = editorState;
         }
 
@@ -64,6 +78,8 @@ namespace TSMapEditor.UI
 
         private readonly Map map;
         private readonly TheaterGraphics theaterGraphics;
+        private MapTile lastPlacedMapTile;
+        private MapTile secondLastPlacedMapTile;
 
         public TileSet TileSet { get; private set; }
 
@@ -192,6 +208,55 @@ namespace TSMapEditor.UI
             int x = Constants.UIEmptySideSpace;
             int currentLineHeight = 0;
 
+            CliffType cliffTypeForTileSet = null;
+            CliffTile lastPlacedCliffTile = null;
+            List<byte> excludedConnectionMasks = [];            
+            if (lastPlacedMapTile != null && lastPlacedMapTile.TileImage.TileSetId == TileSet.Index)
+            {
+                lastPlacedCliffTile = GetCliffTile(lastPlacedMapTile);
+                if (lastPlacedCliffTile != null)
+                {
+                   cliffTypeForTileSet = GetCliffTypeForTileSet();
+                }
+
+                if (secondLastPlacedMapTile != null && lastPlacedCliffTile != null)                
+                {                    
+                    var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedMapTile);
+
+                    if (secondLastPlacedCliffTile != null)
+                    {
+                        var lastPlacedTileOrigin = lastPlacedMapTile.CoordsToPoint();
+                        var secondLastPlacedTileOrigin = secondLastPlacedMapTile.CoordsToPoint();
+
+                        var connectionCoordsLastPlaced = GetAllConnectionCoords(lastPlacedCliffTile, lastPlacedTileOrigin);
+                        var connectionCoordsSecondLastPlaced = GetAllConnectionCoords(secondLastPlacedCliffTile, secondLastPlacedTileOrigin);
+
+                        foreach (var lastPlacedConnCoords in connectionCoordsLastPlaced)
+                        {
+                            var directions = Helpers.GetDirectionsInMask(lastPlacedConnCoords.ConnectionMask);
+
+                            foreach (var direction in directions)
+                            {
+                                var coordsWithOffset = lastPlacedConnCoords.Coords + Helpers.VisualDirectionToPoint(direction);
+
+                                var matchingCoords = connectionCoordsSecondLastPlaced.FindAll(connCoords => connCoords.Coords.Equals(coordsWithOffset));
+                                foreach (var matchingCoord in matchingCoords)
+                                {
+                                    var matchingCoordDirections = Helpers.GetDirectionsInMask(matchingCoord.ConnectionMask);
+                                    foreach (var matchingCoordDirection in matchingCoordDirections)
+                                    {
+                                        if (matchingCoordDirection.Equals(direction))
+                                            continue;
+
+                                        excludedConnectionMasks.Add(matchingCoord.ConnectionMask);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             for (int i = 0; i < TileSet.TilesInSet; i++)
             {
                 int tileIndex = TileSet.StartTileIndex + i;
@@ -203,6 +268,48 @@ namespace TSMapEditor.UI
 
                 if (tileImageToDisplay == null)
                     break;
+
+                if (cliffTypeForTileSet != null)
+                {
+                    var relevantCliffTile = cliffTypeForTileSet.Tiles.Find(tile =>
+                    {
+                        return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet);
+                    });
+
+                    if (relevantCliffTile != null)
+                    {
+                        bool foundMatchingConnectionMask = false;
+                        foreach (var relevantCliffTileConnectionPoint in relevantCliffTile.ConnectionPoints)
+                        {
+                            var side = relevantCliffTileConnectionPoint.Side;
+                            var connectionMask = relevantCliffTileConnectionPoint.ConnectionMask;
+
+                            if (excludedConnectionMasks.Contains(connectionMask))
+                                continue;
+
+                            foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
+                            {
+                                if (connectionMask == lastPlacedTileConnectionPoint.ConnectionMask && side == lastPlacedTileConnectionPoint.Side)
+                                {   
+                                    foundMatchingConnectionMask = true;
+                                }
+
+                                if (foundMatchingConnectionMask)
+                                    break;
+                            }
+
+                            if (foundMatchingConnectionMask)
+                                break;
+                        }
+
+                        if (!foundMatchingConnectionMask)
+                            continue;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
 
                 int width = tileImageToDisplay.GetWidth(out int minX);
                 int height = tileImageToDisplay.GetHeight();
@@ -367,6 +474,86 @@ namespace TSMapEditor.UI
             editorState.MarbleMadnessChanged -= OnMarbleMadnessChanged;
 
             base.Kill();
+        }
+
+        private void OnTilePlaced(object sender, PlaceTerrainTileCursorActionEventArgs e)
+        {
+            var mapTile = e.MapTile;
+
+            if (lastPlacedMapTile == null)
+            {
+                lastPlacedMapTile = mapTile;
+            }
+            else
+            {
+                if (lastPlacedMapTile.TileImage.TileSetId != mapTile.TileImage.TileSetId)
+                {
+                    secondLastPlacedMapTile = null;
+                } 
+                else
+                {
+                    secondLastPlacedMapTile = lastPlacedMapTile;
+                }
+
+                lastPlacedMapTile = mapTile;
+            }
+
+            RefreshGraphics();
+        }
+
+        private void OnCursorActionExited(object sender, EventArgs e)
+        {
+            _selectedTile = null;
+
+            lastPlacedMapTile = null;
+            secondLastPlacedMapTile = null;
+            RefreshGraphics();
+        }
+
+        private CliffTile GetCliffTile(MapTile mapTile)
+        {
+            var tileSetName = theaterGraphics.Theater.TileSets.Find(tileSet => tileSet.Index == mapTile.TileImage.TileSetId)?.SetName;
+
+            if (!string.IsNullOrEmpty(tileSetName))
+            {
+                var cliffTileSet = map.EditorConfig.Cliffs.Find(cliffType =>
+                {
+                    return cliffType.Tiles.Exists(tile => tile.TileSetName.Contains(tileSetName));
+                });
+
+                if (cliffTileSet != null)
+                {
+                    return cliffTileSet.Tiles.Find(cliffTile =>
+                    {
+                        return cliffTile.IndicesInTileSet.Contains(mapTile.TileImage.TileIndexInTileSet);
+                    });
+                }
+            }
+
+            return null;
+        }
+
+        private CliffType GetCliffTypeForTileSet()
+        {
+            return map.EditorConfig.Cliffs.Find(cliffType =>
+            {
+                return cliffType.Tiles.Exists(cliffTile => cliffTile.TileSetName == TileSet.SetName);
+            });
+        }
+
+        private List<ConnectionCoords> GetAllConnectionCoords(CliffTile cliffTile, Point2D originCoords) 
+        {
+            List<ConnectionCoords> coords = [];
+
+            foreach (var connectionPoint in cliffTile.ConnectionPoints)
+            {
+                var cpOffset = connectionPoint.CoordinateOffset;
+                var connectionCoord = originCoords + cpOffset;
+
+                coords.Add(new ConnectionCoords(connectionCoord, connectionPoint.ConnectionMask));                
+            }
+
+            return coords;
         }
     }
 }

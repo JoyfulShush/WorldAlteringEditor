@@ -1,7 +1,9 @@
 ﻿using Rampastring.XNAUI.Input;
+using SharpDX.Direct2D1.Effects;
 using System;
 using System.Collections.Generic;
 using TSMapEditor.GameMath;
+using TSMapEditor.Initialization;
 using TSMapEditor.Models;
 using TSMapEditor.Mutations;
 using TSMapEditor.Mutations.Classes;
@@ -9,6 +11,16 @@ using TSMapEditor.Rendering;
 
 namespace TSMapEditor.UI.CursorActions
 {
+    public class PlaceTerrainTileCursorActionEventArgs : EventArgs
+    {
+        public PlaceTerrainTileCursorActionEventArgs(MapTile mapTile)
+        {
+            MapTile = mapTile;
+        }
+
+        public MapTile MapTile { get; private set; }
+    }
+
     public class PlaceTerrainCursorAction : CursorAction
     {
         public PlaceTerrainCursorAction(ICursorActionTarget cursorActionTarget) : base(cursorActionTarget)
@@ -18,6 +30,8 @@ namespace TSMapEditor.UI.CursorActions
         public override string GetName() => "Place Terrain Tiles";
 
         public override bool HandlesKeyboardInput => true;
+
+        public event EventHandler<PlaceTerrainTileCursorActionEventArgs> TerrainTilePlaced;
 
         private TileImage _tile;
         public TileImage Tile
@@ -239,6 +253,10 @@ namespace TSMapEditor.UI.CursorActions
             }
 
             CursorActionTarget.MutationManager.PerformMutation(mutation);
+
+            MapTile mapTile = CursorActionTarget.Map.GetTile(adjustedCellCoords);
+            mapTile.TileImage = Tile;
+            TerrainTilePlaced?.Invoke(this, new PlaceTerrainTileCursorActionEventArgs(mapTile));
         }
 
         public override void LeftClick(Point2D cellCoords)
