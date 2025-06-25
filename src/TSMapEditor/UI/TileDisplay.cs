@@ -13,16 +13,16 @@ using TSMapEditor.UI.CursorActions;
 
 namespace TSMapEditor.UI
 {
-    class ConnectionCoords
+    class ConnectionCoords(Point2D coords, byte connectionMask)
     {
-        public ConnectionCoords(Point2D coords, byte connectionMask)
-        {
-            Coords = coords;            
-            ConnectionMask = connectionMask;
-        }
+        public Point2D Coords = coords;        
+        public byte ConnectionMask = connectionMask;
+    }
 
-        public Point2D Coords;        
-        public byte ConnectionMask;
+    public class PlacedTile(TileImage tileImage, Point2D coords)
+    {
+        public Point2D Coords = coords;
+        public TileImage TileImage = tileImage;
     }
 
     class TileDisplayTile
@@ -78,8 +78,8 @@ namespace TSMapEditor.UI
 
         private readonly Map map;
         private readonly TheaterGraphics theaterGraphics;
-        private MapTile lastPlacedMapTile;
-        private MapTile secondLastPlacedMapTile;
+        private PlacedTile lastPlacedTile;
+        private PlacedTile secondLastPlacedTile;
 
         public TileSet TileSet { get; private set; }
 
@@ -211,22 +211,22 @@ namespace TSMapEditor.UI
             CliffType cliffTypeForTileSet = null;
             CliffTile lastPlacedCliffTile = null;
             List<byte> excludedConnectionMasks = [];            
-            if (lastPlacedMapTile != null && lastPlacedMapTile.TileImage.TileSetId == TileSet.Index)
+            if (lastPlacedTile != null && lastPlacedTile.TileImage.TileSetId == TileSet.Index)
             {
-                lastPlacedCliffTile = GetCliffTile(lastPlacedMapTile);
+                lastPlacedCliffTile = GetCliffTile(lastPlacedTile);
                 if (lastPlacedCliffTile != null)
                 {
                    cliffTypeForTileSet = GetCliffTypeForTileSet();
                 }
 
-                if (secondLastPlacedMapTile != null && lastPlacedCliffTile != null)                
+                if (secondLastPlacedTile != null && lastPlacedCliffTile != null)                
                 {                    
-                    var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedMapTile);
+                    var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedTile);
 
                     if (secondLastPlacedCliffTile != null)
                     {
-                        var lastPlacedTileOrigin = lastPlacedMapTile.CoordsToPoint();
-                        var secondLastPlacedTileOrigin = secondLastPlacedMapTile.CoordsToPoint();
+                        var lastPlacedTileOrigin = lastPlacedTile.Coords;
+                        var secondLastPlacedTileOrigin = secondLastPlacedTile.Coords;
 
                         var connectionCoordsLastPlaced = GetAllConnectionCoords(lastPlacedCliffTile, lastPlacedTileOrigin);
                         var connectionCoordsSecondLastPlaced = GetAllConnectionCoords(secondLastPlacedCliffTile, secondLastPlacedTileOrigin);
@@ -478,24 +478,24 @@ namespace TSMapEditor.UI
 
         private void OnTilePlaced(object sender, PlaceTerrainTileCursorActionEventArgs e)
         {
-            var mapTile = e.MapTile;
+            var placedTile = e.Tile;
 
-            if (lastPlacedMapTile == null)
+            if (lastPlacedTile == null)
             {
-                lastPlacedMapTile = mapTile;
+                lastPlacedTile = placedTile;
             }
             else
             {
-                if (lastPlacedMapTile.TileImage.TileSetId != mapTile.TileImage.TileSetId)
+                if (lastPlacedTile.TileImage.TileSetId != placedTile.TileImage.TileSetId)
                 {
-                    secondLastPlacedMapTile = null;
+                    secondLastPlacedTile = null;
                 } 
                 else
                 {
-                    secondLastPlacedMapTile = lastPlacedMapTile;
+                    secondLastPlacedTile = lastPlacedTile;
                 }
 
-                lastPlacedMapTile = mapTile;
+                lastPlacedTile = placedTile;
             }
 
             RefreshGraphics();
@@ -505,12 +505,12 @@ namespace TSMapEditor.UI
         {
             _selectedTile = null;
 
-            lastPlacedMapTile = null;
-            secondLastPlacedMapTile = null;
+            lastPlacedTile = null;
+            secondLastPlacedTile = null;
             RefreshGraphics();
         }
 
-        private CliffTile GetCliffTile(MapTile mapTile)
+        private CliffTile GetCliffTile(PlacedTile mapTile)
         {
             var tileSetName = theaterGraphics.Theater.TileSets.Find(tileSet => tileSet.Index == mapTile.TileImage.TileSetId)?.SetName;
 

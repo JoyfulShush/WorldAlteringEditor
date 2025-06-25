@@ -13,12 +13,12 @@ namespace TSMapEditor.UI.CursorActions
 {
     public class PlaceTerrainTileCursorActionEventArgs : EventArgs
     {
-        public PlaceTerrainTileCursorActionEventArgs(MapTile mapTile)
+        public PlaceTerrainTileCursorActionEventArgs(PlacedTile tile)
         {
-            MapTile = mapTile;
+            Tile = tile;
         }
 
-        public MapTile MapTile { get; private set; }
+        public PlacedTile Tile { get; set; }
     }
 
     public class PlaceTerrainCursorAction : CursorAction
@@ -253,10 +253,7 @@ namespace TSMapEditor.UI.CursorActions
             }
 
             CursorActionTarget.MutationManager.PerformMutation(mutation);
-
-            MapTile mapTile = CursorActionTarget.Map.GetTile(adjustedCellCoords);
-            mapTile.TileImage = Tile;
-            TerrainTilePlaced?.Invoke(this, new PlaceTerrainTileCursorActionEventArgs(mapTile));
+            TerrainTilePlaced?.Invoke(this, new PlaceTerrainTileCursorActionEventArgs(new PlacedTile(Tile, adjustedCellCoords)));
         }
 
         public override void LeftClick(Point2D cellCoords)
