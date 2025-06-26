@@ -289,9 +289,21 @@ namespace TSMapEditor.UI
 
                             foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
                             {
-                                if (connectionMask == lastPlacedTileConnectionPoint.ConnectionMask && side == lastPlacedTileConnectionPoint.Side)
-                                {   
-                                    foundMatchingConnectionMask = true;
+
+                                if (side == lastPlacedTileConnectionPoint.Side)
+                                {
+                                    var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);
+                                    var directions = Helpers.GetDirectionsInMask(connectionMask);
+                                    foreach (var direction in directions)
+                                    {                                            
+                                        foreach (var reversedDirection in lastPlacedReversedDirections)
+                                        {
+                                            if (direction == reversedDirection)
+                                            {
+                                                foundMatchingConnectionMask = true;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 if (foundMatchingConnectionMask)
