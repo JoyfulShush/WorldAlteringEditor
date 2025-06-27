@@ -211,16 +211,16 @@ namespace TSMapEditor.UI
             CliffType cliffTypeForTileSet = null;
             CliffTile lastPlacedCliffTile = null;
             List<byte> excludedConnectionMasks = [];            
-            if (lastPlacedTile != null && lastPlacedTile.TileImage.TileSetId == TileSet.Index)
+            if (lastPlacedTile != null)
             {
                 lastPlacedCliffTile = GetCliffTile(lastPlacedTile);
                 if (lastPlacedCliffTile != null)
                 {
-                   cliffTypeForTileSet = GetCliffTypeForTileSet();
+                   cliffTypeForTileSet = GetCliffTypeForTileSet(TileSet);
                 }
 
                 if (secondLastPlacedTile != null && lastPlacedCliffTile != null)                
-                {                    
+                {
                     var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedTile);
 
                     if (secondLastPlacedCliffTile != null)
@@ -271,55 +271,88 @@ namespace TSMapEditor.UI
 
                 if (cliffTypeForTileSet != null)
                 {
-                    var relevantCliffTile = cliffTypeForTileSet.Tiles.Find(tile =>
+                    bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, lastPlacedTile.TileImage);
+                    if (matchingCliffTypes)
                     {
-                        return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet);
-                    });
-
-                    if (relevantCliffTile != null)
-                    {
-                        bool foundMatchingConnectionMask = false;
-                        foreach (var relevantCliffTileConnectionPoint in relevantCliffTile.ConnectionPoints)
+                        var relevantCliffTile = cliffTypeForTileSet.Tiles.Find(tile =>
                         {
-                            var side = relevantCliffTileConnectionPoint.Side;
-                            var connectionMask = relevantCliffTileConnectionPoint.ConnectionMask;
+                            return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet);
+                        });
 
-                            if (excludedConnectionMasks.Contains(connectionMask))
-                                continue;
-
-                            foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
+                        if (relevantCliffTile != null)
+                        {
+                            bool foundMatchingConnectionMask = false;
+                            foreach (var relevantCliffTileConnectionPoint in relevantCliffTile.ConnectionPoints)
                             {
+                                var side = relevantCliffTileConnectionPoint.Side;
+                                var connectionMask = relevantCliffTileConnectionPoint.ConnectionMask;
 
-                                if (side == lastPlacedTileConnectionPoint.Side)
+                                if (excludedConnectionMasks.Contains(connectionMask))
+                                    break;
+
+                                foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
                                 {
-                                    var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);
-                                    var directions = Helpers.GetDirectionsInMask(connectionMask);
-                                    foreach (var direction in directions)
-                                    {                                            
-                                        foreach (var reversedDirection in lastPlacedReversedDirections)
+                                    // for each connection point of the last placed cliff tile, get forbidden tiles
+                                    // if forbidden tile is the same as the index of the relevantCliffTile, quit early
+                                    bool isTileForbidden = false;
+                                    foreach (var forbiddenTile in lastPlacedTileConnectionPoint.ForbiddenTiles)
+                                    {
+                                        if (forbiddenTile == relevantCliffTile.Index)
                                         {
-                                            if (direction == reversedDirection)
+                                            isTileForbidden = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (isTileForbidden)
+                                        break;
+
+                                    // for each connection point of the last placed cliff tile, get required tiles
+                                    // if required tile is not the same as the index of the relevantCliffTile, continue to the next connection point
+                                    bool isTileMatchingRequirements = true;
+                                    foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
+                                    {
+                                        if (requiredTile != relevantCliffTile.Index)
+                                        {
+                                            isTileMatchingRequirements = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!isTileMatchingRequirements)
+                                        continue;
+
+                                    if (side == lastPlacedTileConnectionPoint.Side)
+                                    {
+                                        var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);
+                                        var directions = Helpers.GetDirectionsInMask(connectionMask);
+                                        foreach (var direction in directions)
+                                        {                                            
+                                            foreach (var reversedDirection in lastPlacedReversedDirections)
                                             {
-                                                foundMatchingConnectionMask = true;
+                                                if (direction == reversedDirection)
+                                                {
+                                                    foundMatchingConnectionMask = true;
+                                                }
                                             }
                                         }
                                     }
+
+                                    if (foundMatchingConnectionMask)
+                                        break;
                                 }
 
                                 if (foundMatchingConnectionMask)
                                     break;
                             }
 
-                            if (foundMatchingConnectionMask)
-                                break;
+                            if (!foundMatchingConnectionMask)
+                                continue;
                         }
-
-                        if (!foundMatchingConnectionMask)
+                        else
+                        {
                             continue;
-                    }
-                    else
-                    {
-                        continue;
+                        }
                     }
                 }
 
@@ -498,13 +531,14 @@ namespace TSMapEditor.UI
             }
             else
             {
-                if (lastPlacedTile.TileImage.TileSetId != placedTile.TileImage.TileSetId)
+                bool foundMatchingCliffTile = AreBothCliffTypesEqualSet(placedTile.TileImage, lastPlacedTile.TileImage);
+                if (foundMatchingCliffTile)
                 {
-                    secondLastPlacedTile = null;
+                    secondLastPlacedTile = lastPlacedTile;
                 } 
                 else
                 {
-                    secondLastPlacedTile = lastPlacedTile;
+                    secondLastPlacedTile = null;
                 }
 
                 lastPlacedTile = placedTile;
@@ -522,9 +556,23 @@ namespace TSMapEditor.UI
             RefreshGraphics();
         }
 
-        private CliffTile GetCliffTile(PlacedTile mapTile)
+        private TileSet GetTileSet(int tileSetId)
         {
-            var tileSetName = theaterGraphics.Theater.TileSets.Find(tileSet => tileSet.Index == mapTile.TileImage.TileSetId)?.SetName;
+            return theaterGraphics.Theater.TileSets.Find(tileSet => tileSet.Index == tileSetId);
+        }
+
+        private string GetTileSetName(int tileSetId)
+        {
+            var relevanTileSet = GetTileSet(tileSetId);
+            if (relevanTileSet == null)
+                return null;
+
+            return relevanTileSet.SetName;
+        }
+
+        private CliffTile GetCliffTile(PlacedTile placedTile)
+        {
+            string tileSetName = GetTileSetName(placedTile.TileImage.TileSetId);
 
             if (!string.IsNullOrEmpty(tileSetName))
             {
@@ -537,7 +585,7 @@ namespace TSMapEditor.UI
                 {
                     return cliffTileSet.Tiles.Find(cliffTile =>
                     {
-                        return cliffTile.IndicesInTileSet.Contains(mapTile.TileImage.TileIndexInTileSet);
+                        return cliffTile.IndicesInTileSet.Contains(placedTile.TileImage.TileIndexInTileSet);
                     });
                 }
             }
@@ -545,11 +593,11 @@ namespace TSMapEditor.UI
             return null;
         }
 
-        private CliffType GetCliffTypeForTileSet()
+        private CliffType GetCliffTypeForTileSet(TileSet tileSet)
         {
             return map.EditorConfig.Cliffs.Find(cliffType =>
             {
-                return cliffType.Tiles.Exists(cliffTile => cliffTile.TileSetName == TileSet.SetName);
+                return cliffType.Tiles.Exists(cliffTile => cliffTile.TileSetName == tileSet.SetName);
             });
         }
 
@@ -566,6 +614,32 @@ namespace TSMapEditor.UI
             }
 
             return coords;
+        }
+
+        private bool AreBothCliffTypesEqualSet(TileImage firstTileImage, TileImage secondTileImage)
+        {
+            var firstTileSet = GetTileSet(firstTileImage.TileSetId);
+            if (firstTileSet != null)
+            {
+                var firstTileCliffType = GetCliffTypeForTileSet(firstTileSet);
+                if (firstTileCliffType != null)
+                {
+                    var secondTileSet = GetTileSet(secondTileImage.TileSetId);
+                    if (secondTileSet != null)
+                    {
+                        var secondTileCliffType = GetCliffTypeForTileSet(secondTileSet);
+                        if (secondTileCliffType != null)
+                        {
+                            if (secondTileCliffType.Equals(firstTileCliffType))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
