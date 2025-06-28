@@ -193,6 +193,9 @@ namespace TSMapEditor.Models
             List <CliffAStarNode > nextNodes = new List<CliffAStarNode>();
             foreach (var tile in tiles)
             {
+                if (tile.ExcludeFromConnectedTileTool)
+                    continue;
+
                 if (!allowTurn && tile.ConnectionPoints[0].Side != tile.ConnectionPoints[1].Side)
                     continue;
 
@@ -222,12 +225,31 @@ namespace TSMapEditor.Models
 
             IndicesInTileSet = indicesString.Split(',').Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
-            ConnectionPoints = new CliffConnectionPoint[2];
+            ExcludeFromConnectedTileTool = iniSection.GetBooleanValue("ExcludeFromConnectedTileTool", false);
+
+            ConnectionPoints = new CliffConnectionPoint[4];
 
             for (int i = 0; i < ConnectionPoints.Length; i++)
             {
                 string coordsString = iniSection.GetStringValue($"ConnectionPoint{i}", null);
-                if (coordsString == null || !Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
+
+                // A minimum of two connection points is required
+                if (coordsString == null)                
+                {
+                    if (i <= 1)
+                    {
+                        throw new INIConfigException($"Connected Tile {iniSection.SectionName} has less than 2 valid connection points!");
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                if (!ExcludeFromConnectedTileTool && i > 1)
+                    throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has more than 2 connection points but is not excluded from the Draw Connected Tiles tool. Either reduce the tile to have 2 connection points, or add 'ExcludeFromConnectedTileTool=true' to it.");
+
+                if (!Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
                     throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
 
                 Point2D coords = Point2D.FromString(coordsString);
@@ -305,7 +327,7 @@ namespace TSMapEditor.Models
             }
 
             ExtraPriority = -iniSection.GetIntValue("ExtraPriority", IsStraight(ConnectionPoints) ? -1 : 0); // negated because sorting is in ascending order by default, but it's more intuitive to have larger numbers be more important
-            DistanceModifier = iniSection.GetIntValue("DistanceModifier", IsDiagonal(ConnectionPoints) ? -3 : 0);
+            DistanceModifier = iniSection.GetIntValue("DistanceModifier", IsDiagonal(ConnectionPoints) ? -3 : 0);            
         }
 
         /// <summary>
@@ -342,6 +364,11 @@ namespace TSMapEditor.Models
         /// A distance modifier added directly to the FScore. Use with caution!
         /// </summary>
         public int DistanceModifier { get; set; }
+
+        /// <summary>
+        /// When true, this tile is disallowed from being used in the Draw Connected Tile tool
+        /// </summary>
+        public bool ExcludeFromConnectedTileTool { get; set; }
 
         public CliffConnectionPoint GetExit(int entryIndex)
         {

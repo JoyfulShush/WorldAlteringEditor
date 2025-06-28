@@ -5,6 +5,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TSMapEditor.CCEngine;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
@@ -25,11 +26,20 @@ namespace TSMapEditor.UI
         public TileImage TileImage = tileImage;
     }
 
-    public class ConnectedTileFilter(CliffType cliffTypeForTileSet, CliffTile lastPlacedCliffTile, List<byte> excludedConnectionMasks)
+    class ConnectedTileFilter
     {
-        public CliffType CliffTypeForTileSet = cliffTypeForTileSet;
-        public CliffTile LastPlacedCliffTile = lastPlacedCliffTile;
-        public List<byte> ExcludedConnectionMasks = excludedConnectionMasks;
+        public ConnectedTileFilter() {}
+
+        public ConnectedTileFilter(CliffType cliffTypeForTileSet, CliffTile lastPlacedCliffTile, List<byte> excludedConnectionMasks)
+        {
+            CliffTypeForTileSet = cliffTypeForTileSet;
+            LastPlacedCliffTile = lastPlacedCliffTile;
+            ExcludedConnectionMasks = excludedConnectionMasks;
+        }
+
+        public CliffType CliffTypeForTileSet;
+        public CliffTile LastPlacedCliffTile;
+        public List<byte> ExcludedConnectionMasks = [];
     }
 
     class TileDisplayTile
@@ -453,6 +463,9 @@ namespace TSMapEditor.UI
 
         private CliffTile GetCliffTile(PlacedTile placedTile)
         {
+            if (placedTile == null) 
+                return null;
+
             string tileSetName = GetTileSetName(placedTile.TileImage.TileSetId);
 
             if (!string.IsNullOrEmpty(tileSetName))
@@ -555,31 +568,37 @@ namespace TSMapEditor.UI
             // Loop through the connection points of the tile being considered
             // If a connection is considered excluded, then reject the tile immediately
             // check each connection point and its contents to determine whether the tile can fit into the last placed one
-            foreach (var tileToPlaceCliffTileConnectionPoints in tileToPlaceCliffTile.ConnectionPoints)
+            foreach (var tileToPlaceCliffTileConnectionPoint in tileToPlaceCliffTile.ConnectionPoints)
             {
-                var side = tileToPlaceCliffTileConnectionPoints.Side;
-                var connectionMask = tileToPlaceCliffTileConnectionPoints.ConnectionMask;
-                
-                if (connectedTileFilter.ExcludedConnectionMasks.Contains(connectionMask))
-                    return false;
+                var side = tileToPlaceCliffTileConnectionPoint.Side;
+                var connectionMask = tileToPlaceCliffTileConnectionPoint.ConnectionMask;
+
+                if (connectedTileFilter.ExcludedConnectionMasks.Contains(tileToPlaceCliffTileConnectionPoint.ConnectionMask))
+                    continue;
 
                 foreach (var lastPlacedTileConnectionPoint in connectedTileFilter.LastPlacedCliffTile.ConnectionPoints)
-                {                    
-                    foreach (var forbiddenTile in lastPlacedTileConnectionPoint.ForbiddenTiles)
+                {
+                    if (lastPlacedTileConnectionPoint.ForbiddenTiles != null)
                     {
-                        // TODO: consider cases where tiles are forbidden from repeating themselves.
-                        // There are cases where this is valid such as straight roads (since they cannot properly connect)
-                        // but on same other cases, like with rivers, tiles should be able to connect to themselves with no issues.
-                        // Maybe with an added key to ignore the forbidden tiles during this filtering process?
+                        foreach (var forbiddenTile in lastPlacedTileConnectionPoint.ForbiddenTiles)
+                        {
+                            // TODO: consider cases where tiles are forbidden from repeating themselves.
+                            // There are cases where this is valid such as straight roads (since they cannot properly connect)
+                            // but on same other cases, like with rivers, tiles should be able to connect to themselves with no issues.
+                            // Maybe with an added key to ignore the forbidden tiles during this filtering process?
 
-                        if (forbiddenTile == tileToPlaceCliffTile.Index)
-                            return false;
+                            if (forbiddenTile == tileToPlaceCliffTile.Index)
+                                return false;
+                        }
                     }
                     
-                    foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
+                    if (lastPlacedTileConnectionPoint.RequiredTiles != null)
                     {
-                        if (requiredTile != tileToPlaceCliffTile.Index)
-                            return false;
+                        foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
+                        {
+                            if (requiredTile != tileToPlaceCliffTile.Index)
+                                return false;
+                        }
                     }
 
                     if (side == lastPlacedTileConnectionPoint.Side)
@@ -620,17 +639,18 @@ namespace TSMapEditor.UI
             CliffType cliffTypeForTileSet = GetCliffTypeForTileSet(tileSet);
 
             if (cliffTypeForTileSet == null)
-                return new ConnectedTileFilter(null, null, []);
+                return new ConnectedTileFilter();
 
             // If it exists, will be used to compare tiles with the last placed tile's connection points. 
             // If null, then it would mean the last placed tile isn't part of any cliff type set, and no filtering should be done.
             CliffTile lastPlacedCliffTile = null;
+
             List<byte> excludedConnectionMasks = [];
 
-            lastPlacedCliffTile = GetCliffTile(lastPlacedTile); 
+            lastPlacedCliffTile = GetCliffTile(lastPlacedTile);
 
             if (lastPlacedCliffTile == null)
-                return new ConnectedTileFilter(null, null, []);
+                return new ConnectedTileFilter();
 
             // Comparison with the second last placed tiles, in order to filter out any connection points that are already in use
             // For a connection point to be in use, the last two placed tiles must be placed in adjacent positions
@@ -678,6 +698,5 @@ namespace TSMapEditor.UI
 
             return new ConnectedTileFilter(cliffTypeForTileSet, lastPlacedCliffTile, excludedConnectionMasks);
         }
-
     }
 }
