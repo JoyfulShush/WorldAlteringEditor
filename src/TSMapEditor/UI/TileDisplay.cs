@@ -215,7 +215,7 @@ namespace TSMapEditor.UI
             int x = Constants.UIEmptySideSpace;
             int currentLineHeight = 0;
 
-            var connectedTileFilter = GetConnectedTileFilter();
+            var connectedTileFilter = GetConnectedTileFilter(TileSet);
 
             for (int i = 0; i < TileSet.TilesInSet; i++)
             {
@@ -229,7 +229,9 @@ namespace TSMapEditor.UI
                 if (tileImageToDisplay == null)
                     break;
 
-                if (connectedTileFilter.CliffTypeForTileSet != null)
+                // If the tile filter is active and has registered a cliff type for the current set,
+                // then check if the current tile can attach to the last placed tile
+                if (lastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
                 {
                     if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
                         continue;
@@ -522,55 +524,78 @@ namespace TSMapEditor.UI
         }
 
 
+        /// <summary>
+        /// Determines whether the specified tile can be validly placed next to the last placed tile,
+        /// based on cliff type compatibility and its connection points.
+        /// Used to filter out tiles in the tile display.
+        /// </summary>
+        /// <param name="tileImageToPlace">The tile being considered for placement.</param>
+        /// <param name="connectedTileFilter">Contains context information such as the cliff type set and connection constraints.</param>
+        /// <returns>
+        /// True if the tile matches all conditions to be placed next to the last placed tile; otherwise, false.
+        /// </returns>
         private bool CanTileMatchLastPlaced(TileImage tileImageToPlace, ConnectedTileFilter connectedTileFilter)
-        {
+        {            
+            if (connectedTileFilter.CliffTypeForTileSet == null || connectedTileFilter.LastPlacedCliffTile == null)
+                return false;
+
+            // Check if the cliff types between the current tile and the last placed share the same set
             bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, lastPlacedTile.TileImage);
             if (!matchingCliffTypes)
                 return false;
             
-            var relevantCliffTile = connectedTileFilter.CliffTypeForTileSet.Tiles.Find(tile =>
+            var tileToPlaceCliffTile = connectedTileFilter.CliffTypeForTileSet.Tiles.Find(tile =>
             {
                 return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet);
             });
 
-            if (relevantCliffTile == null)
+            if (tileToPlaceCliffTile == null)
                 return false;
-                        
-            foreach (var relevantCliffTileConnectionPoint in relevantCliffTile.ConnectionPoints)
-            {
-                var side = relevantCliffTileConnectionPoint.Side;
-                var connectionMask = relevantCliffTileConnectionPoint.ConnectionMask;
 
+            // Loop through the connection points of the tile being considered
+            // If a connection is considered excluded, then reject the tile immediately
+            // check each connection point and its contents to determine whether the tile can fit into the last placed one
+            foreach (var tileToPlaceCliffTileConnectionPoints in tileToPlaceCliffTile.ConnectionPoints)
+            {
+                var side = tileToPlaceCliffTileConnectionPoints.Side;
+                var connectionMask = tileToPlaceCliffTileConnectionPoints.ConnectionMask;
+                
                 if (connectedTileFilter.ExcludedConnectionMasks.Contains(connectionMask))
                     return false;
 
                 foreach (var lastPlacedTileConnectionPoint in connectedTileFilter.LastPlacedCliffTile.ConnectionPoints)
-                {
-                    // for each connection point of the last placed cliff tile, get forbidden tiles
-                    // if forbidden tile is the same as the index of the relevantCliffTile, quit early
+                {                    
                     foreach (var forbiddenTile in lastPlacedTileConnectionPoint.ForbiddenTiles)
                     {
-                        if (forbiddenTile == relevantCliffTile.Index)                                                    
+                        // TODO: consider cases where tiles are forbidden from repeating themselves.
+                        // There are cases where this is valid such as straight roads (since they cannot properly connect)
+                        // but on same other cases, like with rivers, tiles should be able to connect to themselves with no issues.
+                        // Maybe with an added key to ignore the forbidden tiles during this filtering process?
+
+                        if (forbiddenTile == tileToPlaceCliffTile.Index)
                             return false;
                     }
-
-                    // for each connection point of the last placed cliff tile, get required tiles
-                    // if required tile is not the same as the index of the relevantCliffTile, quit early
+                    
                     foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
                     {
-                        if (requiredTile != relevantCliffTile.Index)
+                        if (requiredTile != tileToPlaceCliffTile.Index)
                             return false;
                     }
 
                     if (side == lastPlacedTileConnectionPoint.Side)
                     {
+                        // Whenever we check for a tile, we want to get the opposite direction of the last placed tile to see if they match.
+                        // For example, if the last placed tile has a connection point in the West direction, then it would
+                        // match all tiles that have a connection point to the East, assuming they are placed correctly.
+
                         var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);
                         var directions = Helpers.GetDirectionsInMask(connectionMask);
+                        
                         foreach (var direction in directions)
                         {
                             foreach (var reversedDirection in lastPlacedReversedDirections)
                             {
-                                if (direction == reversedDirection)  
+                                if (direction == reversedDirection)
                                     return true;
                             }
                         }
@@ -581,48 +606,69 @@ namespace TSMapEditor.UI
             return false;
         }
 
-        private ConnectedTileFilter GetConnectedTileFilter()
+
+        /// <summary>
+        /// Constructs a <see cref="ConnectedTileFilter"/> based on the most recently placed tiles and the current set being considered.
+        /// It tries to find and assign the cliff type for the set and any connection masks that should be excluded,
+        /// based on conflicts between the last two placed tiles, if any.
+        /// </summary>
+        /// <returns>A <see cref="ConnectedTileFilter"/> containing cliff data and exclusion rules for the current set and recent tiles.</returns>
+        private ConnectedTileFilter GetConnectedTileFilter(TileSet tileSet)
         {
-            CliffType cliffTypeForTileSet = null;
+            // Fetches the current cliff type for comparison. If this tile set is not part of any cliff type,
+            // then we can quit early since we will not have any data to compare the last placed tiles with
+            CliffType cliffTypeForTileSet = GetCliffTypeForTileSet(tileSet);
+
+            if (cliffTypeForTileSet == null)
+                return new ConnectedTileFilter(null, null, []);
+
+            // If it exists, will be used to compare tiles with the last placed tile's connection points. 
+            // If null, then it would mean the last placed tile isn't part of any cliff type set, and no filtering should be done.
             CliffTile lastPlacedCliffTile = null;
             List<byte> excludedConnectionMasks = [];
 
-            if (lastPlacedTile != null)
+            lastPlacedCliffTile = GetCliffTile(lastPlacedTile); 
+
+            if (lastPlacedCliffTile == null)
+                return new ConnectedTileFilter(null, null, []);
+
+            // Comparison with the second last placed tiles, in order to filter out any connection points that are already in use
+            // For a connection point to be in use, the last two placed tiles must be placed in adjacent positions
+            // where their connection points would collide with each other when taking their directions into account.
+            if (secondLastPlacedTile != null)
             {
-                lastPlacedCliffTile = GetCliffTile(lastPlacedTile);
-                cliffTypeForTileSet = GetCliffTypeForTileSet(TileSet);
+                var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedTile);
 
-                if (lastPlacedCliffTile != null && secondLastPlacedTile != null)
+                if (secondLastPlacedCliffTile != null)
                 {
-                    var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedTile);
+                    var lastPlacedTileOrigin = lastPlacedTile.Coords;
+                    var secondLastPlacedTileOrigin = secondLastPlacedTile.Coords;
 
-                    if (secondLastPlacedCliffTile != null)
+                    var connectionCoordsLastPlaced = GetAllConnectionCoords(lastPlacedCliffTile, lastPlacedTileOrigin);
+                    var connectionCoordsSecondLastPlaced = GetAllConnectionCoords(secondLastPlacedCliffTile, secondLastPlacedTileOrigin);
+
+                    foreach (var lastPlacedConnCoords in connectionCoordsLastPlaced)
                     {
-                        var lastPlacedTileOrigin = lastPlacedTile.Coords;
-                        var secondLastPlacedTileOrigin = secondLastPlacedTile.Coords;
+                        var directions = Helpers.GetDirectionsInMask(lastPlacedConnCoords.ConnectionMask);
 
-                        var connectionCoordsLastPlaced = GetAllConnectionCoords(lastPlacedCliffTile, lastPlacedTileOrigin);
-                        var connectionCoordsSecondLastPlaced = GetAllConnectionCoords(secondLastPlacedCliffTile, secondLastPlacedTileOrigin);
-
-                        foreach (var lastPlacedConnCoords in connectionCoordsLastPlaced)
+                        foreach (var direction in directions)
                         {
-                            var directions = Helpers.GetDirectionsInMask(lastPlacedConnCoords.ConnectionMask);
+                            var coordsWithOffset = lastPlacedConnCoords.Coords + Helpers.VisualDirectionToPoint(direction);
 
-                            foreach (var direction in directions)
+                            // Look for second-last tile connection points that are spatially adjacent to the current direction
+                            var matchingCoords = connectionCoordsSecondLastPlaced.FindAll(connCoords => connCoords.Coords.Equals(coordsWithOffset));
+
+                            foreach (var matchingCoord in matchingCoords)
                             {
-                                var coordsWithOffset = lastPlacedConnCoords.Coords + Helpers.VisualDirectionToPoint(direction);
+                                var matchingCoordDirections = Helpers.GetDirectionsInMask(matchingCoord.ConnectionMask);
 
-                                var matchingCoords = connectionCoordsSecondLastPlaced.FindAll(connCoords => connCoords.Coords.Equals(coordsWithOffset));
-                                foreach (var matchingCoord in matchingCoords)
+                                foreach (var matchingCoordDirection in matchingCoordDirections)
                                 {
-                                    var matchingCoordDirections = Helpers.GetDirectionsInMask(matchingCoord.ConnectionMask);
-                                    foreach (var matchingCoordDirection in matchingCoordDirections)
-                                    {
-                                        if (matchingCoordDirection.Equals(direction))
-                                            continue;
+                                    // If the direction is not mirrored (i.e., incompatible), mark the mask as excluded
+                                    if (matchingCoordDirection.Equals(direction))
+                                        continue;
 
-                                        excludedConnectionMasks.Add(matchingCoord.ConnectionMask);
-                                    }
+                                    excludedConnectionMasks.Add(matchingCoord.ConnectionMask);
                                 }
                             }
                         }
@@ -632,5 +678,6 @@ namespace TSMapEditor.UI
 
             return new ConnectedTileFilter(cliffTypeForTileSet, lastPlacedCliffTile, excludedConnectionMasks);
         }
+
     }
 }
