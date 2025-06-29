@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -232,25 +233,33 @@ namespace TSMapEditor.Models
             for (int i = 0; i < ConnectionPoints.Length; i++)
             {
                 string coordsString = iniSection.GetStringValue($"ConnectionPoint{i}", null);
-
-                // A minimum of two connection points is required
+                
                 if (coordsString == null)                
-                {
-                    if (i <= 1)
+                {      
+                    // All tiles must have at least 1 CP
+                    if (i == 0)
                     {
-                        throw new INIConfigException($"Connected Tile {iniSection.SectionName} has less than 2 valid connection points!");
-                    }
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has no connection points defined.");
+                    }                    
+                    // A tile is only allowed to have 1 CP if it's not being used by the Draw Connected Tiles tool
+                    else if (i == 1 && !ExcludeFromConnectedTileTool)
+                    {
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} is not excluded from the Draw Connected Tiles tool and only has 1 connection point defined.");
+                    } // All tiles can omit beyond 2 CPs - they will be skipped and ignored.
                     else
                     {
                         continue;
                     }
                 }
+                else
+                {
+                    // A tile cannot have more than 2 CPs if it's not excluded from the Draw Connected Tiles tool
+                    if (i > 1 && !ExcludeFromConnectedTileTool)
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has at least {i + 1} connection points, but is not excluded from the Draw Connected Tiles tool. Either exclude it or reduce connection points to 2.");                        
 
-                if (!ExcludeFromConnectedTileTool && i > 1)
-                    throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has more than 2 connection points but is not excluded from the Draw Connected Tiles tool. Either reduce the tile to have 2 connection points, or add 'ExcludeFromConnectedTileTool=true' to it.");
-
-                if (!Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
-                    throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
+                    if (!Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
+                        throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
+                }
 
                 Point2D coords = Point2D.FromString(coordsString);
 
