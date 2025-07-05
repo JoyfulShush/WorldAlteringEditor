@@ -479,7 +479,8 @@ namespace TSMapEditor.UI
                 {
                     return cliffTileSet.Tiles.Find(cliffTile =>
                     {
-                        return cliffTile.IndicesInTileSet.Contains(placedTile.TileImage.TileIndexInTileSet);
+                        return cliffTile.IndicesInTileSet.Contains(placedTile.TileImage.TileIndexInTileSet) &&
+                               cliffTile.TileSetName == GetTileSetName(placedTile.TileImage.TileSetId);
                     });
                 }
             }
@@ -559,7 +560,8 @@ namespace TSMapEditor.UI
             
             var tileToPlaceCliffTile = connectedTileFilter.CliffTypeForTileSet.Tiles.Find(tile =>
             {
-                return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet);
+                return tile.IndicesInTileSet.Contains(tileImageToPlace.TileIndexInTileSet) &&
+                       tile.TileSetName == TileSet.SetName;
             });
 
             if (tileToPlaceCliffTile == null)
@@ -591,15 +593,6 @@ namespace TSMapEditor.UI
                                 return false;
                         }
                     }
-                    
-                    if (lastPlacedTileConnectionPoint.RequiredTiles != null)
-                    {
-                        foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
-                        {
-                            if (requiredTile != tileToPlaceCliffTile.Index)
-                                return false;
-                        }
-                    }
 
                     if (side == lastPlacedTileConnectionPoint.Side)
                     {
@@ -615,7 +608,25 @@ namespace TSMapEditor.UI
                             foreach (var reversedDirection in lastPlacedReversedDirections)
                             {
                                 if (direction == reversedDirection)
-                                    return true;
+                                {
+                                    bool hasRequiredTiles = false;
+                                    bool foundRequiredTile = false;
+                                    if (lastPlacedTileConnectionPoint.RequiredTiles != null && lastPlacedTileConnectionPoint.RequiredTiles.Length > 0)
+                                    {
+                                        hasRequiredTiles = true;
+                                        foreach (var requiredTile in lastPlacedTileConnectionPoint.RequiredTiles)
+                                        {
+                                            if (requiredTile == tileToPlaceCliffTile.Index)
+                                            {
+                                                foundRequiredTile = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!hasRequiredTiles || (hasRequiredTiles && foundRequiredTile))
+                                        return true;
+                                }
                             }
                         }
                     }
@@ -624,7 +635,6 @@ namespace TSMapEditor.UI
 
             return false;
         }
-
 
         /// <summary>
         /// Constructs a <see cref="ConnectedTileFilter"/> based on the most recently placed tiles and the current set being considered.
