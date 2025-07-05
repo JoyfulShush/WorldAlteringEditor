@@ -5,7 +5,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TSMapEditor.CCEngine;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
@@ -574,8 +573,24 @@ namespace TSMapEditor.UI
             {
                 var side = tileToPlaceCliffTileConnectionPoint.Side;
                 var connectionMask = tileToPlaceCliffTileConnectionPoint.ConnectionMask;
+                var directions = Helpers.GetDirectionsInMask(connectionMask);                
 
-                if (connectedTileFilter.ExcludedConnectionMasks.Contains(tileToPlaceCliffTileConnectionPoint.ConnectionMask))
+                bool foundExcludedDirection = false;
+                foreach (var excludedConnectionMask in connectedTileFilter.ExcludedConnectionMasks)
+                {
+                    var excludedDirections = Helpers.GetDirectionsInMask(excludedConnectionMask);
+
+                    foreach (var excludedDirection in excludedDirections)
+                    {
+                        foreach (var direction in directions)
+                        {
+                            if (excludedDirection.Equals(direction))
+                                foundExcludedDirection = true;
+                        }
+                    }
+                }
+
+                if (foundExcludedDirection)
                     continue;
 
                 foreach (var lastPlacedTileConnectionPoint in connectedTileFilter.LastPlacedCliffTile.ConnectionPoints)
@@ -600,8 +615,7 @@ namespace TSMapEditor.UI
                         // For example, if the last placed tile has a connection point in the West direction, then it would
                         // match all tiles that have a connection point to the East, assuming they are placed correctly.
 
-                        var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);
-                        var directions = Helpers.GetDirectionsInMask(connectionMask);
+                        var lastPlacedReversedDirections = Helpers.GetDirectionsInMask(lastPlacedTileConnectionPoint.ReversedConnectionMask);                        
                         
                         foreach (var direction in directions)
                         {
@@ -694,11 +708,11 @@ namespace TSMapEditor.UI
 
                                 foreach (var matchingCoordDirection in matchingCoordDirections)
                                 {
-                                    // If the direction is not mirrored (i.e., incompatible), mark the mask as excluded
                                     if (matchingCoordDirection.Equals(direction))
                                         continue;
 
-                                    excludedConnectionMasks.Add(matchingCoord.ConnectionMask);
+                                    if (Helpers.IsReverseDirection(matchingCoordDirection, direction))
+                                        excludedConnectionMasks.Add(matchingCoord.ConnectionMask);
                                 }
                             }
                         }

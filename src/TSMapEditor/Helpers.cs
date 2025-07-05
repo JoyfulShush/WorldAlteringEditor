@@ -241,6 +241,11 @@ namespace TSMapEditor
             return directions;
         }
 
+        public static bool IsReverseDirection(Direction direction, Direction otherDirection)
+        {
+            return ((int)direction + 4) % 8 == (int)otherDirection;
+        }
+
         /// <summary>
         /// Creates and returns a new UI texture.
         /// </summary>
