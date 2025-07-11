@@ -2097,8 +2097,10 @@ namespace TSMapEditor.Models
             GraphicalBaseNodes = null;
         }
 
-        public BaseNode GetBaseNode(Point2D cellCoords)
+        public List<BaseNode> GetBaseNodes(Point2D cellCoords)
         {
+            List<BaseNode> baseNodes = [];
+
             foreach (var graphicalBaseNode in GraphicalBaseNodes)
             {
                 var nodeBuildingType = graphicalBaseNode.BuildingType;
@@ -2108,7 +2110,8 @@ namespace TSMapEditor.Models
 
                 if (graphicalBaseNode.BaseNode.Position == cellCoords)
                 {
-                    return graphicalBaseNode.BaseNode;
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
+                    continue;
                 }
 
                 bool baseNodeExistsOnFoundation = false;
@@ -2121,11 +2124,11 @@ namespace TSMapEditor.Models
 
                 if (baseNodeExistsOnFoundation)
                 {
-                    return graphicalBaseNode.BaseNode;
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
                 }
             }
 
-            return null;
+            return baseNodes;
         }
     }
 }
