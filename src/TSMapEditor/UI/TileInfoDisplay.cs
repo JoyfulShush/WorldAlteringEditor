@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using SharpDX.XAPO.Fx;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -133,7 +134,7 @@ namespace TSMapEditor.UI
             MapTile.DoForAllBuildings(structure => AddObjectInformation("Structure: ", structure));
             MapTile.DoForAllInfantry(inf => AddObjectInformation("Infantry: ", inf));
             MapTile.DoForAllWaypoints(waypoint => AddWaypointInfo(waypoint));
-            AddBaseNodeInformation(MapTile.GetBaseNode(map));
+            AddBaseNodeInformation(map.GetBaseNode(MapTile.CoordsToPoint()));
             AddTerrainObjectInformation(MapTile.TerrainObject);
 
             textRenderer.PrepareTextParts();
@@ -301,7 +302,8 @@ namespace TSMapEditor.UI
                 return;
 
             textRenderer.AddTextLine(new XNATextPart("Base Node: ", Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart($"{nodeBuildingType.Name} ({nodeBuildingType.ININame}) ({house.ININame})", Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart($"{nodeBuildingType.Name} ({nodeBuildingType.ININame}), Owner:", Constants.UIDefaultFont, Color.White));            
+            textRenderer.AddTextPart(new XNATextPart(house.ININame, Constants.UIBoldFont, house.XNAColor));
         }
 
         private void AddTerrainObjectInformation(TerrainObject terrainObject)
