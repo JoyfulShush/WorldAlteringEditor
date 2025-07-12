@@ -27,6 +27,7 @@ namespace TSMapEditor.Rendering
         public event EventHandler RenderedObjectsChanged;
         public event EventHandler LightingPreviewStateChanged;
         public event EventHandler IsLightingChanged;
+        public event EventHandler FilterTilesDisplayChanged;
 
         private CursorAction _cursorAction;
         public CursorAction CursorAction
@@ -254,5 +255,19 @@ namespace TSMapEditor.Rendering
         public bool RenderInvisibleInGameObjects { get; set; } = true;
 
         public CopiedMapData CopiedMapData { get; set; }
+
+        private bool _filterTilesDisplay = Constants.EnableTileDisplayFilterDefault;
+        public bool FilterTilesDisplay
+        {
+            get => _filterTilesDisplay;
+            set
+            {
+                if (_filterTilesDisplay != value)
+                {
+                    _filterTilesDisplay = value;
+                    FilterTilesDisplayChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }        
     }
 }

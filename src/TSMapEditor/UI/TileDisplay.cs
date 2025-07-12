@@ -130,6 +130,7 @@ namespace TSMapEditor.UI
             KeyboardCommands.Instance.NextTile.Action = NextTile;
             KeyboardCommands.Instance.PreviousTile.Action = PreviousTile;
             editorState.MarbleMadnessChanged += OnMarbleMadnessChanged;
+            editorState.FilterTilesDisplayChanged += OnFilterTilesDisplayChanged;
         }
 
         /// <summary>
@@ -224,7 +225,7 @@ namespace TSMapEditor.UI
             int x = Constants.UIEmptySideSpace;
             int currentLineHeight = 0;
 
-            var connectedTileFilter = GetConnectedTileFilter(TileSet);
+            var connectedTileFilter = editorState.FilterTilesDisplay ? GetConnectedTileFilter(TileSet) : null;
 
             for (int i = 0; i < TileSet.TilesInSet; i++)
             {
@@ -240,10 +241,13 @@ namespace TSMapEditor.UI
 
                 // If the tile filter is active and has registered a cliff type for the current set,
                 // then check if the current tile can attach to the last placed tile
-                if (lastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
+                if (editorState.FilterTilesDisplay)
                 {
-                    if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
-                        continue;
+                    if (lastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
+                    {
+                        if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
+                            continue;
+                    }
                 }
 
                 int width = tileImageToDisplay.GetWidth(out int minX);
@@ -721,6 +725,11 @@ namespace TSMapEditor.UI
             }
 
             return new ConnectedTileFilter(cliffTypeForTileSet, lastPlacedCliffTile, excludedConnectionMasks);
+        }
+
+        private void OnFilterTilesDisplayChanged(object sender, EventArgs e)
+        {
+            RefreshGraphics();
         }
     }
 }

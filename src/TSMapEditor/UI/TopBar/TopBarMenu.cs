@@ -171,6 +171,7 @@ namespace TSMapEditor.UI.TopBar
             viewContextMenu.AddItem(" ", null, () => false, null, null);
             viewContextMenu.AddItem("Toggle Impassable Cells", () => mapUI.EditorState.HighlightImpassableCells = !mapUI.EditorState.HighlightImpassableCells, null, null, null);
             viewContextMenu.AddItem("Toggle IceGrowth Preview", () => mapUI.EditorState.HighlightIceGrowth = !mapUI.EditorState.HighlightIceGrowth, null, null, null);
+            viewContextMenu.AddItem("Toggle Filter Connecting Tiles", () => mapUI.EditorState.FilterTilesDisplay = !mapUI.EditorState.FilterTilesDisplay, null, null, null);
             viewContextMenu.AddItem(" ", null, () => false, null, null);
             viewContextMenu.AddItem("View Minimap", () => windowController.MinimapWindow.Open());
             viewContextMenu.AddItem(" ", null, () => false, null, null);
