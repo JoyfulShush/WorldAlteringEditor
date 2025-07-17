@@ -235,6 +235,7 @@ namespace TSMapEditor.UI.CursorActions
                 if (CursorActionTarget.Map.Tubes.Exists(tb => tb.EntryPoint == cellCoords))
                     return;
             }
+
             if (!points.Contains(cellCoords) && !tubeCells.Contains(cellCoords))
             {
                 points.Add(cellCoords);
