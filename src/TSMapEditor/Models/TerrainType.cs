@@ -14,7 +14,7 @@ namespace TSMapEditor.Models
         public override RTTIType WhatAmI() => RTTIType.TerrainType;
 
         public IArtConfig GetArtConfig() => ArtConfig;
-        public TerrainArtConfig ArtConfig { get; } = new TerrainArtConfig();        
+        public TerrainArtConfig ArtConfig { get; } = new TerrainArtConfig();
 
         public TerrainOccupation TemperateOccupationBits { get; set; }
         public TerrainOccupation SnowOccupationBits { get; set; }
