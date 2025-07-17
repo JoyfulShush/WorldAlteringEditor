@@ -54,6 +54,12 @@ namespace TSMapEditor.Models
         /// </summary>
         public event EventHandler TeamTypesChanged;
 
+        /// <summary>
+        /// Raised when a trigger is added or removed.
+        /// NOT raised when an individual trigger's data is modified.
+        /// </summary>
+        public event EventHandler TriggersChanged;
+
         public IniFile LoadedINI { get; private set; }
 
         public bool ReloadINI()
@@ -759,11 +765,23 @@ namespace TSMapEditor.Models
         public void AddTrigger(Trigger trigger)
         {
             Triggers.Add(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void RemoveTrigger(Trigger trigger)
+        {
+            Triggers.Remove(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddTag(Tag tag)
         {
             Tags.Add(tag);
+        }
+
+        public void RemoveTagsAssociatedWithTrigger(Trigger trigger)
+        {
+            Tags.RemoveAll(t => t.Trigger == trigger);
         }
 
         public void AddCellTag(CellTag cellTag)

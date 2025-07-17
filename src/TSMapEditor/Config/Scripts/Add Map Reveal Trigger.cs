@@ -19,7 +19,7 @@ namespace WAEScript
         /// Returns the description of this script.
         /// All scripts must contain this function.
         /// </summary>
-        public string GetDescription() => "This script will automatically create a new map reveal trigger. Continue?";
+        public string GetDescription() => "This script will create a new map reveal trigger. Continue?";
 
         /// <summary>
         /// Returns the message that is presented to the user if running this script succeeded.
@@ -28,7 +28,7 @@ namespace WAEScript
         public string GetSuccessMessage()
         {
             if (error == null)
-                return $"Successfully created a map reveal trigger with name {mapRevealTriggerName}. If the Triggers Window is open, please re-open it.";
+                return $"Successfully created a map reveal trigger with name \"{mapRevealTriggerName}\". If the Triggers Window is open, please re-open it.";
 
             return error;
         }
@@ -54,18 +54,18 @@ namespace WAEScript
 
             var mapRevealAction = new TriggerAction();
             mapRevealAction.ActionIndex = 16;
-            mapRevealAction.Parameters[0] = string.Empty;
+            mapRevealAction.Parameters[0] = "0";
             trigger.Actions.Add(mapRevealAction);
 
             map.AddTrigger(trigger);
 
-            map.Tags.Add(new Tag()
+            map.AddTag(new Tag()
             {
                 ID = map.GetNewUniqueInternalId(),
                 Name = trigger.Name + " (tag)",
                 Trigger = trigger,
                 Repeating = 0
-            });            
+            });
         }
     }
 }
