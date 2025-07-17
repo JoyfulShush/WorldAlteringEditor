@@ -301,7 +301,7 @@ namespace TSMapEditor.UI
 
         private void InitKeyboard()
         {
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown += Keyboard_OnKeyDown;
 
             KeyboardCommands.Instance = new KeyboardCommands();
             KeyboardCommands.Instance.Undo.Triggered += UndoAction;
@@ -315,7 +315,7 @@ namespace TSMapEditor.UI
 
         private void ClearKeyboard()
         {
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
+            Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
             KeyboardCommands.Instance.ClearCommandSubscriptions();
         }
 
@@ -353,8 +353,8 @@ namespace TSMapEditor.UI
             };
 
             map.MapAutoSaved += (s, e) => notificationManager.AddNotification("Map auto-saved.");
+            map.MapSaveFailed += (s, e) => notificationManager.AddNotification("Saving map failed! Please see the log file for details.");
         }
-
 
         private void RefreshWindowTitle()
         {
@@ -565,7 +565,7 @@ namespace TSMapEditor.UI
             overlayFrameSelector.ClientRectangleUpdated += UpdateTileAndOverlaySelectorArea;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        private void Keyboard_OnKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
             if (!WindowManager.HasFocus)
                 return;
@@ -579,6 +579,12 @@ namespace TSMapEditor.UI
                 if (selectedControl is XNATextBox || selectedControl is XNAListBox)
                     return;
             }
+
+            // Send the key for the map UI. If there is a cursor action active, this allows
+            // the cursor action to handle input first.
+            mapUI.HandleKeyDown(sender, e);
+            if (e.Handled)
+                return;
 
             // First, check for commands that match when all modifiers are fully considered
             // - for example, if there's two commands, one that is activated by pressing A,

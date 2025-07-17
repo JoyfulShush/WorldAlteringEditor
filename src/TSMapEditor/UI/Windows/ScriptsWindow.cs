@@ -10,6 +10,7 @@ using TSMapEditor.Misc;
 using TSMapEditor.Models;
 using TSMapEditor.Models.Enums;
 using TSMapEditor.Rendering;
+using TSMapEditor.Settings;
 using TSMapEditor.UI.Controls;
 using TSMapEditor.UI.CursorActions;
 using TSMapEditor.UI.Notifications;
@@ -218,6 +219,23 @@ namespace TSMapEditor.UI.Windows
             int index = lbActions.SelectedIndex + 1;
 
             var clonedEntry = editedScript.Actions[lbActions.SelectedIndex].Clone();
+
+            // Smart script action cloning
+            if (UserSettings.Instance.SmartScriptActionCloning || Keyboard.IsShiftHeldDown() || Keyboard.IsAltHeldDown())
+            {
+                var scriptActionType = map.EditorConfig.ScriptActions[clonedEntry.Action];
+
+                if (scriptActionType.ParamType == TriggerParamType.Waypoint)
+                {
+                    int indexOffset = Keyboard.IsAltHeldDown() ? -1 : 1;
+
+                    if (map.Waypoints.Exists(wp => wp.Identifier == clonedEntry.Argument + indexOffset))
+                    {
+                        clonedEntry.Argument = clonedEntry.Argument + indexOffset;
+                    }
+                }
+            }
+
             editedScript.Actions.Insert(index, clonedEntry);
             EditScript(editedScript);
             lbActions.SelectedIndex = index;
@@ -607,7 +625,10 @@ namespace TSMapEditor.UI.Windows
                 }
             }
 
-            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+            var fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text == entry.Argument.ToString());
+            if (fittingItem == null)
+                fittingItem = btnEditorPresetValues.ContextMenu.Items.Find(item => item.Text.StartsWith(entry.Argument.ToString()));
+
             if (fittingItem != null)
                 tbParameterValue.Text = fittingItem.Text;
         }

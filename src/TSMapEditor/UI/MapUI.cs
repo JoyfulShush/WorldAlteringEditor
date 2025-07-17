@@ -59,7 +59,7 @@ namespace TSMapEditor.UI
     /// </summary>
     public class MapUI : XNAControl, ICursorActionTarget, IMutationTarget
     {
-        private const float RightClickScrollRateDivisor = 64f;
+        private const float RightClickScrollRateDivisor = 48f;
         private const double ZoomStep = 0.1;
 
         private static Color[] MarbleMadnessTileHeightLevelColors = new Color[]
@@ -179,7 +179,6 @@ namespace TSMapEditor.UI
 
             EditorState.CursorActionChanged += EditorState_CursorActionChanged;
 
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered += FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered += ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered += Toggle2DMode_Triggered;
@@ -189,21 +188,7 @@ namespace TSMapEditor.UI
             KeyboardCommands.Instance.RotateUnitOneStep.Triggered += RotateUnitOneStep_Triggered;
 
             windowController.Initialized += PostWindowControllerInit;
-            Map.LocalSizeChanged += (s, e) => InvalidateMap();
             Map.MapResized += Map_MapResized;
-            Map.MapHeightChanged += (s, e) => InvalidateMap();
-            Map.Lighting.ColorsRefreshed += (s, e) => Map_LightingColorsRefreshed();
-            Map.CellLightingModified += Map_CellLightingModified;
-
-            Map.HouseColorChanged += (s, e) => InvalidateMap();
-            EditorState.HighlightImpassableCellsChanged += (s, e) => InvalidateMap();
-            EditorState.HighlightIceGrowthChanged += (s, e) => InvalidateMap();
-            EditorState.DrawMapWideOverlayChanged += (s, e) => MapWideOverlay.Enabled = EditorState.DrawMapWideOverlay;
-            EditorState.MarbleMadnessChanged += (s, e) => InvalidateMapForMinimap();
-            EditorState.Is2DModeChanged += (s, e) => InvalidateMapForMinimap();
-            EditorState.IsLightingChanged += (s, e) => LightingChanged();
-            EditorState.LightingPreviewStateChanged += (s, e) => LightingChanged();
-            EditorState.RenderedObjectsChanged += (s, e) => InvalidateMapForMinimap();
 
             windowController.RenderResolutionChanged += WindowController_RenderResolutionChanged;
 
@@ -227,8 +212,6 @@ namespace TSMapEditor.UI
             windowController.RunScriptWindow.ScriptRun += (s, e) => InvalidateMap();
             windowController.StructureOptionsWindow.EnabledChanged += (s, e) => { if (!((StructureOptionsWindow)s).Enabled) InvalidateMap(); };
             windowController.MegamapGenerationOptionsWindow.OnGeneratePreview += MegamapGenerationOptionsWindow_OnGeneratePreview;
-
-            Map_LightingColorsRefreshed();
         }
 
         private void MegamapGenerationOptionsWindow_OnGeneratePreview(object sender, MegamapRenderOptions e)
@@ -273,7 +256,6 @@ namespace TSMapEditor.UI
             Map.MapResized -= Map_MapResized;
             Map = null;
 
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered -= FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered -= ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered -= Toggle2DMode_Triggered;
@@ -331,37 +313,6 @@ namespace TSMapEditor.UI
             InvalidateMap();
         }
 
-        private void Map_CellLightingModified(object sender, CellLightingEventArgs e)
-        {
-            if (EditorState.IsLighting && EditorState.LightingPreviewState != LightingPreviewMode.NoLighting)
-                Map.RefreshCellLighting(EditorState.LightingPreviewState, e.AffectedTiles);
-        }
-
-        private void LightingChanged()
-        {
-            Map.RefreshCellLighting(EditorState.IsLighting ? EditorState.LightingPreviewState : LightingPreviewMode.NoLighting, null);
-
-            InvalidateMapForMinimap();
-            if (Constants.VoxelsAffectedByLighting)
-                TheaterGraphics.InvalidateVoxelCache();
-        }
-
-        private void Map_LightingColorsRefreshed()
-        {
-            MapColor? color = EditorState.LightingPreviewState switch
-            {
-                LightingPreviewMode.Normal => Map.Lighting.NormalColor,
-                LightingPreviewMode.IonStorm => Map.Lighting.IonColor,
-                LightingPreviewMode.Dominator => Map.Lighting.DominatorColor,
-                _ => null,
-            };
-
-            if (color != null)
-                TheaterGraphics.ApplyLightingToPalettes((MapColor)color);
-
-            LightingChanged();
-        }
-
         private void MinimapWindow_MegamapClicked(object sender, MegamapClickedEventArgs e)
         {
             Camera.TopLeftPoint = e.ClickedPoint - new Point2D(Width / 2, Height / 2).ScaleBy(1.0 / Camera.ZoomLevel);
@@ -394,14 +345,16 @@ namespace TSMapEditor.UI
             lastTileUnderCursor = null;
         }
 
-        public override void OnMouseScrolled()
+        public override void OnMouseScrolled(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (Cursor.ScrollWheelValue > 0)
                 Camera.ZoomLevel += ZoomStep;
             else
                 Camera.ZoomLevel -= ZoomStep;
 
-            base.OnMouseScrolled();
+            base.OnMouseScrolled(inputEventArgs);
         }
 
         public override void OnMouseOnControl()
@@ -482,19 +435,6 @@ namespace TSMapEditor.UI
                 }
             }
 
-            if (isRightClickScrolling)
-            {
-                if (Cursor.RightDown)
-                {
-                    var newCursorPosition = GetCursorPoint();
-                    var result = newCursorPosition - rightClickScrollInitPos;
-                    float rightClickScrollRate = (float)((scrollRate / RightClickScrollRateDivisor) / Camera.ZoomLevel);
-
-                    Camera.FloatTopLeftPoint = new Vector2(Camera.FloatTopLeftPoint.X + result.X * rightClickScrollRate,
-                        Camera.FloatTopLeftPoint.Y + result.Y * rightClickScrollRate);
-                }
-            }
-
             pressedDownPoint = GetCursorPoint();
 
             base.OnMouseOnControl();
@@ -508,9 +448,10 @@ namespace TSMapEditor.UI
             base.OnMouseEnter();
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            inputEventArgs.Handled = true;
+            base.OnMouseLeftDown(inputEventArgs);
             leftPressedDownOnControl = true;
 
             if (CursorAction != null)
@@ -554,8 +495,10 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (tileUnderCursor != null && CursorAction != null)
             {
                 CursorAction.LeftClick(tileUnderCursor.CoordsToPoint());
@@ -573,7 +516,7 @@ namespace TSMapEditor.UI
                 }
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
 
         private void HandleDoubleClick()
@@ -600,8 +543,10 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnRightClick()
+        public override void OnRightClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (CursorAction != null && !isRightClickScrolling)
             {
                 CursorAction = null;
@@ -609,7 +554,37 @@ namespace TSMapEditor.UI
 
             isRightClickScrolling = false;
 
-            base.OnRightClick();
+            base.OnRightClick(inputEventArgs);
+        }
+
+        private MapTile CalculateBestTileUnderCursor()
+        {
+            Point2D cursorMapPoint = GetCursorMapPoint();
+            Point2D tileCoords = EditorState.Is2DMode ?
+                CellMath.CellCoordsFromPixelCoords_2D(cursorMapPoint, Map) :
+                CellMath.CellCoordsFromPixelCoords(cursorMapPoint, Map, CursorAction == null || CursorAction.SeeThrough);
+
+            var tile = Map.GetTile(tileCoords.X, tileCoords.Y);
+
+            if (tile != null && (CursorAction == null || CursorAction.UseOnBridge) && !Constants.IsFlatWorld && !EditorState.Is2DMode)
+            {
+                if (tile.GetTechno() == null)
+                {
+                    // If the tile has no Technos, check whether there'd be high infantry or vehicles two cells below.
+                    // If yes, the user might be pointing at a bridge that contains draw-offset units.
+
+                    var otherTile = Map.GetTile(tileCoords.X + 2, tileCoords.Y + 2);
+
+                    if (otherTile != null)
+                    {
+                        var techno = otherTile.GetTechno();
+                        if (techno != null && techno.IsOnBridge())
+                            return otherTile;
+                    }
+                }
+            }
+
+            return tile;
         }
 
         public override void Update(GameTime gameTime)
@@ -619,9 +594,23 @@ namespace TSMapEditor.UI
             // 1000 ms (1 second) divided by 60 frames =~ 16.667 ms / frame
             int scrollRate = (int)(this.scrollRate * (gameTime.ElapsedGameTime.TotalMilliseconds / 16.667));
 
-            if (IsActive && !(WindowManager.SelectedControl is XNATextBox))
+            if (IsActive)
             {
-                Camera.KeyboardUpdate(Keyboard, scrollRate);
+                if (!(WindowManager.SelectedControl is XNATextBox))
+                    Camera.KeyboardUpdate(Keyboard, scrollRate);
+
+                if (isRightClickScrolling)
+                {
+                    if (Cursor.RightDown)
+                    {
+                        var newCursorPosition = GetCursorPoint();
+                        var result = newCursorPosition - rightClickScrollInitPos;
+                        float rightClickScrollRate = (float)((scrollRate / RightClickScrollRateDivisor) / Camera.ZoomLevel);
+
+                        Camera.FloatTopLeftPoint = new Vector2(Camera.FloatTopLeftPoint.X + result.X * rightClickScrollRate,
+                            Camera.FloatTopLeftPoint.Y + result.Y * rightClickScrollRate);
+                    }
+                }
             }
 
             if (leftPressedDownOnControl && !Cursor.LeftDown)
@@ -629,12 +618,7 @@ namespace TSMapEditor.UI
 
             windowController.MinimapWindow.CameraRectangle = new Rectangle(Camera.TopLeftPoint.ToXNAPoint(), new Point2D(Width, Height).ScaleBy(1.0 / Camera.ZoomLevel).ToXNAPoint());
 
-            Point2D cursorMapPoint = GetCursorMapPoint();
-            Point2D tileCoords = EditorState.Is2DMode ?
-                CellMath.CellCoordsFromPixelCoords_2D(cursorMapPoint, Map) :
-                CellMath.CellCoordsFromPixelCoords(cursorMapPoint, Map, CursorAction == null || CursorAction.SeeThrough);
-
-            var tile = Map.GetTile(tileCoords.X, tileCoords.Y);
+            var tile = CalculateBestTileUnderCursor();
 
             tileUnderCursor = tile;
             TileInfoDisplay.MapTile = tile;
@@ -663,10 +647,16 @@ namespace TSMapEditor.UI
             return cursorMapPoint;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        public void HandleKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
-            if (!IsActive)
+            if (e.Handled)
                 return;
+
+            // If there is a cursor action active, send the command to it.
+            if (CursorAction != null && CursorAction.HandlesKeyboardInput)
+            {
+                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+            }
 
             if (e.PressedKey == Microsoft.Xna.Framework.Input.Keys.F1)
             {
@@ -679,11 +669,7 @@ namespace TSMapEditor.UI
                 }
 
                 EditorMessageBox.Show(WindowManager, "Hotkey Help", text.ToString(), MessageBoxButtons.OK);
-            }
-
-            if (!e.Handled && CursorAction != null && CursorAction.HandlesKeyboardInput)
-            {
-                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+                e.Handled = true;
             }
         }
 

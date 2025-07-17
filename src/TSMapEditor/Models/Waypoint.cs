@@ -59,6 +59,8 @@ namespace TSMapEditor.Models
 
         public Color XNAColor;
 
+        public bool IsOnBridge() => false;
+
         public static Waypoint ParseWaypoint(string id, string coordsString)
         {
             int waypointIndex = Conversions.IntFromString(id, -1);

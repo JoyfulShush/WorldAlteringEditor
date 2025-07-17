@@ -201,9 +201,9 @@ namespace TSMapEditor.CCEngine
         public RGBColor RadarRightColor { get; set; }
 
         public byte[] ColorData = new byte[Constants.TileColorBufferSize];
-        public byte[] ZData = new byte[0];
-        public byte[] ExtraGraphicsColorData = new byte[0];
-        public byte[] ExtraGraphicsZData = new byte[0];
+        public byte[] ZData = Array.Empty<byte>();
+        public byte[] ExtraGraphicsColorData = Array.Empty<byte>();
+        public byte[] ExtraGraphicsZData = Array.Empty<byte>();
     }
 
     [Flags]

@@ -24,6 +24,7 @@ namespace TSMapEditor.UI.Windows
         private readonly IMutationTarget mutationTarget;
 
         private EditorNumberTextBox tbWaypointNumber;
+        private XNALabel lblDescription;
         private XNADropDown ddWaypointColor;
 
         private Point2D cellCoords;
@@ -35,6 +36,9 @@ namespace TSMapEditor.UI.Windows
 
             tbWaypointNumber = FindChild<EditorNumberTextBox>(nameof(tbWaypointNumber));
             tbWaypointNumber.MaximumTextLength = (Constants.MaxWaypoint - 1).ToString(CultureInfo.InvariantCulture).Length;
+
+            lblDescription = FindChild<XNALabel>(nameof(lblDescription));
+            lblDescription.Text = $"Input waypoint number (0-{Constants.MaxWaypoint - 1}):";            
 
             FindChild<EditorButton>("btnPlace").LeftClick += BtnPlace_LeftClick;
 
