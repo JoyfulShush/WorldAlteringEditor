@@ -597,19 +597,22 @@ namespace TSMapEditor.UI
                 if (foundExcludedDirection)
                     continue;
 
-                foreach (var lastPlacedTileConnectionPoint in connectedTileFilter.LastPlacedCliffTile.ConnectionPoints)
+                var lastPlacedCliffTile = connectedTileFilter.LastPlacedCliffTile;
+
+                foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
                 {
-                    if (lastPlacedTileConnectionPoint.ForbiddenTiles != null)
+                    if (lastPlacedTileConnectionPoint.ForbiddenTiles != null && !lastPlacedTileConnectionPoint.IgnoreForbiddenTilesInTileDisplayFilter)
                     {
                         foreach (var forbiddenTile in lastPlacedTileConnectionPoint.ForbiddenTiles)
                         {
-                            // TODO: consider cases where tiles are forbidden from repeating themselves.
-                            // There are cases where this is valid such as straight roads (since they cannot properly connect)
-                            // but on same other cases, like with rivers, tiles should be able to connect to themselves with no issues.
-                            // Maybe with an added key to ignore the forbidden tiles during this filtering process?
-
                             if (forbiddenTile == tileToPlaceCliffTile.Index)
+                            {
+                                // If this forbidden tile is referencing itself and it is allowed to repeat, skip this tile
+                                if (forbiddenTile == lastPlacedCliffTile.Index && lastPlacedCliffTile.AllowRepeatingSelfInTileDisplayFilter)
+                                    continue;
+
                                 return false;
+                            }
                         }
                     }
 

@@ -53,6 +53,11 @@ namespace TSMapEditor.Models
         /// Whether the connection point faces "backwards" or "forwards"
         /// </summary>
         public CliffSide Side { get; init; }
+
+        /// <summary>
+        /// Whether Forbidden Tiles associated with this connection point are ignored for the Tile Display Filter
+        /// </summary>
+        public bool IgnoreForbiddenTilesInTileDisplayFilter { get; init; }
     }
 
     public class CliffAStarNode
@@ -227,6 +232,7 @@ namespace TSMapEditor.Models
             IndicesInTileSet = indicesString.Split(',').Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
             ExcludeFromConnectedTileTool = iniSection.GetBooleanValue("ExcludeFromConnectedTileTool", false);
+            AllowRepeatingSelfInTileDisplayFilter = iniSection.GetBooleanValue("AllowRepeatingSelfInTileDisplayFilter", true);            
 
             ConnectionPoints = new CliffConnectionPoint[4];
 
@@ -296,7 +302,7 @@ namespace TSMapEditor.Models
                     _ => throw new INIConfigException($"Connected Tile {iniSection.SectionName} has an invalid ConnectionPoint{i}.Side value: {sideString}!")
                 };
 
-                int[] requiredTiles, forbiddenTiles;
+                int[] requiredTiles, forbiddenTiles;                
 
                 var requiredTilesList =
                     iniSection.GetListValue($"ConnectionPoint{i}.RequiredTiles", ',', int.Parse);
@@ -315,6 +321,8 @@ namespace TSMapEditor.Models
                     requiredTiles = Array.Empty<int>();
                 }
 
+                bool ignoreForbiddenTilesInTileDisplayFilter = iniSection.GetBooleanValue($"ConnectionPoint{i}.IgnoreForbiddenTilesInTileDisplayFilter", false);
+
                 ConnectionPoints[i] = new CliffConnectionPoint
                 {
                     Index = i,
@@ -322,7 +330,8 @@ namespace TSMapEditor.Models
                     CoordinateOffset = coords,
                     Side = side,
                     RequiredTiles = requiredTiles,
-                    ForbiddenTiles = forbiddenTiles
+                    ForbiddenTiles = forbiddenTiles,
+                    IgnoreForbiddenTilesInTileDisplayFilter = ignoreForbiddenTilesInTileDisplayFilter,
                 };
             }
 
@@ -377,7 +386,13 @@ namespace TSMapEditor.Models
         /// <summary>
         /// When true, this tile is disallowed from being used in the Draw Connected Tile tool
         /// </summary>
-        public bool ExcludeFromConnectedTileTool { get; set; }
+        public bool ExcludeFromConnectedTileTool { get; init; }
+
+        /// <summary>
+        /// If enabled, tiles that are forbidden from referencing themselves are allowed by the Tile Display Filter.
+        /// This is useful if the tile can still connect to itself, but we don't want the Draw Connected Tiles tool to do so to prevent repeatitiveness.
+        /// </summary>
+        public bool AllowRepeatingSelfInTileDisplayFilter { get; init; }
 
         public CliffConnectionPoint GetExit(int entryIndex)
         {
