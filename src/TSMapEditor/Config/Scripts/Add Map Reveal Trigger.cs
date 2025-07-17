@@ -28,7 +28,7 @@ namespace WAEScript
         public string GetSuccessMessage()
         {
             if (error == null)
-                return $"Successfully created a map reveal trigger with name \"{mapRevealTriggerName}\". If the Triggers Window is open, please re-open it.";
+                return $"Successfully created a map reveal trigger with name \"{mapRevealTriggerName}\". You can locate it in the Triggers window.";
 
             return error;
         }

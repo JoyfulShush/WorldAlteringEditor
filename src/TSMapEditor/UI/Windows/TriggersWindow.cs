@@ -2358,5 +2358,13 @@ namespace TSMapEditor.UI.Windows
             createRandomTriggerSetWindow.Open();
             PutOnBackground();
         }
+        private void Map_TriggersChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                ListTriggers();
+                SelectTrigger(editedTrigger);
+            }
+        }
     }
 }
