@@ -322,7 +322,7 @@ namespace TSMapEditor.UI.Windows
             AddChild(eventContextMenu);
 
             lbEvents.AllowRightClickUnselect = false;
-            lbEvents.RightClick += (s, e) => { if (editedTrigger != null) { lbEvents.OnMouseLeftDown(); eventContextMenu.Open(GetCursorPoint()); } };
+            lbEvents.RightClick += (s, e) => { if (editedTrigger != null) { lbEvents.OnMouseLeftDown(new InputEventArgs()); eventContextMenu.Open(GetCursorPoint()); } };
 
             actionContextMenu = new EditorContextMenu(WindowManager);
             actionContextMenu.Name = nameof(actionContextMenu);
@@ -334,7 +334,7 @@ namespace TSMapEditor.UI.Windows
             AddChild(actionContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
-            lbActions.RightClick += (s, e) => { if (editedTrigger != null) { lbActions.OnMouseLeftDown(); actionContextMenu.Open(GetCursorPoint()); } };
+            lbActions.RightClick += (s, e) => { if (editedTrigger != null) { lbActions.OnMouseLeftDown(new InputEventArgs()); actionContextMenu.Open(GetCursorPoint()); } };
 
             var sortContextMenu = new EditorContextMenu(WindowManager);
             sortContextMenu.Name = nameof(sortContextMenu);

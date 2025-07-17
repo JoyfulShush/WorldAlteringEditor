@@ -347,14 +347,16 @@ namespace TSMapEditor.UI
             lastTileUnderCursor = null;
         }
 
-        public override void OnMouseScrolled()
+        public override void OnMouseScrolled(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (Cursor.ScrollWheelValue > 0)
                 Camera.ZoomLevel += ZoomStep;
             else
                 Camera.ZoomLevel -= ZoomStep;
 
-            base.OnMouseScrolled();
+            base.OnMouseScrolled(inputEventArgs);
         }
 
         public override void OnMouseOnControl()
@@ -448,9 +450,10 @@ namespace TSMapEditor.UI
             base.OnMouseEnter();
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            inputEventArgs.Handled = true;
+            base.OnMouseLeftDown(inputEventArgs);
             leftPressedDownOnControl = true;
 
             if (CursorAction != null)
@@ -494,8 +497,10 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (tileUnderCursor != null && CursorAction != null)
             {
                 CursorAction.LeftClick(tileUnderCursor.CoordsToPoint());
@@ -513,7 +518,7 @@ namespace TSMapEditor.UI
                 }
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
 
         private void HandleDoubleClick()
@@ -540,8 +545,10 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnRightClick()
+        public override void OnRightClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (CursorAction != null && !isRightClickScrolling)
             {
                 CursorAction = null;
@@ -549,7 +556,7 @@ namespace TSMapEditor.UI
 
             isRightClickScrolling = false;
 
-            base.OnRightClick();
+            base.OnRightClick(inputEventArgs);
         }
 
         private MapTile CalculateBestTileUnderCursor()

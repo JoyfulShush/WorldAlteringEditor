@@ -232,7 +232,7 @@ namespace TSMapEditor.UI.Windows
                 WindowManager.RemoveControl(this);
             }
 
-            if (!IsChildActive)
+            if (GetActiveChild() == null)
             {
                 if (IsActive && Cursor.LeftDown)
                 {

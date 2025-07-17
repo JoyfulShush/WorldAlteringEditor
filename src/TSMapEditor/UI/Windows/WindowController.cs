@@ -294,7 +294,7 @@ namespace TSMapEditor.UI.Windows
 
         private void AddFocusSwitchHandlerToChildrenRecursive(EditorWindow window, XNAControl control)
         {
-            EventHandler eventHandler = (s, e) => Window_HandleFocusSwitch(window, EventArgs.Empty);
+            EventHandler<InputEventArgs> eventHandler = (s, e) => Window_HandleFocusSwitch(window, EventArgs.Empty);
             window.FocusSwitchEventHandler = eventHandler;
 
             foreach (var child in control.Children)
@@ -307,7 +307,7 @@ namespace TSMapEditor.UI.Windows
 
         private void RemoveFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
         {
-            EventHandler eventHandler = window.FocusSwitchEventHandler;
+            var eventHandler = window.FocusSwitchEventHandler;
 
             foreach (var child in control.Children)
             {
