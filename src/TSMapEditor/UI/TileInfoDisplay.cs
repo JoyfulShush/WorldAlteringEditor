@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using SharpDX.XAPO.Fx;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
