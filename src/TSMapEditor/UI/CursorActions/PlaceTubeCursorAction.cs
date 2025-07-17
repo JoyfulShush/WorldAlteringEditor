@@ -239,7 +239,7 @@ namespace TSMapEditor.UI.CursorActions
             {
                 points.Add(cellCoords);
                 RefreshTube();
-                TubeRefreshHelper.MapViewRefreshTube(tube, CursorActionTarget.MutationTarget);                
+                TubeRefreshHelper.MapViewRefreshTube(tube, CursorActionTarget.MutationTarget);
             }
             else
             {
