@@ -580,6 +580,12 @@ namespace TSMapEditor.UI
                     return;
             }
 
+            // Send the key for the map UI. If there is a cursor action active, this allows
+            // the cursor action to handle input first.
+            mapUI.HandleKeyDown(sender, e);
+            if (e.Handled)
+                return;
+
             // First, check for commands that match when all modifiers are fully considered
             // - for example, if there's two commands, one that is activated by pressing A,
             // and another that is activated by pressing Alt + A, DON'T match on the first

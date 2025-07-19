@@ -687,6 +687,8 @@ namespace TSMapEditor.UI.Windows
 
         private void DoCloneForEasierDifficulties(bool cloneDependencies)
         {
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var originalTag = map.Tags.Find(t => t.Trigger == editedTrigger);
 
             var mediumDifficultyTrigger = editedTrigger.Clone(map.GetNewUniqueInternalId());
@@ -717,7 +719,7 @@ namespace TSMapEditor.UI.Windows
                 easyDifficultyTrigger.Name = editedTrigger.Name[..^2] + " E";
             }
 
-            map.Tags.Add(new Tag()
+            map.AddTag(new Tag()
             {
                 ID = map.GetNewUniqueInternalId(),
                 Name = mediumDifficultyTrigger.Name + " (tag)",
@@ -725,7 +727,7 @@ namespace TSMapEditor.UI.Windows
                 Repeating = originalTag == null ? 0 : originalTag.Repeating
             });
 
-            map.Tags.Add(new Tag()
+            map.AddTag(new Tag()
             {
                 ID = map.GetNewUniqueInternalId(),
                 Name = easyDifficultyTrigger.Name + " (tag)",
@@ -807,6 +809,8 @@ namespace TSMapEditor.UI.Windows
             }
 
             ListTriggers();
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         #region Event and action context menus
@@ -1341,11 +1345,15 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnNewTrigger_LeftClick(object sender, EventArgs e)
         {
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var newTrigger = new Trigger(map.GetNewUniqueInternalId()) { Name = "New trigger", HouseType = "Neutral" };
-            map.Triggers.Add(newTrigger);
-            map.Tags.Add(new Tag() { ID = map.GetNewUniqueInternalId(), Name = "New tag", Trigger = newTrigger });
+            map.AddTrigger(newTrigger);
+            map.AddTag(new Tag() { ID = map.GetNewUniqueInternalId(), Name = "New tag", Trigger = newTrigger });
             ListTriggers();
             SelectTrigger(newTrigger);
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         private void BtnCloneTrigger_LeftClick(object sender, EventArgs e)
@@ -1353,13 +1361,17 @@ namespace TSMapEditor.UI.Windows
             if (editedTrigger == null)
                 return;
 
+            map.TriggersChanged -= Map_TriggersChanged;
+
             var originalTag = map.Tags.Find(t => t.Trigger == editedTrigger);
 
             var clone = editedTrigger.Clone(map.GetNewUniqueInternalId());
-            map.Triggers.Add(clone);
-            map.Tags.Add(new Tag() { ID = map.GetNewUniqueInternalId(), Name = clone.Name + " (tag)", Trigger = clone, Repeating = originalTag == null ? 0 : originalTag.Repeating });
+            map.AddTrigger(clone);
+            map.AddTag(new Tag() { ID = map.GetNewUniqueInternalId(), Name = clone.Name + " (tag)", Trigger = clone, Repeating = originalTag == null ? 0 : originalTag.Repeating });
             ListTriggers();
             SelectTrigger(clone);
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         private void BtnDeleteTrigger_LeftClick(object sender, EventArgs e)
@@ -1384,12 +1396,16 @@ namespace TSMapEditor.UI.Windows
 
         private void DeleteTrigger()
         {
-            map.Triggers.Remove(editedTrigger);
+            map.TriggersChanged -= Map_TriggersChanged;
+
+            map.RemoveTrigger(editedTrigger);
             map.Triggers.ForEach(t => { if (t.LinkedTrigger == editedTrigger) t.LinkedTrigger = null; });
-            map.Tags.RemoveAll(t => t.Trigger == editedTrigger);
+            map.RemoveTagsAssociatedWithTrigger(editedTrigger);
             editedTrigger = null;
 
             ListTriggers();
+
+            map.TriggersChanged += Map_TriggersChanged;
         }
 
         public void SelectTrigger(Trigger trigger)
@@ -2349,6 +2365,15 @@ namespace TSMapEditor.UI.Windows
         {
             createRandomTriggerSetWindow.Open();
             PutOnBackground();
+        }
+
+        private void Map_TriggersChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                ListTriggers();
+                SelectTrigger(editedTrigger);
+            }
         }
     }
 }

@@ -179,7 +179,6 @@ namespace TSMapEditor.UI
 
             EditorState.CursorActionChanged += EditorState_CursorActionChanged;
 
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered += FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered += ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered += Toggle2DMode_Triggered;
@@ -257,7 +256,6 @@ namespace TSMapEditor.UI
             Map.MapResized -= Map_MapResized;
             Map = null;
 
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered -= FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered -= ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered -= Toggle2DMode_Triggered;
@@ -649,10 +647,16 @@ namespace TSMapEditor.UI
             return cursorMapPoint;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        public void HandleKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
-            if (!IsActive)
+            if (e.Handled)
                 return;
+
+            // If there is a cursor action active, send the command to it.
+            if (CursorAction != null && CursorAction.HandlesKeyboardInput)
+            {
+                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+            }
 
             if (e.PressedKey == Microsoft.Xna.Framework.Input.Keys.F1)
             {
@@ -665,11 +669,7 @@ namespace TSMapEditor.UI
                 }
 
                 EditorMessageBox.Show(WindowManager, "Hotkey Help", text.ToString(), MessageBoxButtons.OK);
-            }
-
-            if (!e.Handled && CursorAction != null && CursorAction.HandlesKeyboardInput)
-            {
-                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+                e.Handled = true;
             }
         }
 

@@ -133,7 +133,7 @@ namespace TSMapEditor.UI
             MapTile.DoForAllBuildings(structure => AddObjectInformation("Structure: ", structure));
             MapTile.DoForAllInfantry(inf => AddObjectInformation("Infantry: ", inf));
             MapTile.DoForAllWaypoints(waypoint => AddWaypointInfo(waypoint));
-            AddBaseNodeInformation(MapTile.GetBaseNode(map));
+            AddBaseNodeInformation(map.GetBaseNodes(MapTile.CoordsToPoint()));
             AddTerrainObjectInformation(MapTile.TerrainObject);
 
             textRenderer.PrepareTextParts();
@@ -289,19 +289,20 @@ namespace TSMapEditor.UI
             }
         }
 
-        private void AddBaseNodeInformation(BaseNode baseNode)
+        private void AddBaseNodeInformation(List<BaseNode> baseNodes)
         {
-            if (baseNode == null)
-                return;            
+            foreach (var baseNode in baseNodes)
+            {
+                var nodeBuildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == baseNode.StructureTypeName);
+                var house = map.Houses.Find(house => house.BaseNodes.Contains(baseNode));
 
-            var nodeBuildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == baseNode.StructureTypeName);
-            var house = map.Houses.Find(house => house.BaseNodes.Contains(baseNode));
+                if (nodeBuildingType == null || house == null)
+                    return;
 
-            if (nodeBuildingType == null || house == null)
-                return;
-
-            textRenderer.AddTextLine(new XNATextPart("Base Node: ", Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart($"{nodeBuildingType.Name} ({nodeBuildingType.ININame}) ({house.ININame})", Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextLine(new XNATextPart("Base Node: ", Constants.UIDefaultFont, Color.Gray));
+                textRenderer.AddTextPart(new XNATextPart($"{nodeBuildingType.Name} ({nodeBuildingType.ININame}), Owner:", Constants.UIDefaultFont, Color.White));
+                textRenderer.AddTextPart(new XNATextPart(house.ININame, Constants.UIBoldFont, house.XNAColor));
+            }
         }
 
         private void AddTerrainObjectInformation(TerrainObject terrainObject)
