@@ -1,9 +1,7 @@
 ﻿using Rampastring.XNAUI.Input;
-using SharpDX.Direct2D1.Effects;
 using System;
 using System.Collections.Generic;
 using TSMapEditor.GameMath;
-using TSMapEditor.Initialization;
 using TSMapEditor.Models;
 using TSMapEditor.Mutations;
 using TSMapEditor.Mutations.Classes;
@@ -11,16 +9,6 @@ using TSMapEditor.Rendering;
 
 namespace TSMapEditor.UI.CursorActions
 {
-    public class PlaceTerrainTileCursorActionEventArgs : EventArgs
-    {
-        public PlaceTerrainTileCursorActionEventArgs(PlacedTile tile)
-        {
-            Tile = tile;
-        }
-
-        public PlacedTile Tile { get; set; }
-    }
-
     public class PlaceTerrainCursorAction : CursorAction
     {
         public PlaceTerrainCursorAction(ICursorActionTarget cursorActionTarget) : base(cursorActionTarget)
@@ -30,8 +18,6 @@ namespace TSMapEditor.UI.CursorActions
         public override string GetName() => "Place Terrain Tiles";
 
         public override bool HandlesKeyboardInput => true;
-
-        public event EventHandler<PlaceTerrainTileCursorActionEventArgs> TerrainTilePlaced;
 
         private TileImage _tile;
         public TileImage Tile
@@ -43,6 +29,9 @@ namespace TSMapEditor.UI.CursorActions
                 heightOffset = 0;
             }
         }
+
+        public PlacedTile LastPlacedTile { get; set; }
+        public PlacedTile SecondLastPlacedTile { get; set; }
 
         private int heightOffset;
 
@@ -249,11 +238,10 @@ namespace TSMapEditor.UI.CursorActions
             }
             else
             {
-                mutation = new PlaceTerrainTileMutation(CursorActionTarget.MutationTarget, adjustedCellCoords, Tile, heightOffset);
+                mutation = new PlaceTerrainTileMutation(CursorActionTarget.MutationTarget, adjustedCellCoords, Tile, heightOffset, LastPlacedTile, SecondLastPlacedTile);
             }
 
-            CursorActionTarget.MutationManager.PerformMutation(mutation);
-            TerrainTilePlaced?.Invoke(this, new PlaceTerrainTileCursorActionEventArgs(new PlacedTile(Tile, adjustedCellCoords)));
+            CursorActionTarget.MutationManager.PerformMutation(mutation);            
         }
 
         public override void LeftClick(Point2D cellCoords)

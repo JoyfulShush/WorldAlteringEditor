@@ -70,13 +70,17 @@ namespace TSMapEditor.UI
         {
             this.theaterGraphics = theaterGraphics;
             this.map = map;
+            map.TilePlaced += OnTilePlaced;
+            map.UndoTilePlaced += UndoTilePlaced;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;            
+            this.placeTerrainCursorAction = placeTerrainCursorAction;
             placeTerrainCursorAction.ActionExited += OnCursorActionExited;
-            placeTerrainCursorAction.TerrainTilePlaced += OnTilePlaced;
             this.editorState = editorState;
         }
 
         public event EventHandler SelectedTileChanged;
+
+        private PlaceTerrainCursorAction placeTerrainCursorAction;
 
         private TileImage _selectedTile;
         public TileImage SelectedTile
@@ -94,8 +98,28 @@ namespace TSMapEditor.UI
 
         private readonly Map map;
         private readonly TheaterGraphics theaterGraphics;
-        private PlacedTile lastPlacedTile;
-        private PlacedTile secondLastPlacedTile;
+
+        private PlacedTile _lastPlacedTile;
+        private PlacedTile LastPlacedTile
+        {
+            get => _lastPlacedTile;
+            set
+            {
+                _lastPlacedTile = value;
+                placeTerrainCursorAction.LastPlacedTile = value;
+            }
+        }
+
+        private PlacedTile _secondLastPlacedTile;
+        public PlacedTile SecondLastPlacedTile
+        {
+            get => _secondLastPlacedTile;
+            set
+            {
+                _secondLastPlacedTile = value;
+                placeTerrainCursorAction.SecondLastPlacedTile = value;
+            }
+        }
 
         public TileSet TileSet { get; private set; }
 
@@ -243,7 +267,7 @@ namespace TSMapEditor.UI
                 // then check if the current tile can attach to the last placed tile
                 if (editorState.FilterTilesDisplay)
                 {
-                    if (lastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
+                    if (LastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
                     {
                         if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
                             continue;
@@ -415,29 +439,36 @@ namespace TSMapEditor.UI
             base.Kill();
         }
 
-        private void OnTilePlaced(object sender, PlaceTerrainTileCursorActionEventArgs e)
+        private void OnTilePlaced(object sender, PlaceTerrainTileEventArgs e)
         {
             var placedTile = e.Tile;
 
-            if (lastPlacedTile == null)
+            if (LastPlacedTile == null)
             {
-                lastPlacedTile = placedTile;
+                LastPlacedTile = placedTile;
             }
             else
             {
-                bool foundMatchingCliffTile = AreBothCliffTypesEqualSet(placedTile.TileImage, lastPlacedTile.TileImage);
+                bool foundMatchingCliffTile = AreBothCliffTypesEqualSet(placedTile.TileImage, LastPlacedTile.TileImage);
                 if (foundMatchingCliffTile)
                 {
-                    secondLastPlacedTile = lastPlacedTile;
+                    SecondLastPlacedTile = LastPlacedTile;
                 } 
                 else
                 {
-                    secondLastPlacedTile = null;
+                    SecondLastPlacedTile = null;
                 }
 
-                lastPlacedTile = placedTile;
+                LastPlacedTile = placedTile;
             }
 
+            RefreshGraphics();
+        }
+
+        private void UndoTilePlaced(object sender, UndoPlaceTerrainTileEventArgs e)
+        {
+            LastPlacedTile = e.CurrentTile;
+            SecondLastPlacedTile = e.PreviousTile;
             RefreshGraphics();
         }
 
@@ -445,8 +476,8 @@ namespace TSMapEditor.UI
         {
             _selectedTile = null;
 
-            lastPlacedTile = null;
-            secondLastPlacedTile = null;
+            LastPlacedTile = null;
+            SecondLastPlacedTile = null;
             RefreshGraphics();
         }
 
@@ -557,7 +588,7 @@ namespace TSMapEditor.UI
                 return false;
 
             // Check if the cliff types between the current tile and the last placed share the same set
-            bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, lastPlacedTile.TileImage);
+            bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, LastPlacedTile.TileImage);
             if (!matchingCliffTypes)
                 return false;
             
@@ -678,7 +709,7 @@ namespace TSMapEditor.UI
 
             List<byte> excludedConnectionMasks = [];
 
-            lastPlacedCliffTile = GetCliffTile(lastPlacedTile);
+            lastPlacedCliffTile = GetCliffTile(LastPlacedTile);
 
             if (lastPlacedCliffTile == null)
                 return new ConnectedTileFilter();
@@ -686,14 +717,14 @@ namespace TSMapEditor.UI
             // Comparison with the second last placed tiles, in order to filter out any connection points that are already in use
             // For a connection point to be in use, the last two placed tiles must be placed in adjacent positions
             // where their connection points would collide with each other when taking their directions into account.
-            if (secondLastPlacedTile != null)
+            if (SecondLastPlacedTile != null)
             {
-                var secondLastPlacedCliffTile = GetCliffTile(secondLastPlacedTile);
+                var secondLastPlacedCliffTile = GetCliffTile(SecondLastPlacedTile);
 
                 if (secondLastPlacedCliffTile != null)
                 {
-                    var lastPlacedTileOrigin = lastPlacedTile.Coords;
-                    var secondLastPlacedTileOrigin = secondLastPlacedTile.Coords;
+                    var lastPlacedTileOrigin = LastPlacedTile.Coords;
+                    var secondLastPlacedTileOrigin = SecondLastPlacedTile.Coords;
 
                     var connectionCoordsLastPlaced = GetAllConnectionCoords(lastPlacedCliffTile, lastPlacedTileOrigin);
                     var connectionCoordsSecondLastPlaced = GetAllConnectionCoords(secondLastPlacedCliffTile, secondLastPlacedTileOrigin);

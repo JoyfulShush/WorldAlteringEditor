@@ -13,6 +13,7 @@ using TSMapEditor.Initialization;
 using TSMapEditor.Misc;
 using TSMapEditor.Models.Enums;
 using TSMapEditor.Rendering;
+using TSMapEditor.UI;
 
 namespace TSMapEditor.Models
 {
@@ -24,6 +25,28 @@ namespace TSMapEditor.Models
         }
 
         public House House { get; }
+    }
+
+    public class PlaceTerrainTileEventArgs : EventArgs
+    {
+        public PlaceTerrainTileEventArgs(PlacedTile tile)
+        {
+            Tile = tile;
+        }
+
+        public PlacedTile Tile { get; set; }
+    }
+
+    public class UndoPlaceTerrainTileEventArgs : EventArgs
+    {
+        public UndoPlaceTerrainTileEventArgs(PlacedTile currentTile, PlacedTile previousTile)
+        {
+            CurrentTile = currentTile;
+            PreviousTile = previousTile;
+        }
+
+        public PlacedTile CurrentTile { get; set; }
+        public PlacedTile PreviousTile { get; set; }
     }
 
     public class Map : IMap
@@ -54,6 +77,9 @@ namespace TSMapEditor.Models
         /// NOT raised when an individual TeamType's data is modified.
         /// </summary>
         public event EventHandler TeamTypesChanged;
+
+        public event EventHandler<PlaceTerrainTileEventArgs> TilePlaced;
+        public event EventHandler<UndoPlaceTerrainTileEventArgs> UndoTilePlaced;
 
         public IniFile LoadedINI { get; private set; }
 
@@ -2096,5 +2122,16 @@ namespace TSMapEditor.Models
             Tubes = null;
             GraphicalBaseNodes = null;
         }
+
+        public void TriggerTilePlacedEvent(PlacedTile tile)
+        {
+            TilePlaced?.Invoke(this, new PlaceTerrainTileEventArgs(new PlacedTile(tile.TileImage, tile.Coords)));
+        }
+
+        public void TriggerUndoTilePlacedEvent(PlacedTile currentTile, PlacedTile previousTile)
+        {
+            UndoTilePlaced?.Invoke(this, new UndoPlaceTerrainTileEventArgs(currentTile, previousTile));
+        }
+
     }
 }
