@@ -21,6 +21,7 @@ namespace TSMapEditor.UI
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorState = editorState;
+            InputEnabled = false;
         }
 
         private readonly Map map;

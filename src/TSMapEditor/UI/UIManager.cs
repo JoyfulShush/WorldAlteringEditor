@@ -28,6 +28,7 @@ namespace TSMapEditor.UI
             CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
             PanelBackgroundColor = new Color(0, 0, 0, 128);
             PanelBorderColor = new Color(128, 128, 128, 255);
+            DefaultAlphaRate = 1.0f; // ScrollBar textures need instant animations
         }
 
         public Color ListBoxBackgroundColor { get; set; } = Color.Black;

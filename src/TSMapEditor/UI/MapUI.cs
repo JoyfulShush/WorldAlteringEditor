@@ -173,6 +173,7 @@ namespace TSMapEditor.UI
 
         public override void Initialize()
         {
+            Name = nameof(MapUI);
             base.Initialize();
 
             scrollRate = UserSettings.Instance.ScrollRate;
@@ -547,14 +548,24 @@ namespace TSMapEditor.UI
         {
             inputEventArgs.Handled = true;
 
-            if (CursorAction != null && !isRightClickScrolling)
+            if (isRightClickScrolling)
+            {
+                StopRightClickScrolling();
+            }
+            else if (CursorAction != null)
             {
                 CursorAction = null;
             }
 
-            isRightClickScrolling = false;
+            StopRightClickScrolling();
 
             base.OnRightClick(inputEventArgs);
+        }
+
+        private void StopRightClickScrolling()
+        {
+            isRightClickScrolling = false;
+            rightClickScrollInitPos = new Point(-1, -1);
         }
 
         private MapTile CalculateBestTileUnderCursor()
@@ -611,6 +622,10 @@ namespace TSMapEditor.UI
                             Camera.FloatTopLeftPoint.Y + result.Y * rightClickScrollRate);
                     }
                 }
+            }
+            else if (isRightClickScrolling)
+            {
+                StopRightClickScrolling();
             }
 
             if (leftPressedDownOnControl && !Cursor.LeftDown)
