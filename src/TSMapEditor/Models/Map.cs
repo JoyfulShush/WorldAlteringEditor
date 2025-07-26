@@ -80,6 +80,11 @@ namespace TSMapEditor.Models
 
         public event EventHandler<PlaceTerrainTileEventArgs> TilePlaced;
         public event EventHandler<UndoPlaceTerrainTileEventArgs> UndoTilePlaced;
+        /// <summary>
+        /// Raised when a trigger is added or removed.
+        /// NOT raised when an individual trigger's data is modified.
+        /// </summary>
+        public event EventHandler TriggersChanged;
 
         public IniFile LoadedINI { get; private set; }
 
@@ -818,11 +823,23 @@ namespace TSMapEditor.Models
         public void AddTrigger(Trigger trigger)
         {
             Triggers.Add(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void RemoveTrigger(Trigger trigger)
+        {
+            Triggers.Remove(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddTag(Tag tag)
         {
             Tags.Add(tag);
+        }
+
+        public void RemoveTagsAssociatedWithTrigger(Trigger trigger)
+        {
+            Tags.RemoveAll(t => t.Trigger == trigger);
         }
 
         public void AddCellTag(CellTag cellTag)
@@ -2133,5 +2150,38 @@ namespace TSMapEditor.Models
             UndoTilePlaced?.Invoke(this, new UndoPlaceTerrainTileEventArgs(currentTile, previousTile));
         }
 
+        public List<BaseNode> GetBaseNodes(Point2D cellCoords)
+        {
+            List<BaseNode> baseNodes = [];
+
+            foreach (var graphicalBaseNode in GraphicalBaseNodes)
+            {
+                var nodeBuildingType = graphicalBaseNode.BuildingType;
+
+                if (nodeBuildingType == null)
+                    continue;
+
+                if (graphicalBaseNode.BaseNode.Position == cellCoords)
+                {
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
+                    continue;
+                }
+
+                bool baseNodeExistsOnFoundation = false;
+                nodeBuildingType.ArtConfig.DoForFoundationCoords(foundationOffset =>
+                {
+                    Point2D foundationCellCoords = graphicalBaseNode.BaseNode.Position + foundationOffset;
+                    if (foundationCellCoords == cellCoords)
+                        baseNodeExistsOnFoundation = true;
+                });
+
+                if (baseNodeExistsOnFoundation)
+                {
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
+                }
+            }
+
+            return baseNodes;
+        }
     }
 }

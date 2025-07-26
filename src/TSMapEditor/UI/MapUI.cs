@@ -173,13 +173,13 @@ namespace TSMapEditor.UI
 
         public override void Initialize()
         {
+            Name = nameof(MapUI);
             base.Initialize();
 
             scrollRate = UserSettings.Instance.ScrollRate;
 
             EditorState.CursorActionChanged += EditorState_CursorActionChanged;
 
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered += FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered += ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered += Toggle2DMode_Triggered;
@@ -257,7 +257,6 @@ namespace TSMapEditor.UI
             Map.MapResized -= Map_MapResized;
             Map = null;
 
-            Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
             KeyboardCommands.Instance.FrameworkMode.Triggered -= FrameworkMode_Triggered;
             KeyboardCommands.Instance.ViewMegamap.Triggered -= ViewMegamap_Triggered;
             KeyboardCommands.Instance.Toggle2DMode.Triggered -= Toggle2DMode_Triggered;
@@ -347,14 +346,16 @@ namespace TSMapEditor.UI
             lastTileUnderCursor = null;
         }
 
-        public override void OnMouseScrolled()
+        public override void OnMouseScrolled(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (Cursor.ScrollWheelValue > 0)
                 Camera.ZoomLevel += ZoomStep;
             else
                 Camera.ZoomLevel -= ZoomStep;
 
-            base.OnMouseScrolled();
+            base.OnMouseScrolled(inputEventArgs);
         }
 
         public override void OnMouseOnControl()
@@ -448,9 +449,10 @@ namespace TSMapEditor.UI
             base.OnMouseEnter();
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            inputEventArgs.Handled = true;
+            base.OnMouseLeftDown(inputEventArgs);
             leftPressedDownOnControl = true;
 
             if (CursorAction != null)
@@ -494,8 +496,10 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (tileUnderCursor != null && CursorAction != null)
             {
                 CursorAction.LeftClick(tileUnderCursor.CoordsToPoint());
@@ -513,7 +517,7 @@ namespace TSMapEditor.UI
                 }
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
 
         private void HandleDoubleClick()
@@ -540,16 +544,28 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnRightClick()
+        public override void OnRightClick(InputEventArgs inputEventArgs)
         {
-            if (CursorAction != null && !isRightClickScrolling)
+            inputEventArgs.Handled = true;
+
+            if (isRightClickScrolling)
+            {
+                StopRightClickScrolling();
+            }
+            else if (CursorAction != null)
             {
                 CursorAction = null;
             }
 
-            isRightClickScrolling = false;
+            StopRightClickScrolling();
 
-            base.OnRightClick();
+            base.OnRightClick(inputEventArgs);
+        }
+
+        private void StopRightClickScrolling()
+        {
+            isRightClickScrolling = false;
+            rightClickScrollInitPos = new Point(-1, -1);
         }
 
         private MapTile CalculateBestTileUnderCursor()
@@ -607,6 +623,10 @@ namespace TSMapEditor.UI
                     }
                 }
             }
+            else if (isRightClickScrolling)
+            {
+                StopRightClickScrolling();
+            }
 
             if (leftPressedDownOnControl && !Cursor.LeftDown)
                 leftPressedDownOnControl = false;
@@ -642,10 +662,16 @@ namespace TSMapEditor.UI
             return cursorMapPoint;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        public void HandleKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
-            if (!IsActive)
+            if (e.Handled)
                 return;
+
+            // If there is a cursor action active, send the command to it.
+            if (CursorAction != null && CursorAction.HandlesKeyboardInput)
+            {
+                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+            }
 
             if (e.PressedKey == Microsoft.Xna.Framework.Input.Keys.F1)
             {
@@ -658,11 +684,7 @@ namespace TSMapEditor.UI
                 }
 
                 EditorMessageBox.Show(WindowManager, "Hotkey Help", text.ToString(), MessageBoxButtons.OK);
-            }
-
-            if (!e.Handled && CursorAction != null && CursorAction.HandlesKeyboardInput)
-            {
-                CursorAction.OnKeyPressed(e, tileUnderCursor == null ? Point2D.NegativeOne : tileUnderCursor.CoordsToPoint());
+                e.Handled = true;
             }
         }
 

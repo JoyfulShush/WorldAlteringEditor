@@ -27,7 +27,7 @@ namespace TSMapEditor.UI.Controls
         /// to clean up event handlers when the window controller
         /// for a session is cleaned.
         /// </summary>
-        public EventHandler FocusSwitchEventHandler { get; set; }
+        public EventHandler<InputEventArgs> FocusSwitchEventHandler { get; set; }
 
         protected bool CanBeMoved { get; set; } = true;
 
