@@ -235,12 +235,13 @@ namespace TSMapEditor.Models
             AllowRepeatingSelfInTileDisplayFilter = iniSection.GetBooleanValue("AllowRepeatingSelfInTileDisplayFilter", true);            
 
             ConnectionPoints = new CliffConnectionPoint[4];
+            int actualConnectionPoints = 0;
 
             for (int i = 0; i < ConnectionPoints.Length; i++)
             {
                 string coordsString = iniSection.GetStringValue($"ConnectionPoint{i}", null);
                 
-                if (coordsString == null)                
+                if (coordsString == null)
                 {      
                     // All tiles must have at least 1 CP
                     if (i == 0)
@@ -251,7 +252,8 @@ namespace TSMapEditor.Models
                     else if (i == 1 && !ExcludeFromConnectedTileTool)
                     {
                         throw new INIConfigException($"ConnectedTile {iniSection.SectionName} is not excluded from the Draw Connected Tiles tool and only has 1 connection point defined.");
-                    } // All tiles can omit beyond 2 CPs - they will be skipped and ignored.
+                    } 
+                    // All tiles can omit beyond 2 CPs - they will be skipped and ignored.
                     else
                     {
                         continue;
@@ -261,12 +263,13 @@ namespace TSMapEditor.Models
                 {
                     // A tile cannot have more than 2 CPs if it's not excluded from the Draw Connected Tiles tool
                     if (i > 1 && !ExcludeFromConnectedTileTool)
-                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has at least {i + 1} connection points, but is not excluded from the Draw Connected Tiles tool. Either exclude it or reduce connection points to 2.");                        
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has at least {i + 1} connection points, but is not excluded from the Draw Connected Tiles tool. Either exclude it or reduce connection points to 2.");
 
                     if (!Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
                         throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
                 }
 
+                actualConnectionPoints++;
                 Point2D coords = Point2D.FromString(coordsString);
 
                 string directionsString = iniSection.GetStringValue($"ConnectionPoint{i}.Directions", null);
@@ -335,6 +338,8 @@ namespace TSMapEditor.Models
                 };
             }
 
+            IsEnding = actualConnectionPoints == 1;
+
             if (iniSection.KeyExists("Foundation"))
             {
                 string foundationString = iniSection.GetStringValue("Foundation", string.Empty);
@@ -393,6 +398,12 @@ namespace TSMapEditor.Models
         /// This is useful if the tile can still connect to itself, but we don't want the Draw Connected Tiles tool to do so to prevent repeatitiveness.
         /// </summary>
         public bool AllowRepeatingSelfInTileDisplayFilter { get; init; }
+
+        /// <summary>
+        /// Determines whether this tile is an ending, denoted by it only having one connection point.
+        /// An ending tile is always excluded from the Draw Connected Tiles tool.
+        /// </summary>
+        public bool IsEnding { get; init; }
 
         public CliffConnectionPoint GetExit(int entryIndex)
         {

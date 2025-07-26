@@ -269,8 +269,15 @@ namespace TSMapEditor.UI
                 {
                     if (LastPlacedTile != null && connectedTileFilter.CliffTypeForTileSet != null)
                     {
-                        if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
-                            continue;
+                        // If the cliff types are not equal, then we are not filtering based on last placed tile
+                        // in this case, allow the tile to show in the display
+                        // this usually occurs when navigating to different tile sets that don't have any shared tiles
+                        bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, LastPlacedTile.TileImage);
+                        if (matchingCliffTypes)
+                        {
+                            if (!CanTileMatchLastPlaced(tileImageToPlace, connectedTileFilter))
+                                continue;
+                        }
                     }
                 }
 
@@ -553,29 +560,17 @@ namespace TSMapEditor.UI
         private bool AreBothCliffTypesEqualSet(TileImage firstTileImage, TileImage secondTileImage)
         {
             var firstTileSet = GetTileSet(firstTileImage.TileSetId);
-            if (firstTileSet != null)
-            {
-                var firstTileCliffType = GetCliffTypeForTileSet(firstTileSet);
-                if (firstTileCliffType != null)
-                {
-                    var secondTileSet = GetTileSet(secondTileImage.TileSetId);
-                    if (secondTileSet != null)
-                    {
-                        var secondTileCliffType = GetCliffTypeForTileSet(secondTileSet);
-                        if (secondTileCliffType != null)
-                        {
-                            if (secondTileCliffType.Equals(firstTileCliffType))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
+            var secondTileSet = GetTileSet(secondTileImage.TileSetId);
+            if (firstTileSet == null || secondTileSet == null)
+                return false;
 
-            return false;
+            var firstCliffType = GetCliffTypeForTileSet(firstTileSet);
+            var secondCliffType = GetCliffTypeForTileSet(secondTileSet);
+            if (firstCliffType == null || secondCliffType == null)
+                return false;
+
+            return firstCliffType.Equals(secondCliffType);
         }
-
 
         /// <summary>
         /// Determines whether the specified tile can be validly placed next to the last placed tile,
@@ -592,10 +587,8 @@ namespace TSMapEditor.UI
             if (connectedTileFilter.CliffTypeForTileSet == null || connectedTileFilter.LastPlacedCliffTile == null)
                 return false;
 
-            // Check if the cliff types between the current tile and the last placed share the same set
-            bool matchingCliffTypes = AreBothCliffTypesEqualSet(tileImageToPlace, LastPlacedTile.TileImage);
-            if (!matchingCliffTypes)
-                return false;
+            var cliffTypeForTileSet = connectedTileFilter.CliffTypeForTileSet;
+            var lastPlacedCliffTile = connectedTileFilter.LastPlacedCliffTile;            
             
             var tileToPlaceCliffTile = connectedTileFilter.CliffTypeForTileSet.Tiles.Find(tile =>
             {
@@ -605,6 +598,14 @@ namespace TSMapEditor.UI
 
             if (tileToPlaceCliffTile == null)
                 return false;
+
+            // When the last placed tile is an ending tile and it is connected, then we assume that the user has finished drawing the current flow
+            // And would like to start a new flow. In this case, we will only show to the user all Ending tiles in this Cliff Tile.
+            if (lastPlacedCliffTile.IsEnding &&
+                connectedTileFilter.ExcludedConnectionMasks.Count > 0)
+            {
+                return tileToPlaceCliffTile.IsEnding;
+            }
 
             // Loop through the connection points of the tile being considered
             // If a connection is considered excluded, then reject the tile immediately
@@ -631,9 +632,7 @@ namespace TSMapEditor.UI
                 }
 
                 if (foundExcludedDirection)
-                    continue;
-
-                var lastPlacedCliffTile = connectedTileFilter.LastPlacedCliffTile;
+                    continue;                
 
                 foreach (var lastPlacedTileConnectionPoint in lastPlacedCliffTile.ConnectionPoints)
                 {
