@@ -473,15 +473,24 @@ namespace TSMapEditor.UI
 
                 LastPlacedTile = placedTile;
             }
-
-            RefreshGraphics();
+            
+            var cliffType = GetCliffTypeForTileSet(TileSet);
+            if (editorState.FilterTilesDisplay && cliffType != null)
+            {
+                RefreshGraphics();
+            }
         }
 
         private void UndoTilePlaced(object sender, UndoPlaceTerrainTileEventArgs e)
         {
             LastPlacedTile = e.CurrentTile;
             SecondLastPlacedTile = e.PreviousTile;
-            RefreshGraphics();
+
+            var cliffType = GetCliffTypeForTileSet(TileSet);
+            if (editorState.FilterTilesDisplay && cliffType != null)
+            {
+                RefreshGraphics();
+            }
         }
 
         private void OnCursorActionExited(object sender, EventArgs e)
@@ -490,7 +499,12 @@ namespace TSMapEditor.UI
 
             LastPlacedTile = null;
             SecondLastPlacedTile = null;
-            RefreshGraphics();
+
+            var cliffType = GetCliffTypeForTileSet(TileSet);
+            if (editorState.FilterTilesDisplay && cliffType != null)
+            {
+                RefreshGraphics();
+            }
         }
 
         private TileSet GetTileSet(int tileSetId)
@@ -536,6 +550,9 @@ namespace TSMapEditor.UI
 
         private CliffType GetCliffTypeForTileSet(TileSet tileSet)
         {
+            if (tileSet == null)
+                return null;
+
             return map.EditorConfig.Cliffs.Find(cliffType =>
             {
                 return cliffType.Tiles.Exists(cliffTile => cliffTile.TileSetName == tileSet.SetName);
