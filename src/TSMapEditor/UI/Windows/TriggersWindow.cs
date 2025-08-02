@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Models;
@@ -883,6 +884,17 @@ namespace TSMapEditor.UI.Windows
             if (triggerEventType == null)
                 return;
 
+            TriggerEventParam parameter = triggerEventType.Parameters[paramIndex];
+
+            // If the parameter has preset options defined, then show them in a context menu instead of opening a window
+            if (parameter.PresetOptions != null && parameter.PresetOptions.Count > 0)
+            {
+                ctxEventParameterPresetValues.ClearItems();
+                parameter.PresetOptions.ForEach(ctxEventParameterPresetValues.AddItem);
+                ctxEventParameterPresetValues.Open(GetCursorPoint());
+                return;
+            }
+
             int paramValue;
             switch (triggerEventType.Parameters[paramIndex].TriggerParamType)
             {
@@ -1456,7 +1468,7 @@ namespace TSMapEditor.UI.Windows
 
             if (selectEventWindow.IsAddingNew)
             {
-                editedTrigger.Conditions.Add(new TriggerCondition());
+                editedTrigger.Conditions.Add(new TriggerCondition(triggerEventType));
                 EditTrigger(editedTrigger);
                 lbEvents.SelectedIndex = lbEvents.Items.Count - 1;
             }
@@ -1479,8 +1491,8 @@ namespace TSMapEditor.UI.Windows
 
                 if (triggerEventType.Parameters[i].TriggerParamType == TriggerParamType.Unused)
                 {
-                    // P3 needs to be empty instead of 0 if it's unused
-                    if (i == TriggerCondition.MAX_PARAM_COUNT - 1)
+                    // P3 and P4 needs to be empty instead of 0 if it's unused
+                    if (i == TriggerCondition.MAX_PARAM_COUNT - 2 || i == TriggerCondition.MAX_PARAM_COUNT - 1)
                         condition.Parameters[i] = string.Empty;
                     else
                         condition.Parameters[i] = "0";
@@ -2048,12 +2060,13 @@ namespace TSMapEditor.UI.Windows
             TriggerCondition triggerCondition = editedTrigger.Conditions[lbEvents.SelectedIndex];
             int paramNumber = (int)lbEventParameters.SelectedItem.Tag;
             var triggerEventType = GetTriggerEventType(editedTrigger.Conditions[lbEvents.SelectedIndex].ConditionIndex);
+            var triggerEventParam = triggerEventType.Parameters[paramNumber];            
 
             if (triggerEventType != null)
             {
                 var triggerParamType = triggerEventType.Parameters[paramNumber]?.TriggerParamType ?? TriggerParamType.Unknown;
-
-                tbEventParameterValue.Text = GetParamValueText(triggerCondition.Parameters[paramNumber], triggerParamType, null);
+                
+                tbEventParameterValue.Text = GetParamValueText(triggerCondition.Parameters[paramNumber], triggerParamType, triggerEventParam.PresetOptions);
                 tbEventParameterValue.TextColor = GetParamValueColor(triggerCondition.Parameters[paramNumber], triggerParamType);
             }
             else

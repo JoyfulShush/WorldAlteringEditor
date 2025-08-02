@@ -116,6 +116,9 @@ namespace TSMapEditor.Models
                     conditionDataString.Append(condition.ParamToString(i));
 
                 if (editorConfig.TriggerEventTypes[condition.ConditionIndex].UsesP3)
+                    conditionDataString.Append(condition.ParamToString(TriggerCondition.MAX_PARAM_COUNT - 2));
+
+                if (editorConfig.TriggerEventTypes[condition.ConditionIndex].UsesP4)
                     conditionDataString.Append(condition.ParamToString(TriggerCondition.MAX_PARAM_COUNT - 1));
             }
 
@@ -186,13 +189,28 @@ namespace TSMapEditor.Models
                 }
 
                 bool usesP3 = triggerEventType.UsesP3;
+                bool usesP4 = triggerEventType.UsesP4;
 
-                var triggerEvent = TriggerCondition.ParseFromArray(dataArray, startIndex, usesP3);
+                int extraParams = 0;
+
+                if (usesP4)
+                {
+                    extraParams += 2;
+                }
+                else if (usesP3)
+                {
+                    extraParams += 1;
+                }
+
+                var triggerEvent = TriggerCondition.ParseFromArray(dataArray, startIndex, extraParams);
+
                 if (triggerEvent == null)
                     return;
 
-                if (usesP3)
-                    startIndex += TriggerCondition.MAX_PARAM_COUNT + 1;
+                if (usesP4)
+                    startIndex += TriggerCondition.MAX_PARAM_COUNT;
+                else if (usesP3)
+                    startIndex += TriggerCondition.MAX_PARAM_COUNT - 1;
                 else
                     startIndex += TriggerCondition.DEF_PARAM_COUNT + 1;
 

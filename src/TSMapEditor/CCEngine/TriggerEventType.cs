@@ -1,24 +1,28 @@
 ﻿using Rampastring.Tools;
+using SharpDX.Direct2D1;
 using System;
+using System.Collections.Generic;
 using TSMapEditor.Models.Enums;
 
 namespace TSMapEditor.CCEngine
 {
     public class TriggerEventParam
     {
-        public TriggerEventParam(TriggerParamType triggerParamType, string nameOverride)
+        public TriggerEventParam(TriggerParamType triggerParamType, string nameOverride, List<string> presetOptions = null)
         {
             TriggerParamType = triggerParamType;
             NameOverride = nameOverride;
+            PresetOptions = presetOptions;
         }
 
         public TriggerParamType TriggerParamType { get; }
         public string NameOverride { get; }
+        public List<string> PresetOptions { get; }
     }
 
     public class TriggerEventType
     {
-        public const int MAX_PARAM_COUNT = 3;
+        public const int MAX_PARAM_COUNT = 4;
 
         public TriggerEventType(int id)
         {
@@ -32,7 +36,8 @@ namespace TSMapEditor.CCEngine
         public TriggerEventParam[] Parameters { get; } = new TriggerEventParam[MAX_PARAM_COUNT];
         public bool Available { get; set; } = true;
 
-        public bool UsesP3 => Parameters[MAX_PARAM_COUNT - 1].TriggerParamType != TriggerParamType.Unused;
+        public bool UsesP3 => Parameters[2].TriggerParamType != TriggerParamType.Unused;
+        public bool UsesP4 => Parameters[3].TriggerParamType != TriggerParamType.Unused;
 
         public void ReadPropertiesFromIniSection(IniSection iniSection)
         {
@@ -45,6 +50,7 @@ namespace TSMapEditor.CCEngine
             {
                 string key = $"P{i + 1}Type";
                 string nameOverrideKey = $"P{i + 1}Name";
+                string presetOptionsKey = $"P{i + 1}PresetOptions";
 
                 if (!iniSection.KeyExists(key))
                 {
@@ -57,7 +63,14 @@ namespace TSMapEditor.CCEngine
                 if (triggerParamType == TriggerParamType.WaypointZZ && string.IsNullOrWhiteSpace(nameOverride))
                     nameOverride = "Waypoint";
 
-                Parameters[i] = new TriggerEventParam(triggerParamType, nameOverride);
+                List<string> presetOptions = null;
+                string presetOptionsString = iniSection.GetStringValue(presetOptionsKey, null);
+                if (!string.IsNullOrWhiteSpace(presetOptionsString))
+                {
+                    presetOptions = new List<string>(presetOptionsString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+
+                Parameters[i] = new TriggerEventParam(triggerParamType, nameOverride, presetOptions);
             }
         }
     }

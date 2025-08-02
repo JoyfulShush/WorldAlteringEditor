@@ -1,5 +1,6 @@
 ﻿using Rampastring.Tools;
 using System;
+using TSMapEditor.CCEngine;
 
 namespace TSMapEditor.Models
 {
@@ -9,14 +10,31 @@ namespace TSMapEditor.Models
     public class TriggerCondition : ICloneable
     {
         public const int DEF_PARAM_COUNT = 2;
-        public const int MAX_PARAM_COUNT = 3;
+        public const int MAX_PARAM_COUNT = 4;
 
         public TriggerCondition()
         {
             for (int i = 0; i < Parameters.Length - 1; i++)
                 Parameters[i] = "0";
 
-            Parameters[MAX_PARAM_COUNT - 1] = string.Empty;
+            Parameters[2] = string.Empty;
+            Parameters[3] = string.Empty;
+        }
+
+        public TriggerCondition(TriggerEventType triggerEventType)
+        {
+            for (int i = 0; i < Parameters.Length; i++)
+                Parameters[i] = "0";
+
+            if (!triggerEventType.UsesP3)
+            {                
+                Parameters[2] = string.Empty;
+                Parameters[3] = string.Empty;
+            }
+            else if (!triggerEventType.UsesP4)
+            {
+                Parameters[3] = string.Empty;
+            }
         }
 
         public int ConditionIndex { get; set; }
@@ -27,7 +45,7 @@ namespace TSMapEditor.Models
         {
             if (string.IsNullOrWhiteSpace(Parameters[index]))
             {
-                if (index == MAX_PARAM_COUNT - 1)
+                if (index == 2 || index == 3)
                     return string.Empty;
 
                 return "0";
@@ -47,7 +65,7 @@ namespace TSMapEditor.Models
             return clone;
         }
 
-        public static TriggerCondition ParseFromArray(string[] array, int startIndex, bool useP3)
+        public static TriggerCondition ParseFromArray(string[] array, int startIndex, int extraParams)
         {
             if (startIndex + DEF_PARAM_COUNT >= array.Length)
                 return null;
@@ -57,12 +75,20 @@ namespace TSMapEditor.Models
             for (int i = 0; i < DEF_PARAM_COUNT; i++)
                 triggerCondition.Parameters[i] = array[startIndex + 1 + i];
 
-            if (useP3)
+            if (extraParams >= 1)
+            {
+                if (startIndex + MAX_PARAM_COUNT - 1 >= array.Length)
+                    return null;
+
+                triggerCondition.Parameters[2] = array[startIndex + MAX_PARAM_COUNT - 1];
+            }
+
+            if (extraParams == 2)
             {
                 if (startIndex + MAX_PARAM_COUNT >= array.Length)
                     return null;
 
-                triggerCondition.Parameters[MAX_PARAM_COUNT - 1] = array[startIndex + MAX_PARAM_COUNT];
+                triggerCondition.Parameters[3] = array[startIndex + MAX_PARAM_COUNT];
             }
 
             if (triggerCondition.ConditionIndex < 0)

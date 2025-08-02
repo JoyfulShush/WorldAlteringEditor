@@ -39,6 +39,7 @@
         SpotlightBehaviour,
         RadarEvent,
         VoxelAnim,
-        StringTableEntry
+        StringTableEntry,
+        ComparisonType,
     }
 }
