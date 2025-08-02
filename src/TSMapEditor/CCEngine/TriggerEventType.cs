@@ -1,5 +1,4 @@
 ﻿using Rampastring.Tools;
-using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;
 using TSMapEditor.Models.Enums;

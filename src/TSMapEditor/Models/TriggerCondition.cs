@@ -14,7 +14,7 @@ namespace TSMapEditor.Models
 
         public TriggerCondition()
         {
-            for (int i = 0; i < Parameters.Length - 1; i++)
+            for (int i = 0; i < Parameters.Length; i++)
             {
                 if (i < DEF_PARAM_COUNT)
                     Parameters[i] = "0";
@@ -46,14 +46,14 @@ namespace TSMapEditor.Models
 
         public string[] Parameters { get; private set; } = new string[MAX_PARAM_COUNT];
 
-        public string ParamToString(int index)
+        public string ParamToString(int index, bool isAdditionalParam)
         {
             if (string.IsNullOrWhiteSpace(Parameters[index]))
             {
-                if (index == 2 || index == 3)
-                    return string.Empty;
+                if (isAdditionalParam)
+                    return "0";
 
-                return "0";
+                return string.Empty;
             }
 
             return Parameters[index];
@@ -70,7 +70,7 @@ namespace TSMapEditor.Models
             return clone;
         }
 
-        public static TriggerCondition ParseFromArray(string[] array, int startIndex, int extraParams)
+        public static TriggerCondition ParseFromArray(string[] array, int startIndex, int additionalParams)
         {
             if (startIndex + DEF_PARAM_COUNT >= array.Length)
                 return null;
@@ -80,20 +80,12 @@ namespace TSMapEditor.Models
             for (int i = 0; i < DEF_PARAM_COUNT; i++)
                 triggerCondition.Parameters[i] = array[startIndex + 1 + i];
 
-            if (extraParams >= 1)
+            if (startIndex + DEF_PARAM_COUNT + additionalParams >= array.Length)
+                return null;
+
+            for (int i = 0; i < additionalParams; i++)
             {
-                if (startIndex + MAX_PARAM_COUNT - 1 >= array.Length)
-                    return null;
-
-                triggerCondition.Parameters[2] = array[startIndex + MAX_PARAM_COUNT - 1];
-            }
-
-            if (extraParams == 2)
-            {
-                if (startIndex + MAX_PARAM_COUNT >= array.Length)
-                    return null;
-
-                triggerCondition.Parameters[3] = array[startIndex + MAX_PARAM_COUNT];
+                triggerCondition.Parameters[i + DEF_PARAM_COUNT] = array[startIndex + DEF_PARAM_COUNT + 1 + i];
             }
 
             if (triggerCondition.ConditionIndex < 0)

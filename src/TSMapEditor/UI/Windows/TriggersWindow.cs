@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Models;
@@ -983,8 +982,7 @@ namespace TSMapEditor.UI.Windows
 
         private void CtxActionParameterPresetValues_OptionSelected(object sender, ContextMenuItemSelectedEventArgs e)
         {
-            tbActionParameterValue.Text = ctxActionParameterPresetValues.Items[e.ItemIndex].Text;
-            tbActionParameterValue.TextColor = ctxActionParameterPresetValues.Items[e.ItemIndex].TextColor ?? UISettings.ActiveSettings.AltColor;
+            tbActionParameterValue.Text = ctxActionParameterPresetValues.Items[e.ItemIndex].Text;            
         }
 
         private void BtnActionParameterValuePreset_LeftClick(object sender, EventArgs e)
@@ -1514,12 +1512,11 @@ namespace TSMapEditor.UI.Windows
 
                 if (triggerEventType.Parameters[i].TriggerParamType == TriggerParamType.Unused)
                 {
-                    // P3 and P4 needs to be empty instead of 0 if it's unused
-                    if (i == TriggerCondition.MAX_PARAM_COUNT - 2 || i == TriggerCondition.MAX_PARAM_COUNT - 1)
+                    // additional params need to be empty instead of 0 if they're unused                    
+                    if (i >= TriggerCondition.DEF_PARAM_COUNT)
                         condition.Parameters[i] = string.Empty;
                     else
                         condition.Parameters[i] = "0";
-                    continue;
                 }
             }
 
@@ -2088,7 +2085,7 @@ namespace TSMapEditor.UI.Windows
             if (triggerEventType != null)
             {
                 var triggerParamType = triggerEventType.Parameters[paramNumber]?.TriggerParamType ?? TriggerParamType.Unknown;
-                
+
                 tbEventParameterValue.Text = GetParamValueText(triggerCondition.Parameters[paramNumber], triggerParamType, triggerEventParam.PresetOptions);
                 tbEventParameterValue.TextColor = GetParamValueColor(triggerCondition.Parameters[paramNumber], triggerParamType);
             }
