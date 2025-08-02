@@ -22,6 +22,7 @@ namespace TSMapEditor.CCEngine
 
     public class TriggerEventType
     {
+        public const int DEF_PARAM_COUNT = 2;
         public const int MAX_PARAM_COUNT = 4;
 
         public TriggerEventType(int id)
@@ -36,8 +37,22 @@ namespace TSMapEditor.CCEngine
         public TriggerEventParam[] Parameters { get; } = new TriggerEventParam[MAX_PARAM_COUNT];
         public bool Available { get; set; } = true;
 
-        public bool UsesP3 => Parameters[2].TriggerParamType != TriggerParamType.Unused;
-        public bool UsesP4 => Parameters[3].TriggerParamType != TriggerParamType.Unused;
+        public int AdditionalParams
+        {
+            get
+            {
+                int additionalParams = 0;
+
+                for (int i = DEF_PARAM_COUNT; i < MAX_PARAM_COUNT; i++)
+                {
+                    var param = Parameters[i];
+                    if (param.TriggerParamType != TriggerParamType.Unused)
+                        additionalParams++;
+                }
+
+                return additionalParams;
+            }
+        }
 
         public void ReadPropertiesFromIniSection(IniSection iniSection)
         {

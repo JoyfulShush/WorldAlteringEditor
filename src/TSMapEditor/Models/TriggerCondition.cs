@@ -15,25 +15,30 @@ namespace TSMapEditor.Models
         public TriggerCondition()
         {
             for (int i = 0; i < Parameters.Length - 1; i++)
-                Parameters[i] = "0";
-
-            Parameters[2] = string.Empty;
-            Parameters[3] = string.Empty;
+            {
+                if (i < DEF_PARAM_COUNT)
+                    Parameters[i] = "0";
+                else
+                    Parameters[i] = string.Empty;
+            }
         }
 
         public TriggerCondition(TriggerEventType triggerEventType)
         {
             for (int i = 0; i < Parameters.Length; i++)
-                Parameters[i] = "0";
-
-            if (!triggerEventType.UsesP3)
-            {                
-                Parameters[2] = string.Empty;
-                Parameters[3] = string.Empty;
-            }
-            else if (!triggerEventType.UsesP4)
             {
-                Parameters[3] = string.Empty;
+                if (i < DEF_PARAM_COUNT)
+                {
+                    Parameters[i] = "0";                    
+                }
+                else if (i < DEF_PARAM_COUNT + triggerEventType.AdditionalParams)
+                {
+                    Parameters[i] = "0";
+                }
+                else
+                {
+                    Parameters[i] = string.Empty;
+                }
             }
         }
 
