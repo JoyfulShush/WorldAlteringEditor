@@ -41,5 +41,6 @@
         VoxelAnim,
         StringTableEntry,
         ComparisonType,
+        Color,
     }
 }

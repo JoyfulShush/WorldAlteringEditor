@@ -105,6 +105,7 @@ namespace TSMapEditor.UI.Windows
         private SelectSoundWindow selectSoundWindow;
         private SelectSuperWeaponTypeWindow selectSuperWeaponTypeWindow;
         private SelectParticleSystemTypeWindow selectParticleSystemTypeWindow;
+        private SelectColorsWindow selectColorsWindow;
         private CreateRandomTriggerSetWindow createRandomTriggerSetWindow;
 
         private XNAContextMenu actionContextMenu;
@@ -312,6 +313,10 @@ namespace TSMapEditor.UI.Windows
             selectSuperWeaponTypeWindow = new SelectSuperWeaponTypeWindow(WindowManager, map);
             var swDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectSuperWeaponTypeWindow);
             swDarkeningPanel.Hidden += SuperWeaponDarkeningPanel_Hidden;
+
+            selectColorsWindow = new SelectColorsWindow(WindowManager, map);
+            var colorDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectColorsWindow);
+            colorDarkeningPanel.Hidden += ColorDarkeningPanel_Hidden;
 
             createRandomTriggerSetWindow = new CreateRandomTriggerSetWindow(WindowManager, map);
             var createRandomTriggersSetDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createRandomTriggerSetWindow);
@@ -979,6 +984,7 @@ namespace TSMapEditor.UI.Windows
         private void CtxActionParameterPresetValues_OptionSelected(object sender, ContextMenuItemSelectedEventArgs e)
         {
             tbActionParameterValue.Text = ctxActionParameterPresetValues.Items[e.ItemIndex].Text;
+            tbActionParameterValue.TextColor = ctxActionParameterPresetValues.Items[e.ItemIndex].TextColor ?? UISettings.ActiveSettings.AltColor;
         }
 
         private void BtnActionParameterValuePreset_LeftClick(object sender, EventArgs e)
@@ -1120,6 +1126,14 @@ namespace TSMapEditor.UI.Windows
                     BuildingType buildingType = map.Rules.BuildingTypes.Find(bt => bt.ININame == triggerAction.Parameters[paramIndex]);
                     selectBuildingTypeWindow.Open(buildingType);
                     break;
+                case TriggerParamType.Color:
+                    int colorIndex = Conversions.IntFromString(triggerAction.Parameters[paramIndex], -1);
+                    selectColorsWindow.IsForEvent = false;
+                    if (colorIndex > -1 && colorIndex < map.Rules.Colors.Count)
+                        selectColorsWindow.Open(map.Rules.Colors[colorIndex]);
+                    else
+                        selectColorsWindow.Open(null);
+                    break;                    
                 default:
                     break;
             }
@@ -1315,6 +1329,15 @@ namespace TSMapEditor.UI.Windows
                 AssignParamValue(selectSuperWeaponTypeWindow.IsForEvent, swType.ININame);
             else
                 AssignParamValue(selectSuperWeaponTypeWindow.IsForEvent, swType.Index);
+        }
+
+        private void ColorDarkeningPanel_Hidden(object sender, EventArgs e)
+        {
+            if (selectColorsWindow.SelectedObject == null)
+                return;
+
+            int colorIndex = selectColorsWindow.SelectedObject.Index;
+            AssignParamValue(selectColorsWindow.IsForEvent, colorIndex);
         }
 
         private void AssignParamValue(bool isForEvent, int paramValue)
@@ -2168,6 +2191,12 @@ namespace TSMapEditor.UI.Windows
                         goto case TriggerParamType.Unused;
 
                     return trigger.XNAColor;
+                case TriggerParamType.Color:
+                    var color = map.Rules.Colors.Find(color => color.Index == intValue);
+                    if (color == null)
+                        goto case TriggerParamType.Unused;
+
+                    return color.XNAColor;
                 case TriggerParamType.Unused:
                 default:
                     return UISettings.ActiveSettings.AltColor;
@@ -2367,6 +2396,14 @@ namespace TSMapEditor.UI.Windows
 
                     float floatValue = BitConverter.ToSingle(BitConverter.GetBytes(intValue));
                     return floatValue.ToString(CultureInfo.InvariantCulture) + " (" + paramValue + ")";
+                case TriggerParamType.Color:
+                    if (!intParseSuccess)
+                        return paramValue;
+
+                    if (!map.Rules.Colors.Exists(color => color.Index == intValue))
+                        return intValue + " - nonexistent color";
+
+                    return intValue + " " + map.Rules.Colors.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.Boolean:
                 default:
                     return paramValue;
