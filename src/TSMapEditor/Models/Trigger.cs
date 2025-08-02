@@ -208,9 +208,9 @@ namespace TSMapEditor.Models
                     return;
 
                 if (usesP4)
-                    startIndex += TriggerCondition.MAX_PARAM_COUNT;
+                    startIndex += TriggerCondition.MAX_PARAM_COUNT + 1;
                 else if (usesP3)
-                    startIndex += TriggerCondition.MAX_PARAM_COUNT - 1;
+                    startIndex += TriggerCondition.MAX_PARAM_COUNT;
                 else
                     startIndex += TriggerCondition.DEF_PARAM_COUNT + 1;
 
