@@ -425,6 +425,7 @@ namespace TSMapEditor.UI.Windows
         {
             Show();
             ListHouses();
+            RefreshHouseStats();
         }
 
         private void ListHouses()
@@ -481,6 +482,8 @@ namespace TSMapEditor.UI.Windows
             stats += Environment.NewLine + "Infantry: " + map.Infantry.Count(s => s.Owner == editedHouse);
             stats += Environment.NewLine + "Vehicles: " + map.Units.Count(s => s.Owner == editedHouse);
             stats += Environment.NewLine + "Buildings: " + map.Structures.Count(s => s.Owner == editedHouse);
+            stats += Environment.NewLine + "  AI repairable: " + map.Structures.Count(s => s.Owner == editedHouse && s.AIRepairable);
+            stats += Environment.NewLine + "  not AI repairable: " + map.Structures.Count(s => s.Owner == editedHouse && !s.AIRepairable);
 
             lblStatsValue.Text = stats;
         }

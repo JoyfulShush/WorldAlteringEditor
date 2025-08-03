@@ -86,6 +86,7 @@ namespace TSMapEditor.UI.Windows
 
         public override void Kill()
         {
+            Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
             WindowManager.WindowSizeChangedByUser -= WindowManager_WindowSizeChangedByUser;
             base.Kill();
         }
@@ -126,6 +127,20 @@ namespace TSMapEditor.UI.Windows
             if (!Enabled)
             {
                 HideInfoPanel();
+                Keyboard.OnKeyDown -= Keyboard_OnKeyDown;
+            }
+            else
+            {
+                Keyboard.OnKeyDown += Keyboard_OnKeyDown;
+            }
+        }
+
+        private void Keyboard_OnKeyDown(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        {
+            if (e.PressedKey == Microsoft.Xna.Framework.Input.Keys.Enter)
+            {
+                ConfirmSelection();
+                e.Handled = true;
             }
         }
 

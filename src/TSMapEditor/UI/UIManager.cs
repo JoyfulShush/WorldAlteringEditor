@@ -46,6 +46,7 @@ namespace TSMapEditor.UI
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorGraphics = editorGraphics;
+            InputPassthrough = true;
         }
 
         public event EventHandler RenderResolutionChanged;
