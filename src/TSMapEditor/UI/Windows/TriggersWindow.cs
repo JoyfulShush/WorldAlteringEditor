@@ -982,7 +982,7 @@ namespace TSMapEditor.UI.Windows
 
         private void CtxActionParameterPresetValues_OptionSelected(object sender, ContextMenuItemSelectedEventArgs e)
         {
-            tbActionParameterValue.Text = ctxActionParameterPresetValues.Items[e.ItemIndex].Text;            
+            tbActionParameterValue.Text = ctxActionParameterPresetValues.Items[e.ItemIndex].Text;
         }
 
         private void BtnActionParameterValuePreset_LeftClick(object sender, EventArgs e)
@@ -1512,7 +1512,7 @@ namespace TSMapEditor.UI.Windows
 
                 if (triggerEventType.Parameters[i].TriggerParamType == TriggerParamType.Unused)
                 {
-                    // additional params need to be empty instead of 0 if they're unused                    
+                    // additional params need to be empty instead of 0 if they're unused
                     if (i >= TriggerCondition.DEF_PARAM_COUNT)
                         condition.Parameters[i] = string.Empty;
                     else
