@@ -225,7 +225,11 @@ namespace TSMapEditor.UI.Windows
                 "Are you sure?",
                 "This enables the \"AI Repairs\" flag on all buildings of the house, which makes the AI repair them." + Environment.NewLine + Environment.NewLine +
                 "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
-            dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = true);
+            dialog.YesClickedAction = _ =>
+            {
+                map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = true);
+                RefreshHouseInfo();
+            };
         }
 
         private void BtnMakeHouseNotRepairBuildings_LeftClick(object sender, EventArgs e)
@@ -240,7 +244,11 @@ namespace TSMapEditor.UI.Windows
                 "Are you sure?",
                 "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
                 "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
-            dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
+            dialog.YesClickedAction = _ =>
+            {
+                map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
+                RefreshHouseInfo();
+            };
         }
 
         private void LbHouseList_SelectedIndexChanged(object sender, System.EventArgs e)
