@@ -143,20 +143,23 @@ namespace TSMapEditor.UI.Windows
             Helpers.FindDefaultSideForNewHouseType(houseType, map.Rules);
             map.HouseTypes.Add(houseType);
 
-            map.AddHouse(new House("NewHouse", houseType) 
+            House newHouse = new House("NewHouse", houseType)
             {
                 ActsLike = 0,
-                Allies = "NewHouse",
+                Allies = [],
                 Color = map.Rules.Colors[0].Name,
-                Credits = 0, 
+                Credits = 0,
                 Edge = "North",
                 ID = map.Houses.Count,
-                IQ = 0, 
-                PercentBuilt = 100, 
-                PlayerControl = false, 
+                IQ = 0,
+                PercentBuilt = 100,
+                PlayerControl = false,
                 TechLevel = Constants.MaxHouseTechLevel,
                 XNAColor = Color.White
-            });
+            };
+            newHouse.Allies.Add(newHouse);
+
+            map.AddHouse(newHouse);
 
             ListHouses();
             lbHouseList.SelectedIndex = lbHouseList.Items.Count - 1;
@@ -311,7 +314,7 @@ namespace TSMapEditor.UI.Windows
             ddColor.SelectedIndex = ddColor.Items.FindIndex(item => item.Text == editedHouse.Color);
             ddTechnologyLevel.SelectedIndex = ddTechnologyLevel.Items.FindIndex(item => Conversions.IntFromString(item.Text, -1) == editedHouse.TechLevel);
             ddPercentBuilt.SelectedIndex = ddPercentBuilt.Items.FindIndex(item => Conversions.IntFromString(item.Text, -1) == editedHouse.PercentBuilt);
-            selAllies.Text = editedHouse.Allies ?? "";
+            selAllies.Text = string.Join(",", editedHouse.Allies.Select(alliedHouse => alliedHouse.ININame)) ?? "";
             tbMoney.Value = editedHouse.Credits;
             chkPlayerControl.Checked = editedHouse.PlayerControl;
 

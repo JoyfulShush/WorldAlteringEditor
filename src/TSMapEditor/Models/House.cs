@@ -73,7 +73,7 @@ namespace TSMapEditor.Models
         public int IQ { get; set; }
         public string Edge { get; set; }
         public string Color { get; set; } = "White";
-        public string Allies { get; set; }
+        public List<House> Allies { get; set; }
         public int Credits { get; set; }
 
         /// <summary>

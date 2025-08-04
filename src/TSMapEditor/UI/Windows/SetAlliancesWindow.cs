@@ -8,9 +8,9 @@ using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
 {
-    public class ConfigureAlliesWindow : INItializableWindow
+    public class SetAlliancesWindow : INItializableWindow
     {
-        public ConfigureAlliesWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public SetAlliancesWindow(WindowManager windowManager, Map map) : base(windowManager)
         {
             this.map = map;
         }
@@ -28,7 +28,7 @@ namespace TSMapEditor.UI.Windows
 
         public override void Initialize()
         {
-            Name = nameof(ConfigureAlliesWindow);
+            Name = nameof(SetAlliancesWindow);
             base.Initialize();
 
             panelCheckBoxes = FindChild<XNAPanel>(nameof(panelCheckBoxes));
@@ -39,19 +39,8 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnApply_LeftClick(object sender, EventArgs e)
         {
-            List<House> alliedHouses = [house];
-            var alliedHouseNames = checkBoxes.FindAll(chk => chk.Checked).Select(chk => chk.Text);
-
-            foreach (var alliedHouseName in alliedHouseNames)
-            {
-                var alliedHouse = map.Houses.Find(house => house.ININame == alliedHouseName);
-                if (alliedHouse != null)
-                {
-                    alliedHouses.Add(alliedHouse);
-                }
-            }
-            
-            house.Allies = alliedHouses;
+            string allies = string.Join(',', new string[] { house.ININame }.Concat(checkBoxes.FindAll(chk => chk.Checked).Select(chk => chk.Text)));
+            house.Allies = allies;
 
             AlliesUpdated?.Invoke(this, EventArgs.Empty);
 
@@ -72,6 +61,8 @@ namespace TSMapEditor.UI.Windows
             checkBoxes.ForEach(chk => panelCheckBoxes.RemoveChild(chk));
             checkBoxes.Clear();
 
+            string[] existingAllies = house.Allies.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
             int y = 0;
 
             bool useTwoColumns = map.Houses.Count > 16;
@@ -87,7 +78,7 @@ namespace TSMapEditor.UI.Windows
                 checkBox.X = isSecondColumn ? 150 : 0;
                 checkBox.Y = y;
                 checkBox.Text = otherHouse.ININame;
-                checkBox.Checked = house.Allies.Any(alliedHouse => alliedHouse.ININame == otherHouse.ININame);
+                checkBox.Checked = Array.Exists(existingAllies, s => s == otherHouse.ININame);
                 panelCheckBoxes.AddChild(checkBox);
                 checkBoxes.Add(checkBox);
 
