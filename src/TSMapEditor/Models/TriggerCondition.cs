@@ -46,15 +46,10 @@ namespace TSMapEditor.Models
 
         public string[] Parameters { get; private set; } = new string[MAX_PARAM_COUNT];
 
-        public string ParamToString(int index, bool isAdditionalParam)
+        public string ParamToString(int index)
         {
             if (string.IsNullOrWhiteSpace(Parameters[index]))
-            {
-                if (isAdditionalParam)
-                    return "0";
-
-                return string.Empty;
-            }
+                return "0";
 
             return Parameters[index];
         }

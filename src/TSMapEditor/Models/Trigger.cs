@@ -113,12 +113,12 @@ namespace TSMapEditor.Models
             {
                 conditionDataString.Append(condition.ConditionIndex);
                 for (int i = 0; i < TriggerCondition.DEF_PARAM_COUNT; i++)
-                    conditionDataString.Append(condition.ParamToString(i, false));
+                    conditionDataString.Append(condition.ParamToString(i));
 
                 var triggerEventType = editorConfig.TriggerEventTypes[condition.ConditionIndex];
                 for (int i = 0; i < triggerEventType.AdditionalParams; i++)
                 {
-                    conditionDataString.Append(condition.ParamToString(TriggerCondition.DEF_PARAM_COUNT + i, true));
+                    conditionDataString.Append(condition.ParamToString(TriggerCondition.DEF_PARAM_COUNT + i));
                 }
             }
 
