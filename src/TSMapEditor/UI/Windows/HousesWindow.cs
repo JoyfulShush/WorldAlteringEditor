@@ -45,6 +45,7 @@ namespace TSMapEditor.UI.Windows
         private EditHouseTypeWindow editHouseTypeWindow;
         private NewHouseWindow newHouseWindow;
         private ConfigureAlliesWindow configureAlliesWindow;
+        private SetAlliancesWindow setAlliancesWindow;
 
         public override void Initialize()
         {
@@ -88,6 +89,7 @@ namespace TSMapEditor.UI.Windows
             btnEditHouseType.LeftClick += BtnEditHouseType_LeftClick;
             FindChild<EditorButton>("btnMakeHouseRepairBuildings").LeftClick += BtnMakeHouseRepairBuildings_LeftClick;
             FindChild<EditorButton>("btnMakeHouseNotRepairBuildings").LeftClick += BtnMakeHouseNotRepairBuildings_LeftClick;
+            FindChild<EditorButton>("btnSetAlliances").LeftClick += BtnSetAlliances_LeftClick;
 
             ddHouseOfHumanPlayer.SelectedIndexChanged += DdHouseOfHumanPlayer_SelectedIndexChanged;
             lbHouseList.SelectedIndexChanged += LbHouseList_SelectedIndexChanged;
@@ -103,6 +105,10 @@ namespace TSMapEditor.UI.Windows
             configureAlliesWindow = new ConfigureAlliesWindow(WindowManager, map);
             var configureAlliesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, configureAlliesWindow);
             configureAlliesWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
+
+            setAlliancesWindow = new SetAlliancesWindow(WindowManager, map);
+            var setAlliancesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, setAlliancesWindow);
+            setAlliancesWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
 
             if (Constants.IsRA2YR)
             {
@@ -244,6 +250,11 @@ namespace TSMapEditor.UI.Windows
                 "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
                 "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
+        }
+
+        private void BtnSetAlliances_LeftClick(object sender, EventArgs e)
+        {
+            setAlliancesWindow.Open();
         }
 
         private void LbHouseList_SelectedIndexChanged(object sender, System.EventArgs e)

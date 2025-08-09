@@ -74,7 +74,7 @@ namespace TSMapEditor.UI.Windows
 
             int y = 0;
 
-            bool useTwoColumns = map.Houses.Count > 16;
+            bool useTwoColumns = map.Houses.Count > 8;
             bool isSecondColumn = false;
 
             foreach (var otherHouse in map.Houses)
