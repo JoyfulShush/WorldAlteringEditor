@@ -341,11 +341,7 @@ namespace TSMapEditor.UI.Windows
 
             if (!string.IsNullOrWhiteSpace(editedHouse.ININame))
             {
-                editedHouse.Allies = string.Join(',',
-                    new string[] { editedHouse.ININame }
-                    .Concat(editedHouse.Allies.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)[1..]));
-
-                selAllies.Text = editedHouse.Allies;
+                selAllies.Text = string.Join(",", editedHouse.Allies.Select(alliedHouse => alliedHouse.ININame));
             }
 
             ListHouses();

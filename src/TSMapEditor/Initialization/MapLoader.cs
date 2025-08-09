@@ -1180,6 +1180,26 @@ namespace TSMapEditor.Initialization
                     houseType.XNAColor = house.XNAColor;
                 }
             }
+            
+            foreach (var house in map.Houses)
+            {
+                var houseSection = mapIni.GetSection(house.ININame);
+                if (houseSection != null)
+                {
+                    var allies = houseSection.GetListValue("Allies", ',', s => s);
+                    foreach (var ally in allies)
+                    {
+                        var alliedHouse = map.Houses.Find(house => house.ININame == ally);
+                        if (alliedHouse == null)
+                        {
+                            AddMapLoadError($"House with name {ally} was not found when loading up allies for house {house.ININame}. Skipping the house from being loaded.");
+                            continue;
+                        }
+
+                        house.Allies.Add(alliedHouse);
+                    }
+                }
+            }
 
             Logger.Log("Houses read successfully.");
         }
