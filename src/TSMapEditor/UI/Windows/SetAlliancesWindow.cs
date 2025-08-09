@@ -50,9 +50,8 @@ namespace TSMapEditor.UI.Windows
 
                 foreach (var otherAlliedHouseName in alliedHouseNames)
                 {
-                    if (otherAlliedHouseName == house.ININame)                    
+                    if (otherAlliedHouseName == house.ININame)
                         continue;
-                    
 
                     var otherHouse = map.Houses.Find(house => house.ININame == otherAlliedHouseName);
                     if (otherHouse == null)

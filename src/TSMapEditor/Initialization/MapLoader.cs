@@ -1181,6 +1181,7 @@ namespace TSMapEditor.Initialization
                 }
             }
             
+            // Once all houses were loaded into WAE, read and set up the alliances of each house as a list of allied houses
             foreach (var house in map.Houses)
             {
                 var houseSection = mapIni.GetSection(house.ININame);
@@ -1192,7 +1193,7 @@ namespace TSMapEditor.Initialization
                         var alliedHouse = map.Houses.Find(house => house.ININame == ally);
                         if (alliedHouse == null)
                         {
-                            AddMapLoadError($"House with name {ally} was not found when loading up allies for house {house.ININame}. Skipping the house from being loaded.");
+                            AddMapLoadError($"House with name {ally} was not found when loading up allies for the house {house.ININame}. Skipping the house from being loaded.");
                             continue;
                         }
 

@@ -151,8 +151,7 @@ namespace TSMapEditor.UI.Windows
 
             House newHouse = new House("NewHouse", houseType)
             {
-                ActsLike = 0,
-                Allies = [],
+                ActsLike = 0,                
                 Color = map.Rules.Colors[0].Name,
                 Credits = 0,
                 Edge = "North",
@@ -163,6 +162,7 @@ namespace TSMapEditor.UI.Windows
                 TechLevel = Constants.MaxHouseTechLevel,
                 XNAColor = Color.White
             };
+
             newHouse.Allies.Add(newHouse);
 
             map.AddHouse(newHouse);

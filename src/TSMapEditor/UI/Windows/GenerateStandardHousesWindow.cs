@@ -1,6 +1,5 @@
 ﻿using Rampastring.XNAUI;
 using System;
-using System.Collections.Generic;
 using TSMapEditor.Models;
 using TSMapEditor.UI.Controls;
 
