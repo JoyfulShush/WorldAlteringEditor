@@ -192,6 +192,12 @@ namespace TSMapEditor.UI.Windows
                             throw new InvalidOperationException("Failed to delete HouseType associated with house " + editedHouse.ININame);
                     }
 
+                    // Remove this house from all other houses that were allied to it
+                    foreach (var house in map.Houses)
+                    {
+                        house.Allies.Remove(editedHouse);
+                    }
+
                     editedHouse = null;
                     lbHouseList.SelectedIndex = -1;
                     ListHouses();
