@@ -38,27 +38,13 @@ namespace TSMapEditor.UI.Windows
 
         private void BtnApply_LeftClick(object sender, EventArgs e)
         {
-            var alliedHouseNames = checkBoxes.FindAll(chk => chk.Checked).Select(chk => chk.Text).ToList();
-            foreach (var alliedHouseName in alliedHouseNames)
+            var alliedHouses = checkBoxes.FindAll(chk => chk.Checked).Select(chk => (House)chk.Tag).ToList();
+            foreach (var house in alliedHouses)
             {
-                var house = map.Houses.Find(house => house.ININame == alliedHouseName);
-                if (house == null)
+                foreach (var otherHouse in alliedHouses)
                 {
-                    Logger.Log($"Failed to find an appropriate house for the house named {alliedHouseName} when setting up alliances");
-                    continue;
-                }
-
-                foreach (var otherAlliedHouseName in alliedHouseNames)
-                {
-                    if (otherAlliedHouseName == house.ININame)
+                    if (otherHouse == house)
                         continue;
-
-                    var otherHouse = map.Houses.Find(house => house.ININame == otherAlliedHouseName);
-                    if (otherHouse == null)
-                    {
-                        Logger.Log($"Failed to find an house instance for allied house named {otherAlliedHouseName} when setting up the alliance for house {house.ININame}.");
-                        continue;
-                    }
 
                     if (!house.Allies.Contains(otherHouse))
                     {
@@ -96,6 +82,7 @@ namespace TSMapEditor.UI.Windows
                 checkBox.X = isSecondColumn ? 150 : 0;
                 checkBox.Y = y;
                 checkBox.Text = house.ININame;
+                checkBox.Tag = house;
                 panelCheckBoxes.AddChild(checkBox);
                 checkBoxes.Add(checkBox);
 
