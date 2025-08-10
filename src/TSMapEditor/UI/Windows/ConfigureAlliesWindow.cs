@@ -83,7 +83,7 @@ namespace TSMapEditor.UI.Windows
                 checkBox.X = isSecondColumn ? 150 : 0;
                 checkBox.Y = y;
                 checkBox.Text = otherHouse.ININame;
-                checkBox.Checked = house.Allies.Any(alliedHouse => alliedHouse.ININame == otherHouse.ININame);
+                checkBox.Checked = house.Allies.Contains(otherHouse);
                 checkBox.Tag = otherHouse;
                 panelCheckBoxes.AddChild(checkBox);
                 checkBoxes.Add(checkBox);
