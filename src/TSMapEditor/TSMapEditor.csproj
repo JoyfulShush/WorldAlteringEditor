@@ -27,6 +27,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Config\Scripts\Apply Animated Water.cs" />
+    <Compile Remove="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs" />
     <Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
@@ -330,6 +331,9 @@
     <None Update="Config\Default\UI\Windows\SelectTutorialLineWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Default\UI\Windows\SelectColorsWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Config\Default\UI\Windows\StructureOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -502,6 +506,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config\Scripts\Apply Animated Water.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Count Credits On Map.cs">
