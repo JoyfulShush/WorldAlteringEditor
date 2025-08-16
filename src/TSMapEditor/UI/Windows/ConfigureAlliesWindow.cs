@@ -43,10 +43,8 @@ namespace TSMapEditor.UI.Windows
             var alliedHouses = checkBoxes.FindAll(chk => chk.Checked).Select(chk => (House)chk.Tag);
 
             foreach (var alliedHouse in alliedHouses)
-            {
                 alliedHousesList.Add(alliedHouse);
-            }
-            
+                        
             house.Allies = alliedHousesList;
 
             AlliesUpdated?.Invoke(this, EventArgs.Empty);

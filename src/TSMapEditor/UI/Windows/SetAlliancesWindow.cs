@@ -47,9 +47,7 @@ namespace TSMapEditor.UI.Windows
                         continue;
 
                     if (!house.Allies.Contains(otherHouse))
-                    {
-                        house.Allies.Add(otherHouse);
-                    }
+                        house.Allies.Add(otherHouse);                    
                 }
             }
 

@@ -1187,13 +1187,13 @@ namespace TSMapEditor.Initialization
                 var houseSection = mapIni.GetSection(house.ININame);
                 if (houseSection != null)
                 {
-                    var allies = houseSection.GetListValue("Allies", ',', s => s);
-                    foreach (var ally in allies)
+                    List<string> allyHouseNames = houseSection.GetListValue("Allies", ',', s => s);
+                    foreach (string allyHouseName in allyHouseNames)
                     {
-                        var alliedHouse = map.Houses.Find(house => house.ININame == ally);
+                        var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
                         if (alliedHouse == null)
                         {
-                            AddMapLoadError($"House with name {ally} was not found when loading up allies for the house {house.ININame}. Skipping the house from being loaded.");
+                            AddMapLoadError($"House with name {allyHouseName} was not found when loading up allies for the house {house.ININame}. Skipping the house from being loaded.");
                             continue;
                         }
 

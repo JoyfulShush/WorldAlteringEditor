@@ -89,7 +89,7 @@ namespace TSMapEditor.UI.Windows
             btnEditHouseType.LeftClick += BtnEditHouseType_LeftClick;
             FindChild<EditorButton>("btnMakeHouseRepairBuildings").LeftClick += BtnMakeHouseRepairBuildings_LeftClick;
             FindChild<EditorButton>("btnMakeHouseNotRepairBuildings").LeftClick += BtnMakeHouseNotRepairBuildings_LeftClick;
-            FindChild<EditorButton>("btnSetAlliances").LeftClick += BtnSetAlliances_LeftClick;
+            FindChild<EditorButton>("btnSetAlliances").LeftClick += (s, e) => setAlliancesWindow.Open();
 
             ddHouseOfHumanPlayer.SelectedIndexChanged += DdHouseOfHumanPlayer_SelectedIndexChanged;
             lbHouseList.SelectedIndexChanged += LbHouseList_SelectedIndexChanged;
@@ -194,9 +194,8 @@ namespace TSMapEditor.UI.Windows
 
                     // Remove this house from all other houses that were allied to it
                     foreach (var house in map.Houses)
-                    {
                         house.Allies.Remove(editedHouse);
-                    }
+                    
 
                     editedHouse = null;
                     lbHouseList.SelectedIndex = -1;
@@ -256,11 +255,6 @@ namespace TSMapEditor.UI.Windows
                 "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
                 "No un-do is available. Do you wish to continue?", MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ => map.Structures.FindAll(s => s.Owner == editedHouse).ForEach(b => b.AIRepairable = false);
-        }
-
-        private void BtnSetAlliances_LeftClick(object sender, EventArgs e)
-        {
-            setAlliancesWindow.Open();
         }
 
         private void LbHouseList_SelectedIndexChanged(object sender, System.EventArgs e)
