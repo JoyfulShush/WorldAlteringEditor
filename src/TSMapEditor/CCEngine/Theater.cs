@@ -134,7 +134,7 @@ namespace TSMapEditor.CCEngine
 
             RampTileSet = GetTileSetFromKey(theaterIni, "RampBase", false);
             BridgeTileSet = GetTileSetFromKey(theaterIni, "BridgeSet", false);
-            TrainBridgeTileSet = GetTileSetFromKey(theaterIni, "TrainBridgeSet", false);
+            TrainBridgeTileSet = GetTileSetFromKey(theaterIni, "TrainBridgeSet", true); // Unfortunately, YR terrain expansion was dumb and removed this key
             WoodBridgeTileSet = GetTileSetFromKey(theaterIni, "WoodBridgeSet", true); // Wood bridges are optional as they do not exist in TS
         }
 

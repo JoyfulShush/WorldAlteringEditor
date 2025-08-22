@@ -661,7 +661,7 @@ namespace TSMapEditor.Rendering
                 // Ideally we'd need to check HasDamagedData in the subcell's TmpImage, but that
                 // would be very messy..
                 if (theater.BridgeTileSet.ContainsTile(tile.TileIndex) ||
-                    theater.TrainBridgeTileSet.ContainsTile(tile.TileIndex) ||
+                    (theater.TrainBridgeTileSet != null && theater.TrainBridgeTileSet.ContainsTile(tile.TileIndex)) ||
                     (theater.WoodBridgeTileSet != null && theater.WoodBridgeTileSet.ContainsTile(tile.TileIndex)))
                 {
                     tile.TileImage = TheaterGraphics.GetTileGraphics(tile.TileIndex, 0);
