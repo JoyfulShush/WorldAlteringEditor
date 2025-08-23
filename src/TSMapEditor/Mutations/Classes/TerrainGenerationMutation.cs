@@ -523,14 +523,17 @@ namespace TSMapEditor.Mutations.Classes
                     ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
                     ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
 
-                    if (overlayGroup.OverlayType.WaterBound)
+                    if (subTile != null)
                     {
-                        if (!Helpers.IsLandTypeWater(subTile.TmpImage.TerrainType))
+                        if (overlayGroup.OverlayType.WaterBound)
+                        {
+                            if (!Helpers.IsLandTypeWater(subTile.TmpImage.TerrainType))
+                                continue;
+                        }
+                        else if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
+                        {
                             continue;
-                    }
-                    else if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
-                    {
-                        continue;
+                        }
                     }
 
                     if (cell.TerrainObject != null)
@@ -618,7 +621,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -640,7 +643,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -668,7 +671,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -691,8 +694,11 @@ namespace TSMapEditor.Mutations.Classes
 
             ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
             ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
-            if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
-                return false;
+            if (subTile != null)
+            {
+                if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
+                    return false;                
+            }
 
             if (treeGroup.ImpassableCells == null)
                 return !occupiedCells.Contains(cellCoords);
@@ -706,7 +712,7 @@ namespace TSMapEditor.Mutations.Classes
 
                 tile = MutationTarget.Map.TheaterInstance.GetTile(otherCell.TileIndex);
                 subTile = tile.GetSubTile(otherCell.SubTileIndex);
-                if (subTile.TmpImage.TerrainType != 0x0)
+                if (subTile != null && subTile.TmpImage.TerrainType != 0x0)
                     return false;
 
                 if (otherCell.TerrainObject != null)

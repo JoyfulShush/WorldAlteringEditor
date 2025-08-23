@@ -81,10 +81,13 @@ namespace TSMapEditor.UI.CursorActions
                 {
                     ITileImage tileImage = CursorActionTarget.Map.TheaterInstance.GetTile(tile.TileIndex);
                     ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);
-                    if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
+                    if (subCellImage != null)
                     {
-                        tileIndex++;
-                        return;
+                        if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
+                        {
+                            tileIndex++;
+                            return;
+                        }
                     }
                 }
 
@@ -127,10 +130,13 @@ namespace TSMapEditor.UI.CursorActions
                 {
                     ITileImage tileImage = CursorActionTarget.Map.TheaterInstance.GetTile(tile.TileIndex);
                     ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);
-                    if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
+                    if (subCellImage != null)
                     {
-                        index++;
-                        return;
+                        if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
+                        {
+                            index++;
+                            return;
+                        }                        
                     }
                 }
 

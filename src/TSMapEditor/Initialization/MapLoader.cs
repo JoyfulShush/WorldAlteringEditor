@@ -102,7 +102,7 @@ namespace TSMapEditor.Initialization
                     return;
                 }
 
-                if (tile.GetSubTile(t.SubTileIndex).TmpImage == null)
+                if (tile.GetSubTile(t.SubTileIndex) == null)
                 {
                     AddMapLoadError($"Null sub-tile {t.SubTileIndex} for cell at {t.CoordsToPoint()} - clearing the tile. " +
                         $"TileSet: {tileSet.SetName} ({tileSet.FileName}), index of tile within its set: {tile.TileIndexInTileSet}");
