@@ -1432,13 +1432,11 @@ namespace TSMapEditor.Rendering
         private void DrawImpassableHighlight(MapTile cell)
         {
             var subTile = TheaterGraphics.GetTileGraphics(cell.TileIndex).GetSubTile(cell.SubTileIndex);
-            if (subTile != null)
+            
+            if (!Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, false) && 
+                (cell.Overlay == null || cell.Overlay.OverlayType == null || !Helpers.IsLandTypeImpassable(cell.Overlay.OverlayType.Land, false)))
             {
-                if (!Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, false) && 
-                    (cell.Overlay == null || cell.Overlay.OverlayType == null || !Helpers.IsLandTypeImpassable(cell.Overlay.OverlayType.Land, false)))
-                {
-                    return;
-                }
+                return;
             }
 
             Point2D cellTopLeftPoint = EditorState.Is2DMode ?

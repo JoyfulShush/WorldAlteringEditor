@@ -135,16 +135,12 @@ namespace TSMapEditor.UI.CursorActions
 
                 if (mapTile != null)
                 {
-                    int cellLevel = mapTile.Level;
-
                     var existingTile = Map.TheaterInstance.GetTile(mapTile.TileIndex).GetSubTile(mapTile.SubTileIndex);
 
-                    // Allow replacing back cliffs
-                    if (existingTile != null)
-                    {
-                        if (existingTile.TmpImage.Height == image.TmpImage.Height)
-                            cellLevel -= existingTile.TmpImage.Height;
-                    }
+                    int cellLevel = mapTile.Level;
+                    
+                    if (existingTile.TmpImage.Height == image.TmpImage.Height)
+                        cellLevel -= existingTile.TmpImage.Height;                    
 
                     if (originLevel < 0 || cellLevel < originLevel)
                         originLevel = cellLevel;

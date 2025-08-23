@@ -522,19 +522,16 @@ namespace TSMapEditor.Mutations.Classes
                     var cell = MutationTarget.Map.GetTile(cellCoords);
                     ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
                     ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
-
-                    if (subTile != null)
+                    
+                    if (overlayGroup.OverlayType.WaterBound)
                     {
-                        if (overlayGroup.OverlayType.WaterBound)
-                        {
-                            if (!Helpers.IsLandTypeWater(subTile.TmpImage.TerrainType))
-                                continue;
-                        }
-                        else if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
-                        {
+                        if (!Helpers.IsLandTypeWater(subTile.TmpImage.TerrainType))
                             continue;
-                        }
                     }
+                    else if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
+                    {
+                        continue;
+                    }                    
 
                     if (cell.TerrainObject != null)
                         chance = overlayGroup.OverlapChance;
@@ -693,12 +690,10 @@ namespace TSMapEditor.Mutations.Classes
                 return false;
 
             ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
-            ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
-            if (subTile != null)
-            {
-                if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
-                    return false;                
-            }
+            ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);            
+            
+            if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
+                return false;            
 
             if (treeGroup.ImpassableCells == null)
                 return !occupiedCells.Contains(cellCoords);
@@ -712,7 +707,7 @@ namespace TSMapEditor.Mutations.Classes
 
                 tile = MutationTarget.Map.TheaterInstance.GetTile(otherCell.TileIndex);
                 subTile = tile.GetSubTile(otherCell.SubTileIndex);
-                if (subTile != null && subTile.TmpImage.TerrainType != 0x0)
+                if (subTile.TmpImage.TerrainType != 0x0)
                     return false;
 
                 if (otherCell.TerrainObject != null)

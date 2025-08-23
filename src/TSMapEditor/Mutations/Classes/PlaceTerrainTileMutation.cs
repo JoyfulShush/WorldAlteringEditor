@@ -86,12 +86,12 @@ namespace TSMapEditor.Mutations.Classes
 
                 if (mapTile != null)
                 {
-                    int cellLevel = mapTile.Level;
-
                     var existingTile = Map.TheaterInstance.GetTile(mapTile.TileIndex).GetSubTile(mapTile.SubTileIndex);
 
+                    int cellLevel = mapTile.Level;
+
                     // Allow replacing back cliffs
-                    if (existingTile != null && existingTile.TmpImage.Height == image.TmpImage.Height)
+                    if (existingTile.TmpImage.Height == image.TmpImage.Height)
                         cellLevel -= existingTile.TmpImage.Height;
 
                     if (originLevel < 0 || cellLevel < originLevel)

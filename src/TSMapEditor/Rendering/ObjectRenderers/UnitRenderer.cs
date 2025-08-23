@@ -161,8 +161,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             ITileImage tile = Map.TheaterInstance.GetTile(unitTile.TileIndex);
             ISubTileImage subTile = tile.GetSubTile(unitTile.SubTileIndex);
-            if (subTile == null)
-                return;
 
             RampType ramp = subTile.TmpImage.RampType;
 

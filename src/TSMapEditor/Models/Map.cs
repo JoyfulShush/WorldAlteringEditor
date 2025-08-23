@@ -1704,10 +1704,7 @@ namespace TSMapEditor.Models
                 {
                     ITileImage tile = TheaterInstance.GetTile(cell.TileIndex);
                     ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
-
-                    if (subTile == null)
-                        return;
-
+                    
                     // Check whether the cell has tiberium on an impassable terrain type
                     if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
                     {
