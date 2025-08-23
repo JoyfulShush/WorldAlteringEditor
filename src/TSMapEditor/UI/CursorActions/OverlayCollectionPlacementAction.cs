@@ -80,7 +80,7 @@ namespace TSMapEditor.UI.CursorActions
                 if (entry.OverlayType.Tiberium)
                 {
                     ITileImage tileImage = CursorActionTarget.Map.TheaterInstance.GetTile(tile.TileIndex);
-                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);                    
+                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);
                     if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
                     {
                         tileIndex++;

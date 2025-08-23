@@ -138,7 +138,8 @@ namespace TSMapEditor.UI.CursorActions
                     var existingTile = Map.TheaterInstance.GetTile(mapTile.TileIndex).GetSubTile(mapTile.SubTileIndex);
 
                     int cellLevel = mapTile.Level;
-                    
+
+                    // Allow replacing back cliffs
                     if (existingTile.TmpImage.Height == image.TmpImage.Height)
                         cellLevel -= existingTile.TmpImage.Height;
 

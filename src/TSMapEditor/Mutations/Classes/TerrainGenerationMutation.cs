@@ -690,8 +690,7 @@ namespace TSMapEditor.Mutations.Classes
                 return false;
 
             ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
-            ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);            
-            
+            ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
             if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
                 return false;
 
