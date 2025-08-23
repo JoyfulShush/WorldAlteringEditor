@@ -80,13 +80,12 @@ namespace TSMapEditor.UI.CursorActions
                 if (entry.OverlayType.Tiberium)
                 {
                     ITileImage tileImage = CursorActionTarget.Map.TheaterInstance.GetTile(tile.TileIndex);
-                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);
-                    
+                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);                    
                     if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
                     {
                         tileIndex++;
                         return;
-                    }                    
+                    }
                 }
 
                 // Apply new overlay info
@@ -127,12 +126,12 @@ namespace TSMapEditor.UI.CursorActions
                 if (OverlayCollection.Entries[0].OverlayType.Tiberium)
                 {
                     ITileImage tileImage = CursorActionTarget.Map.TheaterInstance.GetTile(tile.TileIndex);
-                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);                    
+                    ISubTileImage subCellImage = tileImage.GetSubTile(tile.SubTileIndex);
                     if (Helpers.IsLandTypeImpassable(subCellImage.TmpImage.TerrainType))
                     {
                         index++;
                         return;
-                    }                    
+                    }
                 }
 
                 var originalOverlayData = originalOverlay[index];

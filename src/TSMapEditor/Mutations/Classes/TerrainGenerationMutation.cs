@@ -522,7 +522,7 @@ namespace TSMapEditor.Mutations.Classes
                     var cell = MutationTarget.Map.GetTile(cellCoords);
                     ITileImage tile = MutationTarget.Map.TheaterInstance.GetTile(cell.TileIndex);
                     ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);
-                    
+
                     if (overlayGroup.OverlayType.WaterBound)
                     {
                         if (!Helpers.IsLandTypeWater(subTile.TmpImage.TerrainType))
@@ -531,7 +531,7 @@ namespace TSMapEditor.Mutations.Classes
                     else if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
                     {
                         continue;
-                    }                    
+                    }
 
                     if (cell.TerrainObject != null)
                         chance = overlayGroup.OverlapChance;
@@ -693,7 +693,7 @@ namespace TSMapEditor.Mutations.Classes
             ISubTileImage subTile = tile.GetSubTile(cell.SubTileIndex);            
             
             if (Helpers.IsLandTypeImpassable(subTile.TmpImage.TerrainType, true))
-                return false;            
+                return false;
 
             if (treeGroup.ImpassableCells == null)
                 return !occupiedCells.Contains(cellCoords);

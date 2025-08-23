@@ -140,7 +140,7 @@ namespace TSMapEditor.UI.CursorActions
                     int cellLevel = mapTile.Level;
                     
                     if (existingTile.TmpImage.Height == image.TmpImage.Height)
-                        cellLevel -= existingTile.TmpImage.Height;                    
+                        cellLevel -= existingTile.TmpImage.Height;
 
                     if (originLevel < 0 || cellLevel < originLevel)
                         originLevel = cellLevel;
