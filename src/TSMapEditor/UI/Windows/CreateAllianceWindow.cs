@@ -1,5 +1,4 @@
-﻿using Rampastring.Tools;
-using Rampastring.XNAUI;
+﻿using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
@@ -9,9 +8,9 @@ using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
 {
-    public class SetAlliancesWindow : INItializableWindow
+    public class CreateAllianceWindow : INItializableWindow
     {
-        public SetAlliancesWindow(WindowManager windowManager, Map map) : base(windowManager)
+        public CreateAllianceWindow(WindowManager windowManager, Map map) : base(windowManager)
         {
             this.map = map;
         }
@@ -27,7 +26,7 @@ namespace TSMapEditor.UI.Windows
 
         public override void Initialize()
         {
-            Name = nameof(SetAlliancesWindow);
+            Name = nameof(CreateAllianceWindow);
             base.Initialize();
 
             panelCheckBoxes = FindChild<XNAPanel>(nameof(panelCheckBoxes));

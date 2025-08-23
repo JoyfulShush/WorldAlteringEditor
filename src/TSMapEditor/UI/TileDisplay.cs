@@ -338,15 +338,17 @@ namespace TSMapEditor.UI
 
                     int subTileHeightOffset = image.TmpImage.Height * Constants.CellHeight;
 
-                    DrawTexture(image.Texture, new Rectangle(tile.Location.X + image.TmpImage.X + tile.Offset.X,
+                    DrawTexture(image.Texture, image.SourceRectangle,
+                        new Rectangle(tile.Location.X + image.TmpImage.X + tile.Offset.X,
                         (int)ViewY + tile.Location.Y + image.TmpImage.Y + tile.Offset.Y - subTileHeightOffset,
                         Constants.CellSizeX, Constants.CellSizeY), Color.White);
 
-                    if (image.ExtraTexture != null)
+                    if (image.TmpImage.HasExtraData())
                     {
-                        DrawTexture(image.ExtraTexture, new Rectangle(tile.Location.X + image.TmpImage.XExtra + tile.Offset.X,
+                        DrawTexture(image.Texture, image.ExtraSourceRectangle,
+                            new Rectangle(tile.Location.X + image.TmpImage.XExtra + tile.Offset.X,
                             (int)ViewY + tile.Location.Y + image.TmpImage.YExtra + tile.Offset.Y - subTileHeightOffset,
-                            image.ExtraTexture.Width, image.ExtraTexture.Height), Color.White);
+                            image.ExtraSourceRectangle.Width, image.ExtraSourceRectangle.Height), Color.White);
                     }
                 }
 

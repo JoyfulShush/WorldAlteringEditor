@@ -6,6 +6,7 @@ namespace TSMapEditor.CCEngine
 {
     /// <summary>
     /// A Tiberian Sun TMP file.
+    /// Represents a collection of sub-tiles that make up a full tile.
     /// </summary>
     public class TmpFile
     {
@@ -162,6 +163,8 @@ namespace TSMapEditor.CCEngine
             ExtraGraphicsColorData = null;
             ExtraGraphicsZData = null;
         }
+
+        public bool HasExtraData() => (ImageFlags & TmpImageFlags.HasExtraData) == TmpImageFlags.HasExtraData;
 
         private int ReadIntFromStream(Stream stream)
         {

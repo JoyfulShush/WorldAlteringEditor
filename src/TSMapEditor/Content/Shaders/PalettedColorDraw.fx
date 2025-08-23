@@ -63,21 +63,12 @@ PixelShaderOutput MainPS(VertexShaderOutput input)
 {
     PixelShaderOutput output = (PixelShaderOutput) 0;
 
-    uint width;
-    uint height;
-    MainTexture.GetDimensions(width, height);
-
     // We need to read from the main texture first,
     // otherwise the output will be black!
     float4 tex = MainTexture.Sample(MainSampler, input.TextureCoordinates);
 
     // Discard transparent areas
     clip(tex.a == 0.0f ? -1 : 1);
-
-    float depthMultiplier = 0.75;
-
-    float distanceFromTop = input.TextureCoordinates.y * height;
-    float distanceFromBottom = height - distanceFromTop;
 
     float totalDepth;
 
@@ -92,19 +83,34 @@ PixelShaderOutput MainPS(VertexShaderOutput input)
     }
     else
     {
-        if (ComplexDepth)
+        if (ComplexDepth || IncreaseDepthUpwards || DecreaseDepthUpwards)
         {
-            float centralX = width * input.Color.a;
-            float dx = abs((width * input.TextureCoordinates.x) - centralX);
-            totalDepth = input.Position.z + (((distanceFromBottom - dx) / WorldTextureHeight) * depthMultiplier);
-        }
-        else if (IncreaseDepthUpwards)
-        {
-            totalDepth = input.Position.z + ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
-        }
-        else if (DecreaseDepthUpwards)
-        {
-            totalDepth = input.Position.z - ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
+            // This branch and its sub-branches do not support sprite sheets!
+            // Only used for drawing objects - terrain uses sprite sheets to increase performance,
+            // but terrain but does not need complex depth.
+            uint width;
+            uint height;
+            MainTexture.GetDimensions(width, height);
+
+            float depthMultiplier = 0.75;
+
+            float distanceFromTop = input.TextureCoordinates.y * height;
+            float distanceFromBottom = height - distanceFromTop;
+
+            if (ComplexDepth)
+            {
+                float centralX = width * input.Color.a;
+                float dx = abs((width * input.TextureCoordinates.x) - centralX);
+                totalDepth = input.Position.z + (((distanceFromBottom - dx) / WorldTextureHeight) * depthMultiplier);
+            }
+            else if (IncreaseDepthUpwards)
+            {
+                totalDepth = input.Position.z + ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
+            }
+            else if (DecreaseDepthUpwards)
+            {
+                totalDepth = input.Position.z - ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
+            }
         }
         else
         {

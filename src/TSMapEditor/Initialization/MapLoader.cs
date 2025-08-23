@@ -1193,7 +1193,7 @@ namespace TSMapEditor.Initialization
                         var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
                         if (alliedHouse == null)
                         {
-                            AddMapLoadError($"House with name {allyHouseName} was not found when loading up allies for the house {house.ININame}. Skipping the house from being loaded.");
+                            AddMapLoadError($"House with name {allyHouseName} was not found when loading up allies for the house {house.ININame}. Skipping the alliance.");
                             continue;
                         }
 

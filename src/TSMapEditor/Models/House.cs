@@ -101,7 +101,7 @@ namespace TSMapEditor.Models
         [INI(false)]
         public Color XNAColor { get; set; } = Microsoft.Xna.Framework.Color.White;
 
-        public List<BaseNode> BaseNodes { get; } = new List<BaseNode>();
+        public List<BaseNode> BaseNodes { get; private set; } = new List<BaseNode>();
 
         public void ReadFromIniSection(IniSection iniSection)
         {
@@ -174,6 +174,15 @@ namespace TSMapEditor.Models
 
             if (section.Keys.Count == 0)
                 iniFile.RemoveSection(ININame);
+        }
+
+        public override AbstractObject Clone()
+        {
+            var clone = (House)base.Clone();
+            clone.Allies = new List<House>(Allies);
+            clone.Allies.Insert(0, clone);
+            clone.BaseNodes = new List<BaseNode>();
+            return clone;
         }
     }
 }

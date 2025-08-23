@@ -740,10 +740,10 @@ namespace TSMapEditor.Rendering
                 }
 
                 Renderer.DrawTexture(textureToDraw, new Rectangle(drawX, drawY,
-                    Constants.CellSizeX, Constants.CellSizeY), null, color, 0f, Vector2.Zero, SpriteEffects.None, depth);
+                    Constants.CellSizeX, Constants.CellSizeY), tmpImage.SourceRectangle, color, 0f, Vector2.Zero, SpriteEffects.None, depth);
             }
 
-            if (tmpImage.ExtraTexture != null && !EditorState.Is2DMode)
+            if (tmpImage.Texture != null && !EditorState.Is2DMode)
             {
                 drawX = drawX + tmpImage.TmpImage.XExtra - tmpImage.TmpImage.X;
                 drawY = drawY + tmpImage.TmpImage.YExtra - tmpImage.TmpImage.Y;
@@ -752,12 +752,12 @@ namespace TSMapEditor.Rendering
                     SetPaletteEffectParams(palettedColorDrawEffect, tmpImage.GetPaletteTexture(), true, false, 1.0f);
 
                 var exDrawRectangle = new Rectangle(drawX, drawY,
-                    tmpImage.ExtraTexture.Width,
-                    tmpImage.ExtraTexture.Height);
+                    tmpImage.ExtraSourceRectangle.Width,
+                    tmpImage.ExtraSourceRectangle.Height);
 
-                Renderer.DrawTexture(tmpImage.ExtraTexture,
+                Renderer.DrawTexture(tmpImage.Texture,
                     exDrawRectangle,
-                    null,
+                    tmpImage.ExtraSourceRectangle,
                     color,
                     0f,
                     Vector2.Zero, SpriteEffects.None, depth);

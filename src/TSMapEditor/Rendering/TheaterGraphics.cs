@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -417,6 +418,7 @@ namespace TSMapEditor.Rendering
 
         private readonly List<XNAPalette> palettes = new List<XNAPalette>();
 
+        private List<Texture2D> tmpMegaTextures = new List<Texture2D>();
         private List<TileImage[]> terrainGraphicsList = new List<TileImage[]>();
         private List<TileImage[]> mmTerrainGraphicsList = new List<TileImage[]>();
         private List<bool> hasMMGraphics = new List<bool>();
@@ -513,6 +515,21 @@ namespace TSMapEditor.Rendering
 
             int currentTileIndex = 0; // Used for setting the starting tile ID of a tileset
 
+            const int MaximumDX11TextureSize = 16384;
+            Texture2D spriteSheet;
+
+            // Create a buffer that can fit as many TMPs as can theoretically fit into a Texture2D.
+            // When converting into an actual texture, a suitable piece will be copied into
+            // finalColorBuffer for assignment as the Texture2D color data.
+            var spriteSheetWorkingBuffer = new byte[MaximumDX11TextureSize * MaximumDX11TextureSize];
+            byte[] finalColorBuffer;
+            int maxX = 0;                        // Width of the whole mega-texture (width of the widest row of images).
+            int maxY = 0;                        // Height of the whole mega-texture (height of all rows summed).
+            int x = 0;                           // Horizontal start position of the next tile.
+            int y = 0;                           // Vertical position of the current row.
+            int rowHeight = Constants.CellSizeY; // Height of the current row (aka height of the tallest tile in the current row).
+            List<MGTMPImage> mgTmpImagesForCurrentTexture = new List<MGTMPImage>();
+
             for (int tsId = 0; tsId < Theater.TileSets.Count; tsId++)
             {
                 TileSet tileSet = Theater.TileSets[tsId];
@@ -523,8 +540,6 @@ namespace TSMapEditor.Rendering
 
                 for (int i = 0; i < tileSet.TilesInSet; i++)
                 {
-                    // Console.WriteLine("#" + i);
-
                     var tileGraphics = new List<TileImage>();
 
                     // Handle graphics variation (clear00.tem, clear00a.tem, clear00b.tem etc.)
@@ -565,11 +580,68 @@ namespace TSMapEditor.Rendering
                         var tmpFile = new TmpFile(fileName);
                         tmpFile.ParseFromBuffer(data);
 
+                        // Gather individual sub-tiles for this variation of the full tile
                         var tmpImages = new List<MGTMPImage>();
                         for (int img = 0; img < tmpFile.ImageCount; img++)
                         {
-                            tmpImages.Add(new MGTMPImage(graphicsDevice, tmpFile.GetImage(img), TheaterPalette, tsId));
+                            var tmpImage = tmpFile.GetImage(img);
+
+                            if (tmpImage == null)
+                            {
+                                tmpImages.Add(null);
+                                continue;
+                            }
+
+                            int extraWidth = tmpImage.HasExtraData() ? (int)tmpImage.ExtraWidth : 0;
+                            int extraHeight = tmpImage.HasExtraData() ? (int)tmpImage.ExtraHeight : 0;
+                            int cellTotalHeight = Math.Max(Constants.CellSizeY, extraHeight);
+
+                            if (x + Constants.CellSizeX + extraWidth > MaximumDX11TextureSize)
+                            {
+                                maxX = Math.Max(maxX, x);
+                                x = 0;
+                                y += rowHeight;
+
+                                if (y + cellTotalHeight > MaximumDX11TextureSize)
+                                {
+                                    Logger.Log("Insufficient texture space for holding TMPs. Writing mega-texture for TMP tiles from system memory to GPU memory and creating new mega-texture.");
+                                    // We have to do the same process as we do after processing all the TMPs.
+                                    // Original Tiberian Sun terrain textures are not enough to fill a maximum-size texture, but the biggest mods
+                                    // might exceed the texture size limit.
+
+                                    maxX = Math.Max(maxX, x);
+                                    maxY = y + rowHeight;
+
+                                    finalColorBuffer = new byte[maxX * maxY];
+                                    for (int ty = 0; ty < maxY; ty++)
+                                    {
+                                        for (int tx = 0; tx < maxX; tx++)
+                                        {
+                                            finalColorBuffer[ty * maxX + tx] = spriteSheetWorkingBuffer[ty * MaximumDX11TextureSize + tx];
+                                        }
+                                    }
+
+                                    spriteSheet = new Texture2D(graphicsDevice, maxX, maxY, false, SurfaceFormat.Alpha8);
+                                    spriteSheet.SetData(finalColorBuffer);
+                                    tmpMegaTextures.Add(spriteSheet);
+                                    mgTmpImagesForCurrentTexture.ForEach(img => img.Texture = spriteSheet);
+                                    mgTmpImagesForCurrentTexture.Clear();
+
+                                    Array.Clear(spriteSheetWorkingBuffer);
+                                }
+                            }
+
+                            if (cellTotalHeight > rowHeight)
+                                rowHeight = cellTotalHeight;
+
+                            var monoGameTmpImage = new MGTMPImage(tmpImage, MaximumDX11TextureSize, spriteSheetWorkingBuffer, x, y, TheaterPalette, tsId);
+                            mgTmpImagesForCurrentTexture.Add(monoGameTmpImage);
+
+                            tmpImages.Add(monoGameTmpImage);
+                            x += Constants.CellSizeX + extraWidth;
                         }
+
+                        // Add this variation to list of variations for this tile
                         tileGraphics.Add(new TileImage(tmpFile.CellsX, tmpFile.CellsY, tsId, i, currentTileIndex, tmpImages.ToArray()));
                     }
 
@@ -578,6 +650,33 @@ namespace TSMapEditor.Rendering
                     terrainGraphicsList.Add(tileGraphics.ToArray());
                 }
             }
+
+            Logger.Log("Writing sprite sheet for TMP tiles from system memory to GPU memory.");
+
+            // Calculate texture size, taking the current row into account.
+            maxX = Math.Max(maxX, x);
+            maxY = y + rowHeight;
+
+            // Create final color buffer and copy the data from the working buffer to the color buffer.
+            finalColorBuffer = new byte[maxX * maxY];
+            for (int ty = 0; ty < maxY; ty++)
+            {
+                for (int tx = 0; tx < maxX; tx++)
+                {
+                    finalColorBuffer[ty * maxX + tx] = spriteSheetWorkingBuffer[ty * MaximumDX11TextureSize + tx];
+                }
+            }
+
+            // Create Texture2D instance and write data from the color buffer to it.
+            spriteSheet = new Texture2D(graphicsDevice, maxX, maxY, false, SurfaceFormat.Alpha8);
+            spriteSheet.SetData(finalColorBuffer);
+            tmpMegaTextures.Add(spriteSheet);
+
+            // Assign this mega-texture to all tiles that were written into the texture.
+            // Afterwards, we are done!
+            mgTmpImagesForCurrentTexture.ForEach(img => img.Texture = spriteSheet);
+
+
 
             Logger.Log("Assigning marble madness mode tile textures.");
 
@@ -1476,10 +1575,13 @@ namespace TSMapEditor.Rendering
             var task10 = Task.Factory.StartNew(() => DisposeObjectImagesFromArray(InfantryTextures));
             var task11 = Task.Factory.StartNew(() => DisposeObjectImagesFromArray(OverlayTextures));
             var task12 = Task.Factory.StartNew(() => DisposeObjectImagesFromArray(SmudgeTextures));
-            var task13 = Task.Factory.StartNew(() => { terrainGraphicsList.ForEach(tileImageArray => Array.ForEach(tileImageArray, tileImage => tileImage.Dispose())); terrainGraphicsList.Clear(); });
-            var task14 = Task.Factory.StartNew(() => { mmTerrainGraphicsList.ForEach(tileImageArray => Array.ForEach(tileImageArray, tileImage => tileImage.Dispose())); mmTerrainGraphicsList.Clear(); });
-            var task15 = Task.Factory.StartNew(() => DisposeObjectImagesFromArray(AnimTextures));
-            Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14, task15);
+            var task13 = Task.Factory.StartNew(() => { tmpMegaTextures.ForEach(tex2D => tex2D.Dispose()); });
+            var task14 = Task.Factory.StartNew(() => DisposeObjectImagesFromArray(AnimTextures));
+            Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14);
+
+            tmpMegaTextures.Clear();
+            terrainGraphicsList.Clear();
+            mmTerrainGraphicsList.Clear();
 
             TerrainObjectTextures = null;
             BuildingTextures = null;

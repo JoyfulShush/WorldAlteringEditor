@@ -59,7 +59,7 @@ namespace TSMapEditor.UI.Windows
         private EditHouseTypeWindow editHouseTypeWindow;
         private NewHouseWindow newHouseWindow;
         private ConfigureAlliesWindow configureAlliesWindow;
-        private SetAlliancesWindow setAlliancesWindow;
+        private CreateAllianceWindow createAllianceWindow;
 
         public override void Initialize()
         {
@@ -120,12 +120,13 @@ namespace TSMapEditor.UI.Windows
 
             FindChild<EditorButton>("btnAddHouse").LeftClick += BtnAddHouse_LeftClick;
             FindChild<EditorButton>("btnDeleteHouse").LeftClick += BtnDeleteHouse_LeftClick;
+            FindChild<EditorButton>("btnCloneHouse").LeftClick += BtnCloneHouse_LeftClick;
             FindChild<EditorButton>("btnStandardHouses").LeftClick += BtnStandardHouses_LeftClick;
             var btnEditHouseType = FindChild<EditorButton>("btnEditHouseType");
             btnEditHouseType.LeftClick += BtnEditHouseType_LeftClick;
             FindChild<EditorButton>("btnMakeHouseRepairBuildings").LeftClick += BtnMakeHouseRepairBuildings_LeftClick;
             FindChild<EditorButton>("btnMakeHouseNotRepairBuildings").LeftClick += BtnMakeHouseNotRepairBuildings_LeftClick;
-            FindChild<EditorButton>("btnSetAlliances").LeftClick += (s, e) => setAlliancesWindow.Open();
+            FindChild<EditorButton>("btnCreateAlliance").LeftClick += (s, e) => createAllianceWindow.Open();
 
             ddHouseOfHumanPlayer.SelectedIndexChanged += DdHouseOfHumanPlayer_SelectedIndexChanged;
             lbHouseList.SelectedIndexChanged += LbHouseList_SelectedIndexChanged;
@@ -142,9 +143,9 @@ namespace TSMapEditor.UI.Windows
             var configureAlliesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, configureAlliesWindow);
             configureAlliesWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
 
-            setAlliancesWindow = new SetAlliancesWindow(WindowManager, map);
-            var setAlliancesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, setAlliancesWindow);
-            setAlliancesWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
+            createAllianceWindow = new CreateAllianceWindow(WindowManager, map);
+            var setAlliancesWindowDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, createAllianceWindow);
+            createAllianceWindow.AlliesUpdated += (s, e) => RefreshHouseInfo();
 
             if (Constants.IsRA2YR)
             {
@@ -205,39 +206,67 @@ namespace TSMapEditor.UI.Windows
 
             ListHouses();
             lbHouseList.SelectedIndex = lbHouseList.Items.Count - 1;
+            lbHouseList.ScrollToBottom();
         }
 
         private void BtnDeleteHouse_LeftClick(object sender, System.EventArgs e)
         {
-            if (editedHouse != null)
+            if (editedHouse == null)
+                return;
+
+            if (map.DeleteHouse(editedHouse))
             {
-                if (map.DeleteHouse(editedHouse))
+                if (Constants.IsRA2YR)
                 {
-                    if (Constants.IsRA2YR)
-                    {
-                        // Also delete the associated HouseType if the HouseType is non-standard and is not used by any other House
-                        if (map.HouseTypes.Contains(editedHouse.HouseType) && !map.Houses.Exists(h => h.HouseType == editedHouse.HouseType))
-                            map.DeleteHouseType(editedHouse.HouseType);
-                    }
-                    else
-                    {
-                        // In Tiberian Sun, each House has one unique HouseType associated with it.
-                        // We need to always delete the associated HouseType, if that fails for some reason then
-                        // something has gone terribly wrong in our internal editor logic.
-                        if (!map.DeleteHouseType(editedHouse.HouseType))
-                            throw new InvalidOperationException("Failed to delete HouseType associated with house " + editedHouse.ININame);
-                    }
-
-                    // Remove this house from all other houses that were allied to it
-                    foreach (var house in map.Houses)
-                        house.Allies.Remove(editedHouse);
-                    
-
-                    editedHouse = null;
-                    lbHouseList.SelectedIndex = -1;
-                    ListHouses();
+                    // Also delete the associated HouseType if the HouseType is non-standard and is not used by any other House
+                    if (map.HouseTypes.Contains(editedHouse.HouseType) && !map.Houses.Exists(h => h.HouseType == editedHouse.HouseType))
+                        map.DeleteHouseType(editedHouse.HouseType);
                 }
+                else
+                {
+                    // In Tiberian Sun, each House has one unique HouseType associated with it.
+                    // We need to always delete the associated HouseType, if that fails for some reason then
+                    // something has gone terribly wrong in our internal editor logic.
+                    if (!map.DeleteHouseType(editedHouse.HouseType))
+                        throw new InvalidOperationException("Failed to delete HouseType associated with house " + editedHouse.ININame);
+                }
+
+                // Remove this house from all other houses that were allied to it
+                foreach (var house in map.Houses)
+                    house.Allies.Remove(editedHouse);
+
+                editedHouse = null;
+                lbHouseList.SelectedIndex = -1;
+                ListHouses();
             }
+        }
+
+        private void BtnCloneHouse_LeftClick(object sender, InputEventArgs e)
+        {
+            if (editedHouse == null)
+                return;
+
+            HouseType clonedHouseType = (HouseType)editedHouse.HouseType.Clone();
+            clonedHouseType.ININame = editedHouse.HouseType.ININame + " Clone";
+            clonedHouseType.Index = map.HouseTypes.Count;
+            map.HouseTypes.Add(clonedHouseType);
+
+            House clonedHouse = (House)editedHouse.Clone();
+            clonedHouse.HouseType = clonedHouseType;
+            clonedHouse.ININame = editedHouse.ININame + " Clone";
+            clonedHouse.Allies.ForEach(ally =>
+            {
+                if (ally == clonedHouse)
+                    return;
+
+                ally.Allies.Add(clonedHouse);
+            });
+
+            map.AddHouse(clonedHouse);
+
+            ListHouses();
+            lbHouseList.SelectedIndex = lbHouseList.Items.Count - 1;
+            lbHouseList.ScrollToBottom();
         }
 
         private void BtnStandardHouses_LeftClick(object sender, System.EventArgs e)
@@ -558,8 +587,8 @@ namespace TSMapEditor.UI.Windows
             List<House> enemyHouses = map.Houses.FindAll(house => !editedHouse.Allies.Contains(house) && !house.Allies.Contains(editedHouse));
 
             lblStatsAllianceMutualAlliance.Text = $"Mutual Alliances: {mutualAllianceHouses.Count}";
-            lblStatsAllianceOneSidedAllies.Text = $"One Sided Allies: {oneSidedAlliesHouses.Count}";
-            lblStatsAllianceOneSidedEnemies.Text = $"One Sided Enemies: {oneSidedEnemyHouses.Count}";
+            lblStatsAllianceOneSidedAllies.Text = $"One-Sided Allies: {oneSidedAlliesHouses.Count}";
+            lblStatsAllianceOneSidedEnemies.Text = $"One-Sided Enemies: {oneSidedEnemyHouses.Count}";
             lblStatsAllianceEnemies.Text = $"Enemies: {enemyHouses.Count}";
 
             mutualAllianceToolTip.Text = "Houses that are in a mutual alliance with this house:" + Environment.NewLine +
