@@ -186,7 +186,7 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                     for (int i = 0; i < tile.SubTileCount; i++)
                     {
                         var subTile = tile.GetSubTile(i);
-                        if (subTile == null || subTile.TmpImage == null)
+                        if (subTile == null)
                             continue;
 
                         var offset = tile.GetSubTileCoordOffset(i).Value;
