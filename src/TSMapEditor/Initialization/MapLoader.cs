@@ -1,7 +1,8 @@
-﻿using CNCMaps.FileFormats.Encodings;
+using CNCMaps.FileFormats.Encodings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -101,7 +102,7 @@ namespace TSMapEditor.Initialization
                     return;
                 }
 
-                if (tile.GetSubTile(t.SubTileIndex).TmpImage == null)
+                if (tile.GetSubTile(t.SubTileIndex) == null)
                 {
                     AddMapLoadError($"Null sub-tile {t.SubTileIndex} for cell at {t.CoordsToPoint()} - clearing the tile. " +
                         $"TileSet: {tileSet.SetName} ({tileSet.FileName}), index of tile within its set: {tile.TileIndexInTileSet}");
@@ -672,10 +673,12 @@ namespace TSMapEditor.Initialization
             if (overlayPackSection == null || overlayDataPackSection == null)
                 return;
 
+            bool needsExtendedOverlayPack = map.Basic.NewINIFormat >= 5;
+
             var stringBuilder = new StringBuilder();
             overlayPackSection.Keys.ForEach(kvp => stringBuilder.Append(kvp.Value));
             byte[] compressedData = Convert.FromBase64String(stringBuilder.ToString());
-            byte[] uncompressedOverlayPack = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION];
+            byte[] uncompressedOverlayPack = new byte[Constants.MAX_MAP_LENGTH_IN_DIMENSION * Constants.MAX_MAP_LENGTH_IN_DIMENSION * (needsExtendedOverlayPack ? 2 : 1)];
             Format5.DecodeInto(compressedData, uncompressedOverlayPack, Constants.OverlayPackFormat);
 
             stringBuilder.Clear();
@@ -693,7 +696,19 @@ namespace TSMapEditor.Initialization
                         continue;
 
                     int overlayDataIndex = (tile.Y * Constants.MAX_MAP_LENGTH_IN_DIMENSION) + tile.X;
-                    int overlayTypeIndex = uncompressedOverlayPack[overlayDataIndex];
+
+                    int overlayTypeIndex;
+                    if (needsExtendedOverlayPack)
+                    {
+                        ushort index = BinaryPrimitives.ReadUInt16LittleEndian(new ReadOnlySpan<byte>(uncompressedOverlayPack, overlayDataIndex * 2, 2));
+                        overlayTypeIndex = index != ushort.MaxValue ? index : Constants.NO_OVERLAY;
+                    }
+                    else
+                    {
+                        byte index = uncompressedOverlayPack[overlayDataIndex];
+                        overlayTypeIndex = index != byte.MaxValue ? index : Constants.NO_OVERLAY;
+                    }
+
                     if (overlayTypeIndex == Constants.NO_OVERLAY)
                         continue;
 
@@ -1163,6 +1178,27 @@ namespace TSMapEditor.Initialization
                 {
                     houseType.Color = house.Color;
                     houseType.XNAColor = house.XNAColor;
+                }
+            }
+            
+            // Once all houses were loaded into WAE, read and set up the alliances of each house as a list of allied houses
+            foreach (var house in map.Houses)
+            {
+                var houseSection = mapIni.GetSection(house.ININame);
+                if (houseSection != null)
+                {
+                    List<string> allyHouseNames = houseSection.GetListValue("Allies", ',', s => s);
+                    foreach (string allyHouseName in allyHouseNames)
+                    {
+                        var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
+                        if (alliedHouse == null)
+                        {
+                            AddMapLoadError($"House with name {allyHouseName} was not found when loading up allies for the house {house.ININame}. Skipping the alliance.");
+                            continue;
+                        }
+
+                        house.Allies.Add(alliedHouse);
+                    }
                 }
             }
 

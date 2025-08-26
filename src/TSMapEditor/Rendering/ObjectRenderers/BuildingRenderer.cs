@@ -38,11 +38,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             if (foundationX == 0 || foundationY == 0)
                 return;
 
-            var map = RenderDependencies.Map;
-
             int heightOffset = 0;
 
-            var cell = map.GetTile(gameObject.Position);
+            var cell = Map.GetTile(gameObject.Position);
             if (cell != null && !RenderDependencies.EditorState.Is2DMode)
                 heightOffset = cell.Level * Constants.CellHeight;
 
@@ -55,8 +53,8 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             foreach (var edge in gameObject.ObjectType.ArtConfig.Foundation.Edges)
             {
                 // Translate edge vertices from cell coordinate space to world coordinate space.
-                var start = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position + edge[0], map);
-                var end = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position + edge[1], map);
+                var start = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position + edge[0], Map);
+                var end = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position + edge[1], Map);
 
                 float depth = GetFoundationLineDepth(gameObject, start, end);
                 // Height is an illusion, just move everything up or down.
@@ -74,7 +72,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             var cell = Map.GetTile(gameObject.Position);
             float depthFromCellHeight = cell != null ? cell.Level * Constants.DepthRenderStep : 0f;
-            float result = ((lowerPoint / (float)RenderDependencies.Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace)
+            float result = ((lowerPoint / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace)
                 + depthFromCellHeight + Constants.DepthEpsilon * ObjectDepthAdjustments.BuildingFoundationLines;
             return result;
         }

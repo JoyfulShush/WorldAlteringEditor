@@ -41,7 +41,7 @@ namespace TSMapEditor.Mutations.Classes
             {
                 MGTMPImage image = tile.TMPImages[i];
 
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = targetCellCoords.X + (brushOffset.X * tile.Width) + i % tile.Width;
@@ -76,7 +76,7 @@ namespace TSMapEditor.Mutations.Classes
             {
                 MGTMPImage image = tile.TMPImages[i];
 
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = targetCellCoords.X + i % tile.Width;
@@ -110,7 +110,7 @@ namespace TSMapEditor.Mutations.Classes
                 {
                     MGTMPImage image = tile.TMPImages[i];
 
-                    if (image.TmpImage == null)
+                    if (image == null)
                         continue;
 
                     int cx = targetCellCoords.X + (offset.X * tile.Width) + i % tile.Width;

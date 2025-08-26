@@ -55,6 +55,12 @@ namespace TSMapEditor.Models
         /// </summary>
         public event EventHandler TeamTypesChanged;
 
+        /// <summary>
+        /// Raised when a trigger is added or removed.
+        /// NOT raised when an individual trigger's data is modified.
+        /// </summary>
+        public event EventHandler TriggersChanged;
+
         public IniFile LoadedINI { get; private set; }
 
         public bool ReloadINI()
@@ -229,7 +235,7 @@ namespace TSMapEditor.Models
             InitEditorConfig();
             InitializeRules(gameConfigINIFiles);
             LoadedINI = new IniFileEx();
-            var baseMap = new IniFileEx(Environment.CurrentDirectory + "/Config/BaseMap.ini", ccFileManager);
+            var baseMap = Helpers.ReadConfigINIEx("BaseMap.ini", ccFileManager);
             baseMap.RemoveSection("INISystem");
             baseMap.FileName = string.Empty;
             baseMap.SetStringValue("Map", "Theater", theaterName);
@@ -333,6 +339,8 @@ namespace TSMapEditor.Models
 
             // Refresh light posts in case they got their INI config changed - saves the user
             // from having to reload the map to refresh lighting changes
+            // Lighting.ReadFromIniFile will afterwards refresh lighting of all cells, so we don't
+            // need to do it separately for cells lit by the building
             Rules.BuildingTypes.ForEach(bt => initializer.ReadObjectTypePropertiesFromINI(bt, LoadedINI));
             Structures.ForEach(s => s.LightTiles(Tiles));
 
@@ -354,6 +362,21 @@ namespace TSMapEditor.Models
         private void Write(string filePath = null)
         {
             PreSave?.Invoke(this, EventArgs.Empty);
+
+            // Determine if we need to save as NewINIFormat == 5
+            // If any of the overlays on the map have a heap ID > 255,
+            // then we have to use shorts to save OverlayPack
+            bool needsExtendedOverlayPack = false;
+            DoForAllValidTiles(tile =>
+            {
+                if (tile.Overlay?.OverlayType == null)
+                    return;
+
+                if (tile.Overlay.OverlayType.Index > byte.MaxValue)
+                    needsExtendedOverlayPack = true;
+            });
+
+            Basic.NewINIFormat = needsExtendedOverlayPack ? 5 : 4;
 
             LoadedINI.Comment = "Written by the World-Altering Editor (WAE)\r\n; all comments have been truncated\r\n; github.com/Rampastring/WorldAlteringEditor\r\n; if you wish to support the editor, you can subscribe at patreon.com/rampastring\r\n; or buy me a coffee at ko-fi.com/rampastring";
 
@@ -702,7 +725,7 @@ namespace TSMapEditor.Models
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -775,11 +798,23 @@ namespace TSMapEditor.Models
         public void AddTrigger(Trigger trigger)
         {
             Triggers.Add(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void RemoveTrigger(Trigger trigger)
+        {
+            Triggers.Remove(trigger);
+            TriggersChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddTag(Tag tag)
         {
             Tags.Add(tag);
+        }
+
+        public void RemoveTagsAssociatedWithTrigger(Trigger trigger)
+        {
+            Tags.RemoveAll(t => t.Trigger == trigger);
         }
 
         public void AddCellTag(CellTag cellTag)
@@ -1570,7 +1605,7 @@ namespace TSMapEditor.Models
                     Rules.InitArt(gameConfigINIFiles.ArtFSIni, initializer);
             }
 
-            var editorRulesIni = new IniFile(Environment.CurrentDirectory + "/Config/EditorRules.ini");
+            var editorRulesIni = Helpers.ReadConfigINI("EditorRules.ini");
             Rules.InitEditorOverrides(editorRulesIni);
 
             Rules.InitFromINI(editorRulesIni, initializer, false);
@@ -1584,7 +1619,7 @@ namespace TSMapEditor.Models
                 Rules.InitAI(gameConfigINIFiles.AIFSIni, EditorConfig.TeamTypeFlags);
 
             // Load impassable cell information for terrain types
-            var impassableTerrainObjectsIni = new IniFile(Environment.CurrentDirectory + "/Config/TerrainTypeImpassability.ini");
+            var impassableTerrainObjectsIni = Helpers.ReadConfigINI("TerrainTypeImpassability.ini");
 
             Rules.TerrainTypes.ForEach(tt =>
             {
@@ -1683,6 +1718,17 @@ namespace TSMapEditor.Models
                     }
                 }
             });
+
+            // Check for multiple houses having the same ININame
+            for (int i = 0; i < Houses.Count; i++)
+            {
+                House duplicate = Houses.Find(h => h != Houses[i] && h.ININame == Houses[i].ININame);
+                if (duplicate != null)
+                {
+                    issueList.Add($"The map has multiple houses named \"{duplicate.ININame}\"! This will result in a corrupted house list in-game!");
+                    break;
+                }
+            }
 
             // Check for teamtypes having no taskforce or script
             TeamTypes.ForEach(tt =>
@@ -2078,6 +2124,40 @@ namespace TSMapEditor.Models
             LocalVariables = null;
             Tubes = null;
             GraphicalBaseNodes = null;
+        }
+
+        public List<BaseNode> GetBaseNodes(Point2D cellCoords)
+        {
+            List<BaseNode> baseNodes = [];
+
+            foreach (var graphicalBaseNode in GraphicalBaseNodes)
+            {
+                var nodeBuildingType = graphicalBaseNode.BuildingType;
+
+                if (nodeBuildingType == null)
+                    continue;
+
+                if (graphicalBaseNode.BaseNode.Position == cellCoords)
+                {
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
+                    continue;
+                }
+
+                bool baseNodeExistsOnFoundation = false;
+                nodeBuildingType.ArtConfig.DoForFoundationCoords(foundationOffset =>
+                {
+                    Point2D foundationCellCoords = graphicalBaseNode.BaseNode.Position + foundationOffset;
+                    if (foundationCellCoords == cellCoords)
+                        baseNodeExistsOnFoundation = true;
+                });
+
+                if (baseNodeExistsOnFoundation)
+                {
+                    baseNodes.Add(graphicalBaseNode.BaseNode);
+                }
+            }
+
+            return baseNodes;
         }
     }
 }

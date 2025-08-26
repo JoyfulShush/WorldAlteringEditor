@@ -20,6 +20,8 @@ namespace TSMapEditor.UI.CursorActions
 
         public override bool DrawCellCursor => false;
 
+        public override bool UseOnBridge => true;
+
         public override void OnActionEnter()
         {
             CursorActionTarget.BrushSize = Map.EditorConfig.BrushSizes.Find(bs => bs.Width == 1 && bs.Height == 1);

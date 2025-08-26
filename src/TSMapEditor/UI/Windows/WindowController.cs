@@ -16,6 +16,7 @@ namespace TSMapEditor.UI.Windows
     {
         void AddChild(XNAControl child);
         void RemoveChild(XNAControl child);
+        void AddCallback(Delegate d, params object[] args);
 
         event EventHandler RenderResolutionChanged;
 
@@ -172,7 +173,7 @@ namespace TSMapEditor.UI.Windows
             ApplyINICodeWindow = new ApplyINICodeWindow(windowParentControl.WindowManager, map);
             Windows.Add(ApplyINICodeWindow);
 
-            RunScriptWindow = new RunScriptWindow(windowParentControl.WindowManager, map);
+            RunScriptWindow = new RunScriptWindow(windowParentControl.WindowManager, new Scripts.ScriptDependencies(map, cursorActionTarget, editorState, windowParentControl.WindowManager, this));
             Windows.Add(RunScriptWindow);
 
             HotkeyConfigurationWindow = new HotkeyConfigurationWindow(windowParentControl.WindowManager);
@@ -266,7 +267,7 @@ namespace TSMapEditor.UI.Windows
 
         private void AddFocusSwitchHandlerToChildrenRecursive(EditorWindow window, XNAControl control)
         {
-            EventHandler eventHandler = (s, e) => Window_HandleFocusSwitch(window, EventArgs.Empty);
+            EventHandler<InputEventArgs> eventHandler = (s, e) => Window_HandleFocusSwitch(window, EventArgs.Empty);
             window.FocusSwitchEventHandler = eventHandler;
 
             foreach (var child in control.Children)
@@ -275,6 +276,20 @@ namespace TSMapEditor.UI.Windows
                 child.LeftClick += eventHandler;
                 AddFocusSwitchHandlerToChildrenRecursive(window, child);
             }
+        }
+
+        private void RemoveFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
+        {
+            var eventHandler = window.FocusSwitchEventHandler;
+
+            foreach (var child in control.Children)
+            {
+                child.MouseLeftDown -= eventHandler;
+                child.LeftClick -= eventHandler;
+                RemoveFocusSwitchHandlerFromChildrenRecursive(window, child);
+            }
+
+            window.FocusSwitchEventHandler = null;
         }
 
         private void TeamTypesWindow_TaskForceOpened(object sender, TaskForceEventArgs e)
@@ -307,6 +322,36 @@ namespace TSMapEditor.UI.Windows
             }
 
             window.FocusSwitchEventHandler = null;
+        }
+
+        public void AddWindow(EditorWindow window)
+        {
+            Windows.Add(window);
+            window.DrawOrder = ChildWindowOrderValue;
+            window.UpdateOrder = ChildWindowOrderValue;
+            window.LeftClick += Window_HandleFocusSwitch;
+            window.InteractedWith += Window_HandleFocusSwitch;
+            windowParentControl.AddChild(window);
+
+            AddFocusSwitchHandlerToChildrenRecursive(window, window);
+            window.Disable();
+
+            // Center on next frame because child addition (and initialization) can be delayed
+            // if windowParentControl is currently evaluating its children
+            windowParentControl.AddCallback(() => window.CenterOnParent());
+        }
+
+        public void RemoveWindow(EditorWindow window)
+        {
+            if (Windows.Remove(window))
+            {
+                window.DrawOrder = ChildWindowOrderValue;
+                window.UpdateOrder = ChildWindowOrderValue;
+                window.LeftClick -= Window_HandleFocusSwitch;
+                window.InteractedWith -= Window_HandleFocusSwitch;
+                RemoveFocusSwitchHandlerFromChildrenRecursive(window, window);
+                window.Kill();
+            }
         }
 
         public void Clear()

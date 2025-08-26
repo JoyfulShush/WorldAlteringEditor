@@ -215,20 +215,18 @@ namespace TSMapEditor.UI
             lbTileSetList.SelectedIndex--;
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            if (IsActive)
-            {
-                var cursorPoint = GetCursorPoint();
+            inputEventArgs.Handled = true;
+            var cursorPoint = GetCursorPoint();
 
-                if (!isBeingDragged && cursorPoint.Y > 0 && cursorPoint.Y < ResizeDragThreshold && Cursor.LeftDown)
-                {
-                    isBeingDragged = true;
-                    previousMouseY = GetCursorPoint().Y;
-                }
+            if (!isBeingDragged && cursorPoint.Y > 0 && cursorPoint.Y < ResizeDragThreshold && Cursor.LeftDown)
+            {
+                isBeingDragged = true;
+                previousMouseY = GetCursorPoint().Y;
             }
 
-            base.OnMouseLeftDown();
+            base.OnMouseLeftDown(inputEventArgs);
         }
 
         public override void Update(GameTime gameTime)
@@ -267,7 +265,9 @@ namespace TSMapEditor.UI
                 previousMouseY = GetCursorPoint().Y;
 
                 if (!Cursor.LeftDown)
+                {
                     isBeingDragged = false;
+                }
             }
         }
 

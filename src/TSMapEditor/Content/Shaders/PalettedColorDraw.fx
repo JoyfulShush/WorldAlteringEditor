@@ -9,9 +9,13 @@
 #define PS_SHADERMODEL ps_4_0
 #endif
 
-// The "main shader" of the editor.
+// Flexible shader for rendering objects.
 // Can render objects in either paletted or RGBA mode,
 // takes depth into account, and can also draw shadows.
+
+// Relies on custom data in the vertex shader,
+// meaning it is not compatible with SpriteBatch
+// and needs a custom batcher instead.
 
 float WorldTextureHeight;
 bool ComplexDepth;
@@ -44,11 +48,22 @@ SamplerState PaletteSampler
     MagFilter = Point;
 };
 
+struct VertexShaderInput
+{
+    float3 Position : POSITION;
+    float4 Color : COLOR0;
+    float2 TextureCoordinates : TEXCOORD0;
+    float4 CustomData : TEXCOORD1;
+};
+
+matrix WorldViewProj : register(c0);
+
 struct VertexShaderOutput
 {
     float4 Position : SV_POSITION;
     float4 Color : COLOR0;
     float2 TextureCoordinates : TEXCOORD0;
+    float4 CustomData : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -59,13 +74,20 @@ struct PixelShaderOutput
 };
 
 
+VertexShaderOutput MainVS(VertexShaderInput input)
+{
+    VertexShaderOutput output;
+    output.Position = mul(float4(input.Position, 1.0), WorldViewProj);
+    output.Color = input.Color;
+    output.TextureCoordinates = input.TextureCoordinates;
+    output.CustomData = input.CustomData;
+    return output;
+}
+
+
 PixelShaderOutput MainPS(VertexShaderOutput input)
 {
     PixelShaderOutput output = (PixelShaderOutput) 0;
-
-    uint width;
-    uint height;
-    MainTexture.GetDimensions(width, height);
 
     // We need to read from the main texture first,
     // otherwise the output will be black!
@@ -74,41 +96,46 @@ PixelShaderOutput MainPS(VertexShaderOutput input)
     // Discard transparent areas
     clip(tex.a == 0.0f ? -1 : 1);
 
-    float depthMultiplier = 0.75;
-
-    float distanceFromTop = input.TextureCoordinates.y * height;
-    float distanceFromBottom = height - distanceFromTop;
-
-    float totalDepth;
+    float totalDepth = input.Position.z;
 
     if (IsShadow)
     {
         output.color = float4(0, 0, 0, 0.5);
-
-        totalDepth = input.Position.z;
 
         output.depthTarget = totalDepth;
         output.depthEmbedded = totalDepth;
     }
     else
     {
-        if (ComplexDepth)
+        if (ComplexDepth || IncreaseDepthUpwards || DecreaseDepthUpwards)
         {
-            float centralX = width * input.Color.a;
-            float dx = abs((width * input.TextureCoordinates.x) - centralX);
-            totalDepth = input.Position.z + (((distanceFromBottom - dx) / WorldTextureHeight) * depthMultiplier);
-        }
-        else if (IncreaseDepthUpwards)
-        {
-            totalDepth = input.Position.z + ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
-        }
-        else if (DecreaseDepthUpwards)
-        {
-            totalDepth = input.Position.z - ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
-        }
-        else
-        {
-            totalDepth = input.Position.z;
+            float imageHeight = input.CustomData.y;
+
+            uint spriteSheetWidth;
+            uint spriteSheetHeight;
+            MainTexture.GetDimensions(spriteSheetWidth, spriteSheetHeight);
+
+            float depthMultiplier = 0.9;
+
+            float distanceFromTop = (input.TextureCoordinates.y - input.CustomData.w) * spriteSheetHeight;
+            float distanceFromBottom = imageHeight - distanceFromTop;
+
+            if (ComplexDepth)
+            {
+                float imageWidth = input.CustomData.x;
+
+                float centralX = imageWidth * input.Color.a;
+                float dx = abs((spriteSheetWidth * (input.TextureCoordinates.x - input.CustomData.z)) - centralX);
+                totalDepth = input.Position.z + (((distanceFromBottom - dx) / WorldTextureHeight) * depthMultiplier);
+            }
+            else if (IncreaseDepthUpwards)
+            {
+                totalDepth = input.Position.z + ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
+            }
+            else if (DecreaseDepthUpwards)
+            {
+                totalDepth = input.Position.z - ((distanceFromBottom / WorldTextureHeight) * depthMultiplier);
+            }
         }
 
         output.depthTarget = totalDepth;
@@ -156,6 +183,7 @@ technique SpriteDrawing
 {
     pass P0
     {
+        VertexShader = compile VS_SHADERMODEL MainVS();
         PixelShader = compile PS_SHADERMODEL MainPS();
     }
 };

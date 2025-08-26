@@ -279,15 +279,17 @@ namespace TSMapEditor.UI
             }
         }
 
-        public override void OnMouseScrolled()
+        public override void OnMouseScrolled(InputEventArgs inputEventArgs)
         {
-            base.OnMouseScrolled();
+            inputEventArgs.Handled = true;
+            base.OnMouseScrolled(inputEventArgs);
             viewY += Cursor.ScrollWheelValue * SCROLL_RATE;
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            inputEventArgs.Handled = true;
+            base.OnMouseLeftDown(inputEventArgs);
             SelectedArrayIndex = GetFrameIndexUnderCursor();
         }
 

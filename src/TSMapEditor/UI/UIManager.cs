@@ -28,6 +28,7 @@ namespace TSMapEditor.UI
             CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
             PanelBackgroundColor = new Color(0, 0, 0, 128);
             PanelBorderColor = new Color(128, 128, 128, 255);
+            DefaultAlphaRate = 1.0f; // ScrollBar textures need instant animations
         }
 
         public Color ListBoxBackgroundColor { get; set; } = Color.Black;
@@ -45,6 +46,7 @@ namespace TSMapEditor.UI
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorGraphics = editorGraphics;
+            InputPassthrough = true;
         }
 
         public event EventHandler RenderResolutionChanged;
@@ -579,6 +581,12 @@ namespace TSMapEditor.UI
                 if (selectedControl is XNATextBox || selectedControl is XNAListBox)
                     return;
             }
+
+            // Send the key for the map UI. If there is a cursor action active, this allows
+            // the cursor action to handle input first.
+            mapUI.HandleKeyDown(sender, e);
+            if (e.Handled)
+                return;
 
             // First, check for commands that match when all modifiers are fully considered
             // - for example, if there's two commands, one that is activated by pressing A,

@@ -125,7 +125,7 @@ namespace TSMapEditor.UI.CursorActions
             {
                 MGTMPImage image = Tile.TMPImages[i];
 
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = adjustedCellCoords.X + i % Tile.Width;
@@ -159,7 +159,7 @@ namespace TSMapEditor.UI.CursorActions
                 {
                     MGTMPImage image = Tile.TMPImages[i];
 
-                    if (image.TmpImage == null)
+                    if (image == null)
                         continue;
 
                     int cx = adjustedCellCoords.X + (offset.X * Tile.Width) + i % Tile.Width;

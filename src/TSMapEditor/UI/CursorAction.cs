@@ -64,6 +64,8 @@ namespace TSMapEditor.UI
 
         public virtual bool OnlyUniqueCellEvents => true;
 
+        public virtual bool UseOnBridge => false;
+
         public abstract string GetName();
 
         protected Map Map => CursorActionTarget.Map;

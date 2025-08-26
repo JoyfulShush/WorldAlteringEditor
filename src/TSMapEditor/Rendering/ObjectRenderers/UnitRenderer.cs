@@ -55,6 +55,15 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         protected override float GetDepthAddition(Unit gameObject)
         {
+            if (gameObject.High)
+            {
+                // Add extra depth to the unit so it is rendered above the bridge.
+                // Why are we adding exactly this much?
+                // Because it happened to work - this is at least currently no smart mathematical formula.
+                int height = Constants.CellSizeY * 7;
+                return ((height / (float)Map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace) + (4 * Constants.DepthRenderStep) + Constants.DepthEpsilon * ObjectDepthAdjustments.Vehicle;
+            }
+
             return Constants.DepthEpsilon * ObjectDepthAdjustments.Vehicle;
         }
 
@@ -145,12 +154,12 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             VoxelModel model, bool affectedByLighting, float depthAddition,
             bool compensateForBottomGap)
         {
-            var unitTile = RenderDependencies.Map.GetTile(gameObject.Position.X, gameObject.Position.Y);
+            var unitTile = Map.GetTile(gameObject.Position.X, gameObject.Position.Y);
 
             if (unitTile == null)
                 return;
 
-            ITileImage tile = RenderDependencies.Map.TheaterInstance.GetTile(unitTile.TileIndex);
+            ITileImage tile = Map.TheaterInstance.GetTile(unitTile.TileIndex);
             ISubTileImage subTile = tile.GetSubTile(unitTile.SubTileIndex);
             RampType ramp = subTile.TmpImage.RampType;
 

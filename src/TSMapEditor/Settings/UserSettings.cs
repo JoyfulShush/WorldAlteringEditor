@@ -28,6 +28,7 @@ namespace TSMapEditor.Settings
                 RenderScale,
                 Borderless,
                 FullscreenWindowed,
+                ConserveVRAM,
 
                 ScrollRate,
                 MapWideOverlayOpacity,
@@ -82,6 +83,7 @@ namespace TSMapEditor.Settings
         public DoubleSetting RenderScale = new DoubleSetting(Display, "RenderScale", 1.0);
         public BoolSetting Borderless = new BoolSetting(Display, "Borderless", false);
         public BoolSetting FullscreenWindowed = new BoolSetting(Display, "FullscreenWindowed", false);
+        public BoolSetting ConserveVRAM = new BoolSetting(Display, "ConserveVRAM", false);
 
         public IntSetting ScrollRate = new IntSetting(MapView, nameof(ScrollRate), 15);
         public IntSetting MapWideOverlayOpacity = new IntSetting(MapView, "MapWideOverlayOpacity", 50);

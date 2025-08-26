@@ -10,14 +10,14 @@ namespace TSMapEditor.Rendering
     public struct ObjectSpriteEntry
     {
         public Texture2D PaletteTexture; // 8 bytes
-        public Texture2D Texture;        // 16 bytes
-        public Rectangle DrawingBounds;        // 24 bytes
-        public Color Color;              // 28 bytes
-        public bool UseRemap;            // 29 bytes
-        public bool UseShadow;           // 30 bytes
-        public float Depth;              // 34 bytes
+        public PositionedTexture Texture;// 16 bytes
+        public Rectangle DrawingBounds;  // 32 bytes
+        public Color Color;              // 36 bytes
+        public bool UseRemap;            // 37 bytes
+        public bool UseShadow;           // 38 bytes
+        public float Depth;              // 42 bytes
 
-        public ObjectSpriteEntry(Texture2D paletteTexture, Texture2D texture, Rectangle drawingBounds, Color color, bool useRemap, bool useShadow, float depth)
+        public ObjectSpriteEntry(Texture2D paletteTexture, PositionedTexture texture, Rectangle drawingBounds,Color color, bool useRemap, bool useShadow, float depth)
         {
             PaletteTexture = paletteTexture;
             Texture = texture;
@@ -31,12 +31,12 @@ namespace TSMapEditor.Rendering
 
     public struct ObjectDetailEntry
     {
-        public Texture2D Texture;
+        public PositionedTexture Texture;
         public Rectangle DrawingBounds;
         public Color Color;
         public float Depth;
 
-        public ObjectDetailEntry(Texture2D texture, Rectangle drawingBounds, Color color, float depth)
+        public ObjectDetailEntry(PositionedTexture texture, Rectangle drawingBounds, Color color, float depth)
         {
             Texture = texture;
             DrawingBounds = drawingBounds;
@@ -47,11 +47,11 @@ namespace TSMapEditor.Rendering
 
     public struct ShadowEntry
     {
-        public Texture2D Texture;
+        public PositionedTexture Texture;
         public Rectangle DrawingBounds;
         public float Depth;
 
-        public ShadowEntry(Texture2D texture, Rectangle drawingBounds, float depth)
+        public ShadowEntry(PositionedTexture texture, Rectangle drawingBounds, float depth)
         {
             Texture = texture;
             DrawingBounds = drawingBounds;
@@ -110,7 +110,7 @@ namespace TSMapEditor.Rendering
 
         public void AddGraphicsEntry(in ObjectSpriteEntry entry)
         {
-            if (entry.Texture == null)
+            if (entry.Texture == null || entry.Texture.Texture == null)
                 throw new ArgumentNullException(nameof(entry));
 
             // Shadows are handled separately

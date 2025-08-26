@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -26,7 +27,7 @@ namespace TSMapEditor.UI.Controls
         /// to clean up event handlers when the window controller
         /// for a session is cleaned.
         /// </summary>
-        public EventHandler FocusSwitchEventHandler { get; set; }
+        public EventHandler<InputEventArgs> FocusSwitchEventHandler { get; set; }
 
         protected bool CanBeMoved { get; set; } = true;
 
@@ -55,12 +56,6 @@ namespace TSMapEditor.UI.Controls
             WindowManager.RenderResolutionChanged -= WindowManager_RenderResolutionChanged;
 
             base.Kill();
-        }
-
-        private void CloseButton_LeftClick(object sender, EventArgs e)
-        {
-            Hide();
-            Closed?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -118,7 +113,10 @@ namespace TSMapEditor.UI.Controls
             base.Update(gameTime);
 
             if (Alpha <= 0f && AlphaRate < 0.0f)
+            {
+                Closed?.Invoke(this, EventArgs.Empty);
                 Disable();
+            }
 
             if (IsDragged)
             {

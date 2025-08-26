@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using TSMapEditor.CCEngine;
+using TSMapEditor.Extensions;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
 using TSMapEditor.Models.Enums;
@@ -801,40 +803,62 @@ namespace TSMapEditor
             return score;
         }
 
-        /// <summary>
-        /// Performs a fuzzy search on a list of items and returns a list of results with their scores.
-        /// Items are filtered by a minimum score and optionally checked for partial matches.
-        /// </summary>
-        /// <typeparam name="T">The type of items in the list.</typeparam>
-        /// <param name="searchString">The string to search for.</param>
-        /// <param name="itemsList">The list of items to search through.</param>
-        /// <param name="extractTextFromItem">A function to extract the name or relevant representation of an item.</param>
-        /// <param name="minimumScore">The minimum score required for an item to be included in the results.</param>
-        /// <param name="checkParts">Whether to check multiple parts separated by a space. Useful for texts that has ININame or ID, followed by the object name.</param>
-        /// <returns>A list of fuzzy search results, each containing an item and a score.
-        public static List<FuzzySearchItem<T>> FuzzySearch<T>(string searchString, List<T> itemsList, Func<T, string> extractTextFromItem, int minimumScore, bool checkParts)
+		/// <summary>
+		/// Performs a fuzzy search on a list of items and returns a list of results with their scores.
+		/// Items are filtered by a minimum score and optionally checked for partial matches.
+		/// </summary>
+		/// <typeparam name="T">The type of items in the list.</typeparam>
+		/// <param name="searchString">The string to search for.</param>
+		/// <param name="itemsList">The list of items to search through.</param>
+		/// <param name="extractTextFromItem">A function to extract the name or relevant representation of an item.</param>
+		/// <param name="minimumScore">The minimum score required for an item to be included in the results.</param>
+		/// <param name="checkParts">Whether to check multiple parts separated by a space. Useful for texts that has ININame or ID, followed by the object name.</param>
+		/// <returns>A list of fuzzy search results, each containing an item and a score.
+		public static List<FuzzySearchItem<T>> FuzzySearch<T>(string searchString, List<T> itemsList, Func<T, string> extractTextFromItem, int minimumScore, bool checkParts)
+		{
+			searchString = searchString.ToLowerInvariant();
+
+			if (string.IsNullOrWhiteSpace(searchString))
+				return itemsList.Select(item => new FuzzySearchItem<T>(item, 100)).ToList();
+
+			var results = itemsList
+				.Select(item =>
+				{
+					string itemText = extractTextFromItem(item);
+
+					if (itemText == Constants.NoneValue1 || itemText == Constants.NoneValue2)
+						return new FuzzySearchItem<T>(item, 0);
+
+					int score = CalculateFuzzySearchScore(searchString, itemText, checkParts);
+					return new FuzzySearchItem<T>(item, score);
+				})
+				.Where(item => item.Score >= minimumScore)
+				.OrderByDescending(item => item.Score)
+				.ToList();
+
+			return results;
+		}
+		
+        public static IniFile ReadConfigINI(string path)
+		{
+			string customPath = Path.Combine(Environment.CurrentDirectory, "Config", path);
+			string defaultPath = Path.Combine(Environment.CurrentDirectory, "Config", "Default", path);
+
+			if (File.Exists(customPath))
+				return new IniFile(customPath);
+
+			return new IniFile(defaultPath);
+		}
+
+        public static IniFileEx ReadConfigINIEx(string path, CCFileManager fileManager)
         {
-            searchString = searchString.ToLowerInvariant();
+            string customPath = Path.Combine(Environment.CurrentDirectory, "Config", path);
+            string defaultPath = Path.Combine(Environment.CurrentDirectory, "Config", "Default", path);
 
-            if (string.IsNullOrWhiteSpace(searchString))
-                return itemsList.Select(item => new FuzzySearchItem<T>(item, 100)).ToList();
+            if (File.Exists(customPath))
+                return new IniFileEx(customPath, fileManager);
 
-            var results = itemsList
-                .Select(item =>
-                {
-                    string itemText = extractTextFromItem(item);
-
-                    if (itemText == Constants.NoneValue1 || itemText == Constants.NoneValue2)
-                        return new FuzzySearchItem<T>(item, 0);
-
-                    int score = CalculateFuzzySearchScore(searchString, itemText, checkParts);
-                    return new FuzzySearchItem<T>(item, score);
-                })
-                .Where(item => item.Score >= minimumScore)
-                .OrderByDescending(item => item.Score)
-                .ToList();
-
-            return results;
+            return new IniFileEx(defaultPath, fileManager);
         }
     }
 }

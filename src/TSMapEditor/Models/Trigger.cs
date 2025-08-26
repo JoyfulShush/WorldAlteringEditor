@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Models.Enums;
 
@@ -114,8 +115,11 @@ namespace TSMapEditor.Models
                 for (int i = 0; i < TriggerCondition.DEF_PARAM_COUNT; i++)
                     conditionDataString.Append(condition.ParamToString(i));
 
-                if (editorConfig.TriggerEventTypes[condition.ConditionIndex].UsesP3)
-                    conditionDataString.Append(condition.ParamToString(TriggerCondition.MAX_PARAM_COUNT - 1));
+                var triggerEventType = editorConfig.TriggerEventTypes[condition.ConditionIndex];
+                for (int i = 0; i < triggerEventType.AdditionalParams; i++)
+                {
+                    conditionDataString.Append(condition.ParamToString(TriggerCondition.DEF_PARAM_COUNT + i));
+                }
             }
 
             iniFile.SetStringValue("Events", ID, conditionDataString.ToString());
@@ -179,19 +183,20 @@ namespace TSMapEditor.Models
             for (int i = 0; i < eventCount; i++)
             {
                 int conditionIndex = Conversions.IntFromString(dataArray[startIndex], -1);
-                if (conditionIndex >= editorConfig.TriggerEventTypes.Count)
+                if (!editorConfig.TriggerEventTypes.TryGetValue(conditionIndex, out TriggerEventType triggerEventType))
                 {
                     throw new INIConfigException("The map contains a trigger event that is not defined in the editor's config. To prevent data loss, the map cannot be loaded. Event index: " + conditionIndex);
                 }
 
-                bool usesP3 = editorConfig.TriggerEventTypes[conditionIndex].UsesP3;
+                int additionalParams = triggerEventType.AdditionalParams;
 
-                var triggerEvent = TriggerCondition.ParseFromArray(dataArray, startIndex, usesP3);
+                var triggerEvent = TriggerCondition.ParseFromArray(dataArray, startIndex, additionalParams);
+
                 if (triggerEvent == null)
                     return;
 
-                if (usesP3)
-                    startIndex += TriggerCondition.MAX_PARAM_COUNT + 1;
+                if (additionalParams > 0)
+                    startIndex += TriggerCondition.DEF_PARAM_COUNT + additionalParams + 1;
                 else
                     startIndex += TriggerCondition.DEF_PARAM_COUNT + 1;
 

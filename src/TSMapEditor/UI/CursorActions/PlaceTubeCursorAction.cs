@@ -241,14 +241,18 @@ namespace TSMapEditor.UI.CursorActions
                 points.Add(cellCoords);
                 RefreshTube();
                 TubeRefreshHelper.MapViewRefreshTube(tube, CursorActionTarget.MutationTarget);
-                lastClickedCell = cellCoords;
-                lastClickedCellDateTime = DateTime.Now;
             }
             else
             {
                 if (points.Count > 1 && lastClickedCell == cellCoords && DateTime.Now - lastClickedCellDateTime < TimeSpan.FromSeconds(DoubleClickTime))
+                {
                     ConfirmTube();
+                    return;
+                }
             }
+
+            lastClickedCell = cellCoords;
+            lastClickedCellDateTime = DateTime.Now;
         }
     }
 }
