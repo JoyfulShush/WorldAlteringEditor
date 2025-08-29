@@ -312,7 +312,7 @@ namespace TSMapEditor.UI
                 return;
 
             textRenderer.AddTextLine(new XNATextPart("Terrain Object: ", Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart($"{terrainObject.TerrainType.Name} (${terrainObject.TerrainType.ININame})", Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart($"{terrainObject.TerrainType.Name} ({terrainObject.TerrainType.ININame})", Constants.UIDefaultFont, Color.White));
         }
     }
 }

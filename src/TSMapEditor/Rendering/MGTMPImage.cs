@@ -21,28 +21,35 @@ namespace TSMapEditor.Rendering
     public class MGTMPImage : ISubTileImage
     {
         /// <summary>
-        /// Creates a new MonoGame TMP image and copies its color data to a working buffer for a sprite sheet.
+        /// Creates a new MonoGame TMP image and copies its color data to a sprite sheet preparation object.
         /// </summary>
         /// <param name="tmpImage">The single-cell TMP image for this MonoGame TMP image instance.</param>
-        /// <param name="bufferWidth">The width of the working buffer.</param>
-        /// <param name="megaTextureData">The working buffer.</param>
-        /// <param name="megaTextureX">The X coordinate where this tile's image should be copied into the buffer.</param>
-        /// <param name="megaTextureY">The Y coordinate where this tile's image should be copied into the buffer.</param>
+        /// <param name="megaTexturePreparation">Mega texture preparation object.</param>
         /// <param name="palette">The palette to use for this image.</param>
         /// <param name="tileSetId">Index of the tile set of this image within all TileSets. Only tracked for convenience.</param>
-        public MGTMPImage(TmpImage tmpImage, int bufferWidth, byte[] megaTextureData, int megaTextureX, int megaTextureY, XNAPalette palette, int tileSetId)
+        public MGTMPImage(TmpImage tmpImage, GraphicsPreparationClass graphicsPreparationClass, XNAPalette palette, int tileSetId)
         {
             if (tmpImage != null)
             {
                 TmpImage = tmpImage;
                 Palette = palette;
-                RenderToBuffer(bufferWidth, megaTextureData, megaTextureX, megaTextureY, tmpImage);
-                SourceRectangle = new Rectangle(megaTextureX, megaTextureY, Constants.CellSizeX, Constants.CellSizeY);
+                byte[] data = RenderToRectangularBuffer(tmpImage);
 
-                if (tmpImage.ExtraGraphicsColorData != null && tmpImage.ExtraGraphicsColorData.Length > 0)
+                int extraWidth = tmpImage.HasExtraData() ? (int)tmpImage.ExtraWidth : 0;
+                int extraHeight = tmpImage.HasExtraData() ? (int)tmpImage.ExtraHeight : 0;
+                if (!graphicsPreparationClass.CanFitTexture(Constants.CellSizeX + extraWidth, Constants.CellSizeY + extraHeight))
                 {
-                    RenderExtraDataToBuffer(bufferWidth, megaTextureData, megaTextureX + Constants.CellSizeX, megaTextureY, TmpImage);
-                    ExtraSourceRectangle = new Rectangle(megaTextureX + Constants.CellSizeX, megaTextureY, (int)tmpImage.ExtraWidth, (int)tmpImage.ExtraHeight);
+                    graphicsPreparationClass.GenerateNewSpriteSheetWorkingObject();
+                }
+
+                Point offset = graphicsPreparationClass.AddImage(Constants.CellSizeX, Constants.CellSizeY, data, this);
+                SourceRectangle = new Rectangle(offset.X, offset.Y, Constants.CellSizeX, Constants.CellSizeY);
+
+                if (tmpImage.HasExtraData())
+                {
+                    byte[] extraData = RenderExtraDataToBuffer(tmpImage);
+                    offset = graphicsPreparationClass.AddImage(extraWidth, extraHeight, extraData, null); // don't add this object to the meta twice
+                    ExtraSourceRectangle = new Rectangle(offset.X, offset.Y, extraWidth, extraHeight);
                 }
             }
 
@@ -53,42 +60,48 @@ namespace TSMapEditor.Rendering
         /// The mega-texture where this sub-tile's texture is stored.
         /// </summary>
         public Texture2D Texture { get; set; }
-        public Rectangle SourceRectangle { get; }
-        public Rectangle ExtraSourceRectangle { get; }
+        public Rectangle SourceRectangle { get; set; }
+        public Rectangle ExtraSourceRectangle { get; set; }
 
         public int TileSetId { get; }
         public TmpImage TmpImage { get; private set; }
         private XNAPalette Palette { get; set; }
 
-        private void RenderToBuffer(int bigtexWidth, byte[] colorData, int bigtexx, int bigtexy, TmpImage image)
+        private byte[] RenderToRectangularBuffer(TmpImage image)
         {
+            byte[] colorData = new byte[Constants.CellSizeX * Constants.CellSizeY];
+
             int tmpPixelIndex = 0;
             int w = 4;
-            for (int i = 0; i < Constants.CellSizeY; i++)
+            for (int y = 0; y < Constants.CellSizeY; y++)
             {
                 int xPos = Constants.CellSizeY - (w / 2);
                 for (int x = 0; x < w; x++)
                 {
                     if (image.ColorData[tmpPixelIndex] > 0)
                     {
-                        colorData[(bigtexy + i) * bigtexWidth + xPos + bigtexx] = image.ColorData[tmpPixelIndex];
+                        colorData[y * Constants.CellSizeX + xPos] = image.ColorData[tmpPixelIndex];
                     }
 
                     xPos++;
                     tmpPixelIndex++;
                 }
 
-                if (i < (Constants.CellSizeY / 2) - 1)
+                if (y < (Constants.CellSizeY / 2) - 1)
                     w += 4;
                 else
                     w -= 4;
             }
+
+            return colorData;
         }
 
-        private void RenderExtraDataToBuffer(int bigtexWidth, byte[] colorData, int bigtexx, int bigtexy, TmpImage image)
+        private byte[] RenderExtraDataToBuffer(TmpImage image)
         {
             int width = (int)image.ExtraWidth;
             int height = (int)image.ExtraHeight;
+
+            byte[] colorData = new byte[width * height];
 
             for (int y = 0; y < height; y++)
             {
@@ -98,10 +111,12 @@ namespace TSMapEditor.Rendering
 
                     if (image.ExtraGraphicsColorData[tmpExtraPixelIndex] > 0)
                     {
-                        colorData[(bigtexy + y) * bigtexWidth + bigtexx + x] = image.ExtraGraphicsColorData[tmpExtraPixelIndex];
+                        colorData[y * width + x] = image.ExtraGraphicsColorData[tmpExtraPixelIndex];
                     }
                 }
             }
+
+            return colorData;
         }
 
         private Texture2D TextureFromTmpImage_Paletted(GraphicsDevice graphicsDevice, TmpImage image)

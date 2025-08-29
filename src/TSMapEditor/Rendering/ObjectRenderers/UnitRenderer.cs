@@ -27,15 +27,15 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         }
 
         Rectangle lowestDrawRectangle;
-        float cachedDepth;
+        DepthRectangle cachedDepth;
 
         public override void InitDrawForObject(Unit gameObject)
         {
             lowestDrawRectangle = Rectangle.Empty;
-            cachedDepth = -1f;
+            cachedDepth = new DepthRectangle(-1f, -1f);
         }
 
-        protected override float GetDepthFromPosition(Unit gameObject, Rectangle drawingBounds)
+        protected override DepthRectangle GetDepthFromPosition(Unit gameObject, Rectangle drawingBounds)
         {
             // Because vehicles can include turrets, the default implementation
             // is not suitable. For example, bodies can be rendered southward of turrets
@@ -165,7 +165,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             DrawVoxelModel(gameObject, model,
                 gameObject.Facing, ramp, Color.White, true, gameObject.GetRemapColor(),
-                affectedByLighting, drawPoint, depthAddition, compensateForBottomGap);
+                affectedByLighting, drawPoint, depthAddition);
         }
     }
 }

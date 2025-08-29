@@ -91,12 +91,27 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return (Constants.DepthEpsilon * ObjectDepthAdjustments.Overlay) + ((tile.Level + Constants.HighBridgeHeight) * Constants.CellHeight / (float)Map.HeightInPixelsWithCellHeight);
         }
 
-        protected override float GetShadowDepthFromPosition(Overlay gameObject, Rectangle drawingBounds)
+        protected override DepthRectangle GetShadowDepthFromPosition(Overlay gameObject, Rectangle drawingBounds)
         {
             // Hack to prevent high bridge shadows from overlapping terrain on higher ground on bridge ends
             if (gameObject.OverlayType.HighBridgeDirection != BridgeDirection.None)
             {
-                return base.GetShadowDepthFromPosition(gameObject, new Rectangle(drawingBounds.X, drawingBounds.Y - (Constants.CellSizeY * 4), drawingBounds.Width, drawingBounds.Height));
+                var cell = Map.GetTile(gameObject.Position);
+                int y = drawingBounds.Y;
+                int bottom = drawingBounds.Bottom;
+                int yReference = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map).Y;
+                if (cell != null && !RenderDependencies.EditorState.Is2DMode)
+                {
+                    y += cell.Level * Constants.CellHeight;
+                    bottom += cell.Level * Constants.CellHeight;
+                }
+
+                int reduction = Constants.CellHeight * 5;
+
+                float depthTop = CellMath.GetDepthForPixel(y - reduction, yReference - reduction, cell, Map);
+                float depthBottom = CellMath.GetDepthForPixel(bottom - reduction, yReference - reduction, cell, Map);
+
+                return new DepthRectangle(depthTop, depthBottom);
             }
 
             return base.GetShadowDepthFromPosition(gameObject, drawingBounds);

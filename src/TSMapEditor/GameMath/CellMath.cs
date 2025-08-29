@@ -237,5 +237,46 @@ namespace TSMapEditor.GameMath
             return ((CellTopLeftPointFromCellCoords(cellCoords, map).Y + Constants.CellSizeY) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
                 (height * Constants.DepthRenderStep);
         }
+
+        public static float GetDepthForCellTop(MapTile cell, Map map)
+        {
+            return ((CellTopLeftPointFromCellCoords(cell.CoordsToPoint(), map).Y) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForCellBottom(MapTile cell, Map map)
+        {
+            return ((CellTopLeftPointFromCellCoords(cell.CoordsToPoint(), map).Y) / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixelInCube(int y, int x, int topYReference, MapTile cell, Map map)
+        {
+            // This is a graphic that grows upwards -> increase depth
+            if (y < topYReference)
+                y = topYReference + (topYReference - y);
+
+            y -= x;
+
+            return (y / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                ((cell != null ? cell.Level : Constants.MaxMapHeightLevel) * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixel(int y, int topYReference, MapTile cell, Map map)
+        {
+            // This is a graphic that grows upwards -> increase depth
+            if (y < topYReference)
+                y = topYReference + (topYReference - y);
+
+            return (y / (float)map.HeightInPixelsWithCellHeight) * Constants.DownwardsDepthRenderSpace +
+                (cell.Level * Constants.DepthRenderStep);
+        }
+
+        public static float GetDepthForPixel(int y, Point2D cellCoords, Map map)
+        {
+            var cell = map.GetTile(cellCoords);
+            int topYReference = CellTopLeftPointFromCellCoords(cellCoords, map).Y;
+            return GetDepthForPixel(y, topYReference, cell, map);
+        }
     }
 }

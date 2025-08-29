@@ -163,7 +163,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.TMPImages.Length; i++)
             {
                 MGTMPImage image = tile.TMPImages[i];
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = targetCellCoords.X + i % tile.Width;
