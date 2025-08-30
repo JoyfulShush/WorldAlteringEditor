@@ -255,6 +255,7 @@ namespace TSMapEditor.UI.Windows
 
             EditTaskForce(editedTaskForce);
             lbUnitEntries.SelectedIndex = lbUnitEntries.Items.Count - 1;
+            WindowManager.SelectedControl = tbSearchUnit;
         }
 
         private void BtnCloneTaskForce_LeftClick(object sender, System.EventArgs e)
