@@ -1143,13 +1143,19 @@ namespace TSMapEditor.Rendering
                 return;
             }
 
-            const float opacity = 0.35f;
+            const float opacity = 0.5f;
 
             ShapeImage bibGraphics = TheaterGraphics.BuildingBibTextures[graphicalBaseNode.BuildingType.Index];
             ShapeImage graphics = TheaterGraphics.BuildingTextures[graphicalBaseNode.BuildingType.Index];
             Color replacementColor = Color.DarkBlue;
             string iniName = graphicalBaseNode.BuildingType.ININame;
-            Color remapColor = (graphicalBaseNode.BuildingType.ArtConfig.Remapable ? graphicalBaseNode.Owner.XNAColor : Color.White) * opacity;
+            Color remapColor;
+            Color nonRemapColor = new Color(128, 128, 128, 255);
+
+            if (!graphicalBaseNode.BuildingType.ArtConfig.Remapable)
+                remapColor = nonRemapColor;
+            else
+                remapColor = new Color((byte)graphicalBaseNode.Owner.XNAColor.R, (byte)graphicalBaseNode.Owner.XNAColor.G, (byte)graphicalBaseNode.Owner.XNAColor.B, (byte)255) * opacity;
 
             int yDrawOffset = Constants.CellSizeY / -2;
             int frameIndex = 0;
@@ -1180,14 +1186,19 @@ namespace TSMapEditor.Rendering
                     objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(bibGraphics.GetPaletteTexture(), bibFrame,
                         new Rectangle(bibFinalDrawPointX, bibFinalDrawPointY,
                         bibFrame.SourceRectangle.Width, bibFrame.SourceRectangle.Height),
-                        remapColor, false, false, new DepthRectangle(1f, 1f)));
+                        nonRemapColor * opacity, false, false, new DepthRectangle(1f, 1f)));
 
                     if (bibGraphics.HasRemapFrames())
                     {
-                        objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(bibGraphics.GetPaletteTexture(), bibGraphics.GetRemapFrame(0),
-                            new Rectangle(bibFinalDrawPointX, bibFinalDrawPointY,
-                            bibFrame.SourceRectangle.Width, bibFrame.SourceRectangle.Height),
-                            remapColor, true, false, new DepthRectangle(1f, 1f)));
+                        var remapFrame = bibGraphics.GetRemapFrame(0);
+
+                        if (remapFrame != null)
+                        {
+                            objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(bibGraphics.GetPaletteTexture(), bibGraphics.GetRemapFrame(0),
+                                new Rectangle(bibFinalDrawPointX, bibFinalDrawPointY,
+                                bibFrame.SourceRectangle.Width, bibFrame.SourceRectangle.Height),
+                                remapColor, true, false, new DepthRectangle(1f, 1f)));
+                        }
                     }
                 }
             }
@@ -1205,12 +1216,17 @@ namespace TSMapEditor.Rendering
             int y = drawPoint.Y - frame.ShapeHeight / 2 + frame.OffsetY + Constants.CellSizeY / 2 + yDrawOffset;
             Rectangle drawRectangle = new Rectangle(x, y, frame.SourceRectangle.Width, frame.SourceRectangle.Height);
 
-            objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(graphics.GetPaletteTexture(), texture, frame.SourceRectangle, drawRectangle, remapColor, false, false, new DepthRectangle(1f, 1f)));
+            objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(graphics.GetPaletteTexture(), texture, frame.SourceRectangle, drawRectangle, nonRemapColor * opacity, false, false, new DepthRectangle(1f, 1f)));
 
             if (graphics.HasRemapFrames())
             {
-                objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(graphics.GetPaletteTexture(), graphics.GetRemapFrame(frameIndex).Texture, 
-                    graphics.GetRemapFrame(frameIndex).SourceRectangle, drawRectangle, remapColor, true, false, new DepthRectangle(1f, 1f)));
+                var remapFrame = graphics.GetRemapFrame(frameIndex);
+
+                if (remapFrame != null)
+                {
+                    objectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(graphics.GetPaletteTexture(), graphics.GetRemapFrame(frameIndex).Texture,
+                        graphics.GetRemapFrame(frameIndex).SourceRectangle, drawRectangle, remapColor, true, false, new DepthRectangle(1f, 1f)));
+                }
             }
 
             objectSpriteRecord.AddTextEntry(new TextEntry("#" + baseNodeIndex, baseNodeIndexColor, drawPoint));

@@ -131,43 +131,49 @@ namespace TSMapEditor.Rendering
                 if (frameInfo == null || frameData == null)
                     continue;
 
+                byte[] remapColorArray = null;
+                bool hasRemap = false;
+
+                if (remapable)
+                {
+                    remapColorArray = new byte[frameData.Length];
+
+                    // If the sprite is remapable, copy the remapped areas to the remap sprite data
+                    // and erase them from the non-remapped sprite data.
+                    // We do this because the remapped areas are pink by default, causing sprites'
+                    // team colors to "shift" towards pink if sprites are drawn as transparent
+                    // (for example, in base nodes) without erasing the remap data from the regular
+                    // sprite, since sprites are drawn so that the regular sprite is drawn first,
+                    // and the teamcolored sprite is layered on top of the regular sprite.
+
+                    // Also, we record whether the sprite actually has remap data at all - some
+                    // objects declare themselves as remapable, while actually having 0 remapable pixels.
+                    // We can save (V)RAM by not generating remap textures for those objects.
+                    for (int pixelIndex = 0; pixelIndex < frameData.Length; pixelIndex++)
+                    {
+                        byte b = frameData[pixelIndex];
+                        if (b >= 0x10 && b <= 0x1F)
+                        {
+                            remapColorArray[pixelIndex] = b;
+                            hasRemap = true;
+                            frameData[pixelIndex] = 0;
+                        }
+                    }
+                }
+
                 var positionedTexture = new PositionedTexture(shpFile.Width, shpFile.Height, frameInfo.XOffset, frameInfo.YOffset, null, Rectangle.Empty);
 
                 Point offset = graphicsPreparationObject.AddImage(frameInfo.Width, frameInfo.Height, frameData, positionedTexture);
                 positionedTexture.SourceRectangle = new Rectangle(offset.X, offset.Y, frameInfo.Width, frameInfo.Height);
                 Frames[i] = positionedTexture;
 
-                if (remapable)
+                if (hasRemap)
                 {
-                    byte[] remapColorArray = frameData.Select(b =>
-                    {
-                        if (b >= 0x10 && b <= 0x1F)
-                        {
-                            // This is a remap color
-                            return (byte)b;
-                        }
+                    var remapTexture = new PositionedTexture(shpFile.Width, shpFile.Height, frameInfo.XOffset, frameInfo.YOffset, null, Rectangle.Empty);
 
-                        return (byte)0;
-                    }).ToArray();
-
-                    bool hasRemap = false;
-                    for (int b = 0; b < remapColorArray.Length; b++)
-                    {
-                        if (remapColorArray[b] != 0)
-                        {
-                            hasRemap = true;
-                            break;
-                        }
-                    }
-
-                    if (hasRemap)
-                    {
-                        var remapTexture = new PositionedTexture(shpFile.Width, shpFile.Height, frameInfo.XOffset, frameInfo.YOffset, null, Rectangle.Empty);
-
-                        offset = graphicsPreparationObject.AddImage(frameInfo.Width, frameInfo.Height, remapColorArray, remapTexture);
-                        remapTexture.SourceRectangle = new Rectangle(offset.X, offset.Y, frameInfo.Width, frameInfo.Height);
-                        RemapFrames[i] = remapTexture;
-                    }
+                    offset = graphicsPreparationObject.AddImage(frameInfo.Width, frameInfo.Height, remapColorArray, remapTexture);
+                    remapTexture.SourceRectangle = new Rectangle(offset.X, offset.Y, frameInfo.Width, frameInfo.Height);
+                    RemapFrames[i] = remapTexture;
                 }
             }
         }
