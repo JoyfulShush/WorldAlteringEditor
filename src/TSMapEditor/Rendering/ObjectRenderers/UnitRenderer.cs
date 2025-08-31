@@ -35,24 +35,6 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             cachedDepth = new DepthRectangle(-1f, -1f);
         }
 
-        protected override DepthRectangle GetDepthFromPosition(Unit gameObject, Rectangle drawingBounds)
-        {
-            // Because vehicles can include turrets, the default implementation
-            // is not suitable. For example, bodies can be rendered southward of turrets
-            // facing north, leading the bodies to have higher depth and overlapping turrets.
-            //
-            // To fix this, we normalize everything to use the maximum depth based on the frame
-            // that is drawn southernmost.
-            if (lowestDrawRectangle.Bottom >= drawingBounds.Bottom)
-            {
-                return cachedDepth;
-            }
-
-            lowestDrawRectangle = drawingBounds;
-            cachedDepth = base.GetDepthFromPosition(gameObject, drawingBounds);
-            return cachedDepth;
-        }
-
         protected override float GetDepthAddition(Unit gameObject)
         {
             if (gameObject.High)
@@ -73,10 +55,9 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         {
             bool affectedByLighting = RenderDependencies.EditorState.IsLighting;
 
-            // We need to calculate depth earlier so it can also be used for potential turrets
             if (gameObject.UnitType.ArtConfig.Voxel)
             {
-                RenderVoxelModel(gameObject, drawPoint, drawParams.MainVoxel, affectedByLighting, 0, true);
+                RenderVoxelModel(gameObject, drawPoint, drawParams.MainVoxel, affectedByLighting, 0);
             }
             else
             {
@@ -103,18 +84,18 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 if (gameObject.Facing is > facingStartDrawAbove and <= facingEndDrawAbove)
                 {
                     if (gameObject.UnitType.ArtConfig.Voxel)
-                        RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.TurretVoxel, affectedByLighting, Constants.DepthEpsilon, true);
+                        RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.TurretVoxel, affectedByLighting, Constants.DepthEpsilon);
                     else
                         RenderTurretShape(gameObject, drawPoint, drawParams, Constants.DepthEpsilon);
                     
-                    RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.BarrelVoxel, affectedByLighting, Constants.DepthEpsilon * 2, true);
+                    RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.BarrelVoxel, affectedByLighting, Constants.DepthEpsilon * 2);
                 }
                 else
                 {
-                    RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.BarrelVoxel, affectedByLighting, Constants.DepthEpsilon, true);
+                    RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.BarrelVoxel, affectedByLighting, Constants.DepthEpsilon);
 
                     if (gameObject.UnitType.ArtConfig.Voxel)
-                        RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.TurretVoxel, affectedByLighting, Constants.DepthEpsilon * 2, true);
+                        RenderVoxelModel(gameObject, drawPoint + turretOffset, drawParams.TurretVoxel, affectedByLighting, Constants.DepthEpsilon * 2);
                     else
                         RenderTurretShape(gameObject,  drawPoint, drawParams, Constants.DepthEpsilon * 2);
                 }
@@ -151,8 +132,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
         }
 
         private void RenderVoxelModel(Unit gameObject, Point2D drawPoint, 
-            VoxelModel model, bool affectedByLighting, float depthAddition,
-            bool compensateForBottomGap)
+            VoxelModel model, bool affectedByLighting, float depthAddition)
         {
             var unitTile = Map.GetTile(gameObject.Position.X, gameObject.Position.Y);
 

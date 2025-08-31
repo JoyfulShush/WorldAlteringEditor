@@ -308,10 +308,10 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
             Rectangle drawingBounds = GetTextureDrawCoords(gameObject, shadowFrame, drawPoint);
 
-            float textureHeight = (regularFrame != null && regularFrame.Texture != null) ? (float)regularFrame.SourceRectangle.Height : shadowFrame.SourceRectangle.Height;
+            float textureHeight = (regularFrame != null && regularFrame.Texture != null) ? regularFrame.SourceRectangle.Height : shadowFrame.SourceRectangle.Height;
 
             DepthRectangle depth = GetShadowDepthFromPosition(gameObject, drawingBounds);
-            depth += GetDepthAddition(gameObject);
+            depth += Constants.DepthEpsilon * ObjectDepthAdjustments.Shadow;
 
             RenderDependencies.ObjectSpriteRecord.AddGraphicsEntry(new ObjectSpriteEntry(null, shadowFrame, drawingBounds, new Color(255, 255, 255, 128), false, true, depth));
         }
@@ -322,7 +322,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             var cell = Map.GetTile(gameObject.Position);
             int y = drawingBounds.Y;
             int bottom = drawingBounds.Bottom;
-            int yReference = CellMath.CellTopLeftPointFromCellCoords(gameObject.Position, Map).Y;
+            int yReference = CellMath.CellBottomPointFromCellCoords(gameObject.Position, Map);
             if (cell != null && !RenderDependencies.EditorState.Is2DMode)
             {
                 y += cell.Level * Constants.CellHeight;

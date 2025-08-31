@@ -8,6 +8,14 @@ namespace TSMapEditor.GameMath
     /// </summary>
     public static class CellMath
     {
+        public static int CellBottomPointFromCellCoords(Point2D cellCoords, Map map)
+        {
+            int cy = (cellCoords.X - 1) * (Constants.CellSizeY / 2);
+            int diff = map.Size.X - cellCoords.Y;
+            cy -= diff * (Constants.CellSizeY / 2);
+            return cy + Constants.MapYBaseline + Constants.CellSizeY;
+        }
+
         public static Point2D CellTopLeftPointFromCellCoords_NoBaseline(Point2D cellCoords, Map map)
         {
             int cx = (cellCoords.X - 1) * (Constants.CellSizeX / 2);

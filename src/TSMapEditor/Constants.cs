@@ -100,7 +100,7 @@ namespace TSMapEditor
         public const float RemapBrightenFactor = 1.25f;
 
         // The resolution of depth rendering. In other words, the minimum depth difference that is significant enough to have an impact on rendering order.
-        public const float DepthEpsilon = 1f / 333f;
+        public const float DepthEpsilon = 1e-5f;
 
         // Depth is between 0.0 and 1.0. How much of the scale is reserved for depth increasing as we go southwards on the map.
         public const float DownwardsDepthRenderSpace = 0.90f;

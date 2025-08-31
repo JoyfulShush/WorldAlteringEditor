@@ -17,12 +17,10 @@ namespace TSMapEditor.Rendering.ObjectRenderers
 
         private AnimRenderer buildingAnimRenderer;
 
-        Rectangle lowestDrawRectangle;
         DepthRectangle cachedDepth;
 
         public override void InitDrawForObject(Structure gameObject)
         {
-            lowestDrawRectangle = Rectangle.Empty;
             cachedDepth = new DepthRectangle(-1f, -1f);
         }
 
@@ -135,7 +133,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 bottom += heightReferenceCell.Level * Constants.CellHeight;
             }
 
-            int yReference = CellMath.CellTopLeftPointFromCellCoords(southernmostFoundationCellCoords, Map).Y;
+            int yReference = CellMath.CellBottomPointFromCellCoords(southernmostFoundationCellCoords, Map);
 
             float topDepth = CellMath.GetDepthForPixelInCube(y, 0, yReference, heightReferenceCell, Map);
             float bottomDepth = CellMath.GetDepthForPixelInCube(bottom, 0, yReference, heightReferenceCell, Map);
@@ -143,21 +141,41 @@ namespace TSMapEditor.Rendering.ObjectRenderers
             return new DepthRectangle(topDepth, bottomDepth);
         }
 
+        protected override DepthRectangle GetShadowDepthFromPosition(Structure gameObject, Rectangle drawingBounds)
+        {
+            // The default behaviour for shadows is to call GetDepthFromPosition,
+            // but the adjusted behaviour of GetDepthFromPosition intended for the rendering
+            // of turrets and other on-top-of-the-building objects results in shadows
+            // being too close to the "camera".
+
+            // This implementation fixes the issue by calculating depth from the building's
+            // lowest pixel (at the building's base), not from its highest pixel.
+
+            var southernmostFoundationCellCoords = gameObject.GetSouthernmostFoundationCell();
+            var heightReferenceCell = Map.GetTile(gameObject.Position);
+
+            // drawingBounds includes effect of height, which is undesirable for depth rendering
+            int bottom = drawingBounds.Bottom;
+
+            if (heightReferenceCell != null && !RenderDependencies.EditorState.Is2DMode)
+            {
+                bottom += heightReferenceCell.Level * Constants.CellHeight;
+            }
+
+            int yReference = CellMath.CellBottomPointFromCellCoords(southernmostFoundationCellCoords, Map);
+
+            float depthAtBottom = CellMath.GetDepthForPixelInCube(bottom, 0, yReference, heightReferenceCell, Map);
+            return new DepthRectangle(depthAtBottom, depthAtBottom);
+        }
+
         protected override DepthRectangle GetDepthFromPosition(Structure gameObject, Rectangle drawingBounds)
         {
-            // Because buildings can include turrets, the default implementation
+            // Because buildings have a customized depth implementation and can layer several
+            // sprites on top of each other, the default implementation
             // is not suitable. For example, bodies can be larger than turrets,
             // leading the bodies to have higher depth and overlapping turrets.
             //
-            // To fix this, we normalize everything to use the maximum depth based on the frame
-            // that is drawn southernmost.
-            if (lowestDrawRectangle.Bottom >= drawingBounds.Bottom)
-            {
-                return cachedDepth;
-            }
-
-            float foundationCenterXPoint = GetFoundationCenterXPoint(gameObject);
-            int distRight = (int)(drawingBounds.Width * (1.0f - foundationCenterXPoint));
+            // To fix this, we normalize everything to use the maximum depth.
 
             var southernmostFoundationCellCoords = gameObject.GetSouthernmostFoundationCell();
             var heightReferenceCell = Map.GetTile(gameObject.Position);
@@ -170,12 +188,15 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 y += heightReferenceCell.Level * Constants.CellHeight;
             }
 
-            int yReference = CellMath.CellTopLeftPointFromCellCoords(southernmostFoundationCellCoords, Map).Y;
+            int yReference = CellMath.CellBottomPointFromCellCoords(southernmostFoundationCellCoords, Map);
 
             // Used for drawing turrets and stuff, just return maximum depth since they must be on top of the building
             float maxDepth = CellMath.GetDepthForPixelInCube(y, 0, yReference, heightReferenceCell, Map);
+
+            if (maxDepth < cachedDepth.TopLeft)
+                return cachedDepth;
+
             cachedDepth = new DepthRectangle(maxDepth, maxDepth);
-            lowestDrawRectangle = drawingBounds;
 
             return cachedDepth;
         }
@@ -198,7 +219,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 bottom += heightReferenceCell.Level * Constants.CellHeight;
             }
 
-            int yReference = CellMath.CellTopLeftPointFromCellCoords(southernmostFoundationCellCoords, Map).Y;
+            int yReference = CellMath.CellBottomPointFromCellCoords(southernmostFoundationCellCoords, Map);
 
             float depthTopLeft = CellMath.GetDepthForPixelInCube(y, distLeft, yReference, heightReferenceCell, Map);
             float depthTopRight = CellMath.GetDepthForPixelInCube(y, 0, yReference, heightReferenceCell, Map);
@@ -234,7 +255,7 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 bottom += heightReferenceCell.Level * Constants.CellHeight;
             }
 
-            int yReference = CellMath.CellTopLeftPointFromCellCoords(southernmostFoundationCellCoords, Map).Y;
+            int yReference = CellMath.CellBottomPointFromCellCoords(southernmostFoundationCellCoords, Map);
 
             float depthTopLeft = CellMath.GetDepthForPixelInCube(y, 0, yReference, heightReferenceCell, Map);
             float depthTopRight = CellMath.GetDepthForPixelInCube(y, distRight, yReference, heightReferenceCell, Map);
@@ -504,11 +525,11 @@ namespace TSMapEditor.Rendering.ObjectRenderers
                 {
                     DrawVoxelModel(gameObject, drawParams.TurretVoxel,
                         gameObject.Facing, RampType.None, nonRemapColor, true, gameObject.GetRemapColor(),
-                        affectedByLighting, turretDrawPoint, Constants.DepthEpsilon * 2);
+                        affectedByLighting, turretDrawPoint, Constants.DepthEpsilon);
 
                     DrawVoxelModel(gameObject, drawParams.BarrelVoxel,
                         gameObject.Facing, RampType.None, nonRemapColor, true, gameObject.GetRemapColor(),
-                        affectedByLighting, turretDrawPoint, Constants.DepthEpsilon * 3);
+                        affectedByLighting, turretDrawPoint, Constants.DepthEpsilon * 3); // appears to need a 3x multiplier due to float imprecision
                 }
                 else
                 {

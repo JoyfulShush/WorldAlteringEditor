@@ -291,7 +291,7 @@ namespace TSMapEditor.Rendering
         {
             ClearRenderTargets();
 
-            mapRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color, DepthFormat.Depth24);
+            mapRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
             transparencyRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             transparencyPerFrameRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color);
             compositeRenderTarget = CreateFullMapRenderTarget(SurfaceFormat.Color, DepthFormat.Depth24);
@@ -347,7 +347,7 @@ namespace TSMapEditor.Rendering
                 {
                     DepthBufferEnable = true,
                     DepthBufferWriteEnable = true,
-                    DepthBufferFunction = CompareFunction.GreaterEqual,
+                    DepthBufferFunction = CompareFunction.Greater,
                     StencilEnable = true,
                     StencilFail = StencilOperation.Keep,
                     StencilPass = StencilOperation.Replace,
@@ -1031,7 +1031,7 @@ namespace TSMapEditor.Rendering
             if (objectSpriteRecord.LineEntries.Count > 0)
             {
                 SetPaletteEffectParams(palettedColorDrawEffect, null, false, false, false);
-                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, null, noDepthWriting ? depthReadStencilState : objectRenderStencilState, null, palettedColorDrawEffect));
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, noDepthWriting ? depthReadStencilState : objectRenderStencilState, null, palettedColorDrawEffect));
 
                 for (int i = 0; i < objectSpriteRecord.LineEntries.Count; i++)
                 {
@@ -1081,15 +1081,15 @@ namespace TSMapEditor.Rendering
             if (processShadows && objectSpriteRecord.ShadowEntries.Count > 0)
             {
                 SetPaletteEffectParams(palettedColorDrawEffect, null, false, false, true);
-                gameObjectBatcher.Begin(palettedColorDrawEffect, noDepthWriting ? depthReadStencilState : objectRenderStencilState);
-                GraphicsDevice.BlendState = BlendState.AlphaBlend;
+                gameObjectBatcher.Begin(palettedColorDrawEffect, shadowRenderStencilState);
+                // GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
                 for (int i = 0; i < objectSpriteRecord.ShadowEntries.Count; i++)
                 {
                     var spriteEntry = objectSpriteRecord.ShadowEntries[i];
 
-                    // It doesn't really matter what we give as color to the shadow. Shadows also have no use for the custom data
-                    gameObjectBatcher.Draw(spriteEntry.Texture, spriteEntry.DrawingBounds, spriteEntry.SourceRectangle, new Color(1.0f, 1.0f, 1.0f, 0f),
+                    // It doesn't really matter what we give as color to the shadow
+                    gameObjectBatcher.Draw(spriteEntry.Texture, spriteEntry.DrawingBounds, spriteEntry.SourceRectangle, Color.White,
                         spriteEntry.DepthRectangle);
                 }
 
@@ -1099,7 +1099,7 @@ namespace TSMapEditor.Rendering
             if (objectSpriteRecord.TextEntries.Count > 0)
             {
                 SetPaletteEffectParams(palettedColorDrawEffect, null, false, false, false);
-                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.Opaque, null, depthRenderStencilState, null, palettedColorDrawEffect));
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, depthRenderStencilState, null, palettedColorDrawEffect));
 
                 for (int i = 0; i < objectSpriteRecord.TextEntries.Count; i++)
                 {
