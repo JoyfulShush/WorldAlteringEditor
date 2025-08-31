@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TSMapEditor.Models;
 using TSMapEditor.Rendering;
 
@@ -99,7 +100,7 @@ namespace TSMapEditor.UI
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 2, 2);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
-            palettedDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedDrawNoDepth");
+            palettedDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedDrawNoDepth") ?? throw new FileNotFoundException("Shader not found: PalettedDrawNoDepth");
 
             KeyboardCommands.Instance.NextTile.Triggered += NextTile_Triggered;
             KeyboardCommands.Instance.PreviousTile.Triggered += PreviousTile_Triggered;
