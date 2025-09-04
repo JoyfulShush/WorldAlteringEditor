@@ -62,7 +62,7 @@ namespace TSMapEditor.UI.TopBar
             checkDistanceCursorAction = new CheckDistanceCursorAction(mapUI);
             checkDistancePathfindingCursorAction = new CheckDistancePathfindingCursorAction(mapUI);
             calculateTiberiumValueCursorAction = new CalculateTiberiumValueCursorAction(mapUI);
-            manageBaseNodesCursorAction = new ManageBaseNodesCursorAction(mapUI);
+            manageBaseNodesCursorAction = new ManageBaseNodesCursorAction(mapUI, WindowManager);
             placeVeinholeMonsterCursorAction = new PlaceVeinholeMonsterCursorAction(mapUI);
 
             selectBridgeWindow = new SelectBridgeWindow(WindowManager, map);
@@ -188,6 +188,8 @@ namespace TSMapEditor.UI.TopBar
             {
                 viewContextMenu.AddItem("Ion Storm Lighting", () => mapUI.EditorState.LightingPreviewState = LightingPreviewMode.IonStorm);
             }
+            viewContextMenu.AddItem(" ", null, () => false, null, null);
+            viewContextMenu.AddItem("Toggle Light From Disabled Buildings", () => mapUI.EditorState.LightDisabledLightSources = !mapUI.EditorState.LightDisabledLightSources);
             viewContextMenu.AddItem(" ", null, () => false, null, null);
             viewContextMenu.AddItem("Toggle Fullscreen Mode", () => KeyboardCommands.Instance.ToggleFullscreen.DoTrigger());
 

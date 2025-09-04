@@ -1399,7 +1399,7 @@ namespace TSMapEditor.Models
             return -1;
         }
 
-        public void RefreshCellLighting(LightingPreviewMode lightingPreviewMode, List<MapTile> affectedTiles)
+        public void RefreshCellLighting(LightingPreviewMode lightingPreviewMode, bool lightDisabledLightSources, List<MapTile> affectedTiles)
         {
             if (affectedTiles == null)
             {
@@ -1409,7 +1409,7 @@ namespace TSMapEditor.Models
                     return;
                 }
 
-                DoForAllValidTiles(cell => cell.RefreshLighting(Lighting, lightingPreviewMode));
+                DoForAllValidTiles(cell => cell.RefreshLighting(Lighting, lightingPreviewMode, lightDisabledLightSources));
             }
             else
             {
@@ -1419,7 +1419,7 @@ namespace TSMapEditor.Models
                     return;
                 }
 
-                affectedTiles.ForEach(cell => cell.RefreshLighting(Lighting, lightingPreviewMode));
+                affectedTiles.ForEach(cell => cell.RefreshLighting(Lighting, lightingPreviewMode, lightDisabledLightSources));
             }
         }
 

@@ -57,7 +57,7 @@ namespace TSMapEditor.Models
 
         public List<(Structure Source, double DistanceInLeptons)> LightSources { get; set; } = new();
 
-        public void RefreshLighting(Lighting lighting, LightingPreviewMode lightingPreviewMode)
+        public void RefreshLighting(Lighting lighting, LightingPreviewMode lightingPreviewMode, bool lightDisabledLightSources)
         {
             if (lightingPreviewMode == LightingPreviewMode.NoLighting)
             {
@@ -92,6 +92,9 @@ namespace TSMapEditor.Models
             {
                 // Sources with intensity of 0.0 don't get any light applied
                 if (source.Source.ObjectType.LightIntensity == 0.0)
+                    continue;
+
+                if (!lightDisabledLightSources && !source.Source.Powered)
                     continue;
 
                 var buildingType = source.Source.ObjectType;

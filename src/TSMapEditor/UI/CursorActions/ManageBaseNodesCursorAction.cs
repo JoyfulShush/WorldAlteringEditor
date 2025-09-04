@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using TSMapEditor.GameMath;
 using TSMapEditor.Misc;
 using TSMapEditor.Models;
+using TSMapEditor.UI.Windows;
 
 namespace TSMapEditor.UI.CursorActions
 {
@@ -14,9 +15,12 @@ namespace TSMapEditor.UI.CursorActions
     /// </summary>
     public class ManageBaseNodesCursorAction : CursorAction
     {
-        public ManageBaseNodesCursorAction(ICursorActionTarget cursorActionTarget) : base(cursorActionTarget)
+        public ManageBaseNodesCursorAction(ICursorActionTarget cursorActionTarget, WindowManager windowManager) : base(cursorActionTarget)
         {
+            this.windowManager = windowManager;
         }
+
+        private readonly WindowManager windowManager;
 
         private BaseNode draggedBaseNode = null;
         private bool isDragging = false;
@@ -196,21 +200,53 @@ namespace TSMapEditor.UI.CursorActions
                     break;
             }
 
-            if (!overlappingNodes)
+            if (overlappingNodes)
             {
-                // All OK, create the base node
-                var baseNode = new BaseNode(structureType.ININame, mapCell.Structures[0].Position);
-                owner.BaseNodes.Add(baseNode);
-                CursorActionTarget.Map.RegisterBaseNode(owner, baseNode);
+                EditorMessageBox.Show(windowManager, "Error", "The house already has one or more base nodes on the cell!", MessageBoxButtons.OK);
+                return;
             }
 
-            // If the user is holding Shift, then also delete the building
-            if (CursorActionTarget.WindowManager.Keyboard.IsShiftHeldDown())
+            // All OK, create the base node
+
+            bool removeBuilding = CursorActionTarget.WindowManager.Keyboard.IsShiftHeldDown();
+
+            if (mapCell.Structures[0].UpgradeCount > 0)
             {
-                CursorActionTarget.Map.RemoveBuildingsFrom(cellCoords);
+                var messageBox = EditorMessageBox.Show(windowManager, "Create node for upgrades?", "The building has one or more upgrades. Do you also want to create a base node for them?", MessageBoxButtons.YesNo);
+                messageBox.YesClickedAction = _ => CreateNode(mapCell.Structures[0], true, removeBuilding);
+                messageBox.NoClickedAction = _ => CreateNode(mapCell.Structures[0], false, removeBuilding);
+                return;
             }
 
-            CursorActionTarget.AddRefreshPoint(cellCoords);
+            CreateNode(mapCell.Structures[0], false, removeBuilding);
+        }
+
+        private void CreateNode(Structure structure, bool createForUpgrades, bool delete)
+        {
+            var baseNode = new BaseNode(structure.ObjectType.ININame, structure.Position);
+            structure.Owner.BaseNodes.Add(baseNode);
+            CursorActionTarget.Map.RegisterBaseNode(structure.Owner, baseNode);
+
+            if (createForUpgrades)
+            {
+                for (int i = 0; i < structure.Upgrades.Length; i++)
+                {
+                    var upgrade = structure.Upgrades[i];
+                    if (upgrade == null)
+                        continue;
+
+                    var upgradeBaseNode = new BaseNode(upgrade.ININame, structure.Position);
+                    structure.Owner.BaseNodes.Add(upgradeBaseNode);
+                    CursorActionTarget.Map.RegisterBaseNode(structure.Owner, upgradeBaseNode);
+                }
+            }
+
+            if (delete)
+            {
+                CursorActionTarget.Map.RemoveBuilding(structure);
+            }
+
+            CursorActionTarget.AddRefreshPoint(structure.Position);
         }
 
         private int GetBaseNodeIndexForHouse(House house, Point2D cellCoords)

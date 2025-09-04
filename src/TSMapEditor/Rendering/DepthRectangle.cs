@@ -19,6 +19,8 @@
 
         public DepthRectangle(float top, float bottom) : this(top, top, bottom, bottom) { }
 
+        public DepthRectangle(float value) : this(value, value, value, value) { }
+
         public static DepthRectangle operator+(DepthRectangle left, float right)
             => new DepthRectangle(left.TopLeft + right, left.TopRight + right, left.BottomLeft + right, left.BottomRight + right);
 

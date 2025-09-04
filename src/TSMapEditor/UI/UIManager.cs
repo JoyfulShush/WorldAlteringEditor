@@ -99,8 +99,6 @@ namespace TSMapEditor.UI
             // We should be the first control to subscribe to this event
             WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;
 
-            SetInitialDisplayMode();
-
             InitTheme();
 
             // Keyboard must be initialized before any other controls so it's properly usable
@@ -201,6 +199,8 @@ namespace TSMapEditor.UI
             WindowManager.SetMaximizeBox(true);
             WindowManager.GameClosing += WindowManager_GameClosing;
             KeyboardCommands.Instance.ToggleFullscreen.Triggered += ToggleFullscreen_Triggered;
+
+            SetInitialDisplayMode();
         }
 
         private void SetInitialDisplayMode()
@@ -228,6 +228,30 @@ namespace TSMapEditor.UI
             RefreshRenderResolution();
             WindowManager.CenterOnScreen();
             WindowManager.SetBorderlessMode(borderless);
+
+            foreach (var child in Children)
+            {
+                ProcessChildrenForInitialDisplayMode(child);
+            }
+        }
+
+        private void ProcessChildrenForInitialDisplayMode(XNAControl control)
+        {
+            if (control is DarkeningPanel darkeningPanel)
+            {
+                darkeningPanel.SetPositionAndSize();
+            }
+
+            if (control is INItializableWindow initializableWindow)
+            {
+                initializableWindow.RefreshLayout();
+
+                if (initializableWindow.CenterByDefault)
+                    initializableWindow.CenterOnParent();
+            }
+
+            foreach (var child in control.Children)
+                ProcessChildrenForInitialDisplayMode(child);
         }
 
         private void ToggleFullscreen_Triggered(object sender, EventArgs e)

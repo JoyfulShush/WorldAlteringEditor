@@ -248,12 +248,12 @@ namespace TSMapEditor.Rendering
         private void Map_CellLightingModified(object sender, CellLightingEventArgs e)
         {
             if (EditorState.IsLighting && EditorState.LightingPreviewState != LightingPreviewMode.NoLighting)
-                Map.RefreshCellLighting(EditorState.LightingPreviewState, e.AffectedTiles);
+                Map.RefreshCellLighting(EditorState.LightingPreviewState, EditorState.LightDisabledLightSources, e.AffectedTiles);
         }
 
         private void LightingChanged()
         {
-            Map.RefreshCellLighting(EditorState.IsLighting ? EditorState.LightingPreviewState : LightingPreviewMode.NoLighting, null);
+            Map.RefreshCellLighting(EditorState.IsLighting ? EditorState.LightingPreviewState : LightingPreviewMode.NoLighting, EditorState.LightDisabledLightSources, null);
 
             InvalidateMapForMinimap();
             if (Constants.VoxelsAffectedByLighting)
@@ -620,13 +620,29 @@ namespace TSMapEditor.Rendering
             }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Infantry) == RenderObjectFlags.Infantry)
-                tile.DoForAllInfantry(AddGameObjectToRender);
+            {
+                for (int i = 0; i < tile.Infantry.Length; i++)
+                {
+                    if (tile.Infantry[i] != null)
+                        AddGameObjectToRender(tile.Infantry[i]);
+                }
+            }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Aircraft) == RenderObjectFlags.Aircraft)
-                tile.DoForAllAircraft(AddGameObjectToRender);
+            {
+                for (int i = 0; i < tile.Aircraft.Count; i++)
+                {
+                    AddGameObjectToRender(tile.Aircraft[i]);
+                }
+            }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.Vehicles) == RenderObjectFlags.Vehicles)
-                tile.DoForAllVehicles(AddGameObjectToRender);
+            {
+                for (int i = 0; i < tile.Vehicles.Count; i++)
+                {
+                    AddGameObjectToRender(tile.Vehicles[i]);
+                }
+            }
 
             if ((EditorState.RenderObjectFlags & RenderObjectFlags.TerrainObjects) == RenderObjectFlags.TerrainObjects && tile.TerrainObject != null)
             {

@@ -20,6 +20,8 @@ namespace TSMapEditor.UI.TopBar
             PlaceWaypointCursorAction placeWaypointCursorAction,
             ICursorActionTarget cursorActionTarget) : base(windowManager)
         {
+            CenterByDefault = false;
+
             this.map = map;
             this.theaterGraphics = theaterGraphics;
             this.editorConfig = editorConfig;

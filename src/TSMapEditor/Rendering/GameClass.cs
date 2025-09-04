@@ -7,6 +7,9 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+#if WINDOWS
+using System.Windows.Forms;
+#endif
 using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Settings;
@@ -137,6 +140,26 @@ namespace TSMapEditor.Rendering
 
             menuWidth = (int)(menuWidth * dpi_ratio);
             menuHeight = (int)(menuHeight * dpi_ratio);
+
+#if WINDOWS
+            // If the user has a very large display, it's better to integer-upscale the main menu instead of DPI-scaling it.
+            const int margin = 100;
+            int scaleFactor = (int)dpi_ratio + 1;
+            while (true)
+            {
+                if (Screen.PrimaryScreen.Bounds.Width > (menuRenderWidth + margin) * scaleFactor &&
+                    Screen.PrimaryScreen.Bounds.Height > (menuRenderHeight + margin) * scaleFactor)
+                {
+                    menuWidth = menuRenderWidth * scaleFactor;
+                    menuHeight = menuRenderHeight * scaleFactor;
+                    scaleFactor++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+#endif
 
             windowManager.InitGraphicsMode(menuWidth, menuHeight, false);
 

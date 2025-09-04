@@ -19,7 +19,6 @@ namespace TSMapEditor.UI
 {
     public class MainMenu : EditorPanel
     {
-        private const string DirectoryPrefix = "<DIR> ";
         private const int BrowseButtonWidth = 70;
 
         public MainMenu(WindowManager windowManager) : base(windowManager)
@@ -184,9 +183,17 @@ namespace TSMapEditor.UI
             settingsPanel.Name = nameof(settingsPanel);
             settingsPanel.X = Width;
             settingsPanel.Y = Constants.UIEmptyTopSpace;
-            settingsPanel.Height = Height - Constants.UIEmptyTopSpace - Constants.UIEmptyBottomSpace;
+            settingsPanel.Height = lbFileList.Bottom - settingsPanel.Y;
             AddChild(settingsPanel);
             Width += settingsPanel.Width + Constants.UIEmptySideSpace;
+
+            var lblVersion = new XNALabel(WindowManager);
+            lblVersion.Name = nameof(lblVersion);
+            lblVersion.Text = "Version " + Constants.ReleaseVersion;
+            lblVersion.TextColor = UISettings.ActiveSettings.SubtleTextColor;
+            AddChild(lblVersion);
+            lblVersion.CenterOnControlVertically(btnLoad);
+            lblVersion.X = Width - lblVersion.Width - Constants.UIEmptySideSpace;
 
             string directoryPath = string.Empty;
 

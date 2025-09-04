@@ -28,6 +28,8 @@ namespace TSMapEditor.UI.Controls
 
         protected string SubDirectory { get; set; } = "Windows";
 
+        public bool CenterByDefault { get; set; } = true;
+
         public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
         {
             T child = FindChild<T>(Children, childName);
@@ -115,6 +117,9 @@ namespace TSMapEditor.UI.Controls
 
             if (btnClose != null)
                 btnClose.X = Width - btnClose.Width;
+
+            if (CenterByDefault)
+                CenterOnParent();
         }
 
         private bool ReadINIForControl(XNAControl control, bool isForLayout = false)
@@ -138,7 +143,7 @@ namespace TSMapEditor.UI.Controls
                     else
                     {
                         string childName = GetChildControlName(control, kvp.Value);
-                        var child = Children.First(cc => cc.Name == childName);
+                        var child = control.Children.First(cc => cc.Name == childName);
                         if (child == null)
                             throw new INIConfigException($"Processing {control.Name} in {nameof(INItializableWindow)}: Unable to find child control {kvp.Value} while calculating layout");
 
