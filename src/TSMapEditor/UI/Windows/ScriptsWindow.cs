@@ -363,8 +363,9 @@ namespace TSMapEditor.UI.Windows
 
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "ScriptReferences.Title", "Script References"),
-                    string.Format(Translate(this, "ScriptReferences.Description", "The selected Script \"{0}\" ({1}) is used by the following TeamTypes:{2}{2}{3}"), 
-                        editedScript.Name, editedScript.ININame, Environment.NewLine, stringBuilder.ToString()), 
+                    string.Format(Translate(this, "ScriptReferences.Description", "The selected Script \"{0}\" ({1}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine +
+                        "{2}"),
+                        editedScript.Name, editedScript.ININame, stringBuilder.ToString()),
                     MessageBoxButtons.OK);
             }
         }
@@ -390,8 +391,10 @@ namespace TSMapEditor.UI.Windows
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
                     Translate(this, "DeleteConfirm.Title", "Confirm"),
-                    string.Format(Translate(this, "DeleteConfirm.Description", "Are you sure you wish to delete '{0}'?{1}{1}You'll need to manually fix any TeamTypes using the Script.{1}{1}(You can hold Shift to skip this confirmation dialog.)"), 
-                        editedScript.Name, Environment.NewLine),
+                    string.Format(Translate(this, "DeleteConfirm.Description", "Are you sure you wish to delete '{0}'?" + Environment.NewLine + Environment.NewLine +
+                        "You'll need to manually fix any TeamTypes using the Script." + Environment.NewLine + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"), 
+                        editedScript.Name),
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteScript();
             }

@@ -453,8 +453,9 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager,
                     Translate(this, "NoTagFound.Title", "No tag found"),
-                    string.Format(Translate(this, "NoTagFound.Description", "The selected trigger '{0}' has no associated tag. As such, it cannot be attached to any objects.{1}{1}" +
-                    "This should never happen, have you modified the map with another editor?"), editedTrigger.Name, Environment.NewLine),
+                    string.Format(Translate(this, "NoTagFound.Description", "The selected trigger '{0}' has no associated tag. As such, it cannot be attached to any objects." + Environment.NewLine + Environment.NewLine +
+                        "This should never happen, have you modified the map with another editor?"), 
+                        editedTrigger.Name),
                     MessageBoxButtons.OK);
 
                 return;
@@ -632,12 +633,11 @@ namespace TSMapEditor.UI.Windows
         {
             var messageBox = EditorMessageBox.Show(WindowManager, 
                 Translate(this, "RegenerateIDsTitle", "Are you sure?"),
-                string.Format(Translate(this, "RegenerateIDsText", 
-                    "This will re-generate the internal IDs (01000000, 01000001 etc.) for ALL* of your map's script elements{0}" +
-                    "that start their ID with 0100 (all editor-generated script elements do).{0}{0}" +
-                    "It might make the list more sensible in case there are deleted triggers. However, this feature is{0}" +
-                    "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?"), 
-                    Environment.NewLine),
+                Translate(this, "RegenerateIDsText", 
+                    "This will re-generate the internal IDs (01000000, 01000001 etc.) for ALL* of your map's script elements" + Environment.NewLine +
+                    "that start their ID with 0100 (all editor-generated script elements do)." + Environment.NewLine + Environment.NewLine +
+                    "It might make the list more sensible in case there are deleted triggers. However, this feature is" + Environment.NewLine +
+                    "experimental and if it goes wrong, it can destroy all of your scripting. Do you want to continue?"),
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => map.RegenerateInternalIds();
@@ -652,14 +652,13 @@ namespace TSMapEditor.UI.Windows
 
             var messageBox = EditorMessageBox.Show(WindowManager,
                 Translate(this, "CloneForEasierDiffs.Title", "Are you sure?"),
-                string.Format(Translate(this, "CloneForEasierDiffs.Description", 
-                    "Cloning this trigger for easier difficulties will create duplicate instances{0}" +
-                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals{0}" +
-                    "with respective globals of easier difficulties.{0}{0}" +
-                    "In case the trigger references TeamTypes, duplicates of the TeamTypes{0}" +
-                    "and their TaskForces are also created for the easier-difficulty triggers.{0}{0}" +
-                    "No un-do is available. Do you want to continue?"), 
-                    Environment.NewLine),
+                Translate(this, "CloneForEasierDiffs.Description", 
+                    "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
+                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
+                    "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
+                    "In case the trigger references TeamTypes, duplicates of the TeamTypes" + Environment.NewLine +
+                    "and their TaskForces are also created for the easier-difficulty triggers." + Environment.NewLine + Environment.NewLine +
+                    "No un-do is available. Do you want to continue?"),
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(true);
@@ -672,12 +671,11 @@ namespace TSMapEditor.UI.Windows
 
             var messageBox = EditorMessageBox.Show(WindowManager,
                 Translate(this, "CloneForEasierDiffsNoDeps.Title", "Are you sure?"),
-                string.Format(Translate(this, "CloneForEasierDiffsNoDeps.Description",
-                    "Cloning this trigger for easier difficulties will create duplicate instances{0}" +
-                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals{0}" +
-                    "with respective globals of easier difficulties.{0}{0}" +
+                Translate(this, "CloneForEasierDiffsNoDeps.Description",
+                    "Cloning this trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
+                    "of this trigger for Medium and Easy difficulties, replacing Hard-mode globals" + Environment.NewLine +
+                    "with respective globals of easier difficulties." + Environment.NewLine + Environment.NewLine +
                     "No un-do is available. Do you want to continue?"),
-                    Environment.NewLine), 
                 MessageBoxButtons.YesNo);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties(false);
@@ -1468,9 +1466,9 @@ namespace TSMapEditor.UI.Windows
             {
                 var msgBox = EditorMessageBox.Show(WindowManager,
                     Translate(this, "DeleteTrigger.Title", "Are you sure?"),
-                    string.Format(Translate(this, "DeleteTrigger.Description", "Do you really want to delete trigger \"{0}\"?{1}" +
-                    "(You can hold Shift to skip this confirmation dialog.)"), 
-                        editedTrigger.Name, Environment.NewLine), 
+                    string.Format(Translate(this, "DeleteTrigger.Description", "Do you really want to delete trigger \"{0}\"?" + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"),
+                        editedTrigger.Name), 
                     MessageBoxButtons.YesNo);
 
                 msgBox.YesClickedAction = _ => DeleteTrigger();

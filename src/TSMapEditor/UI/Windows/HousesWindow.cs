@@ -277,8 +277,8 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager,
                     Translate(this, "HouseExists.Title", "Houses already exist"),
-                    string.Format(Translate(this, "HouseExists.Description", "Cannot generate standard because the map already has one or more houses specified.{0}{0}" +
-                    "If you want to generate standard houses, please delete the existing houses first."), Environment.NewLine),
+                    Translate(this, "HouseExists.Description", "Cannot generate standard because the map already has one or more houses specified." + Environment.NewLine + Environment.NewLine +
+                    "If you want to generate standard houses, please delete the existing houses first."),
                     MessageBoxButtons.OK);
 
                 return;
@@ -308,8 +308,8 @@ namespace TSMapEditor.UI.Windows
 
             var dialog = EditorMessageBox.Show(WindowManager,
                 Translate(this, "EnableAIRepairs.Title", "Are you sure?"),
-                string.Format(Translate(this, "EnableAIRepairs.Description", "This enables the \"AI Repairs\" flag on all buildings of the house, which makes the AI repair them.{0}{0}" + 
-                "No un-do is available. Do you wish to continue?"), Environment.NewLine),
+                Translate(this, "EnableAIRepairs.Description", "This enables the \"AI Repairs\" flag on all buildings of the house, which makes the AI repair them." + Environment.NewLine + Environment.NewLine + 
+                "No un-do is available. Do you wish to continue?"),
                 MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ =>
             {
@@ -331,8 +331,8 @@ namespace TSMapEditor.UI.Windows
 
             var dialog = EditorMessageBox.Show(WindowManager,
                 Translate(this, "DisableAIRepairs.Title", "Are you sure?"),
-                string.Format(Translate(this, "DisableAIRepairs.Description", "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them.{0}{0}"  +
-                "No un-do is available. Do you wish to continue?"), Environment.NewLine),
+                Translate(this, "DisableAIRepairs.Description", "This disables the \"AI Repairs\" flag on all buildings of the house, which makes the AI NOT repair them." + Environment.NewLine + Environment.NewLine +
+                "No un-do is available. Do you wish to continue?"),
                 MessageBoxButtons.YesNo);
             dialog.YesClickedAction = _ =>
             {

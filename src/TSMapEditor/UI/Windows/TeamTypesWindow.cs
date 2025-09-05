@@ -347,10 +347,9 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "TeamTypeRefs.Title", "TeamType References"),
-                    string.Format(Translate(this, "TeamTypeRefs.Description", "The selected TeamType \"{0}\" ({1}) is used by the following scripting elements:"),
-                        editedTeamType.Name, editedTeamType.ININame) +
-                        Environment.NewLine + Environment.NewLine +
-                        stringBuilder.ToString(),
+                    string.Format(Translate(this, "TeamTypeRefs.Description", "The selected TeamType \"{0}\" ({1}) is used by the following scripting elements:" + Environment.NewLine + Environment.NewLine +
+                        "{2}"),
+                        editedTeamType.Name, editedTeamType.ININame, stringBuilder.ToString()),
                     MessageBoxButtons.OK);
             }
         }
@@ -381,10 +380,10 @@ namespace TSMapEditor.UI.Windows
             {
                 var messageBox = EditorMessageBox.Show(WindowManager,
                     Translate(this, "DeleteConfirm.Title", "Confirm"),
-                    string.Format(Translate(this, "DeleteConfirm.Description", "Are you sure you wish to delete '{0}'?{1}{1}" +
-                    "You'll need to manually fix any Triggers and AITriggers using the TeamType.{1}{1}" +
-                    "(You can hold Shift to skip this confirmation dialog.)"),
-                        editedTeamType.Name, Environment.NewLine),
+                    string.Format(Translate(this, "DeleteConfirm.Description", "Are you sure you wish to delete '{0}'?" + Environment.NewLine + Environment.NewLine +
+                        "You'll need to manually fix any Triggers and AITriggers using the TeamType." + Environment.NewLine + Environment.NewLine +
+                        "(You can hold Shift to skip this confirmation dialog.)"),
+                        editedTeamType.Name),
                     MessageBoxButtons.YesNo);
                 messageBox.YesClickedAction = _ => DeleteTeamType();
             }

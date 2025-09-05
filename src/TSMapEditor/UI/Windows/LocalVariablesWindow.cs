@@ -155,8 +155,10 @@ namespace TSMapEditor.UI.Windows
 
             if (list.Count == 0)
             {
-                EditorMessageBox.Show(WindowManager, Translate(this, "NoUsagesFound.Title", "No usages found"),
-                    string.Format(Translate(this, "NoUsagesMessage.Description", "No triggers or scripts make use of the selected local variable '{0}'"), editedLocalVariable.Name), MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager,
+                    Translate(this, "NoUsagesFound.Title", "No usages found"),
+                    string.Format(Translate(this, "NoUsagesMessage.Description", "No triggers or scripts make use of the selected local variable '{0}'"), editedLocalVariable.Name),
+                    MessageBoxButtons.OK);
             }
             else
             {
