@@ -91,8 +91,8 @@ namespace TSMapEditor.UI.Windows
             var technoTypeDarkeningPanel = DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowManager, Parent, selectTechnoTypeWindow);
             technoTypeDarkeningPanel.Hidden += TechnoTypeDarkeningPanel_Hidden;
 
-            ddActions.AddItem("Advanced...");
-            ddActions.AddItem(new XNADropDownItem() { Text = "Clone for Easier Difficulties", Tag = new Action(CloneForEasierDifficulties) });
+            ddActions.AddItem(Translate(this, "Actions.Advanced", "Advanced..."));
+            ddActions.AddItem(new XNADropDownItem() { Text = Translate(this, "Actions.CloneForEasierDiffs", "Clone for Easier Difficulties"), Tag = new Action(CloneForEasierDifficulties) });
             ddActions.SelectedIndex = 0;
             ddActions.SelectedIndexChanged += DdActions_SelectedIndexChanged;            
 
@@ -105,18 +105,21 @@ namespace TSMapEditor.UI.Windows
                 return;
 
             var messageBox = EditorMessageBox.Show(WindowManager,
-                "Are you sure?",
-                "Cloning this AI trigger for easier difficulties will create duplicate instances" + Environment.NewLine +
-                "of this AI trigger for Medium and Easy difficulties, setting the difficulty" + Environment.NewLine +
-                "setting for each AI trigger to Medium and Easy, respectively." + Environment.NewLine +
-                "This will set the current AI trigger's difficulty to Hard only." + Environment.NewLine + Environment.NewLine +
-                "In case the AI trigger references a Primary or Secondary TeamTypes," + Environment.NewLine +
-                "those TeamTypes and their TaskForoces would be duplicated for easier difficulties." + Environment.NewLine +
-                "If those duplicates already exist, this action will set the AI triggers to use those " + Environment.NewLine +
-                "TeamTypes instead." + Environment.NewLine + Environment.NewLine +
-                "The script assumes that this AI Trigger has the words 'H' or 'Hard'" + Environment.NewLine +
-                "in their name and in their respective TeamTypes and TaskForces." + Environment.NewLine + Environment.NewLine +
-                "No un-do is available. Do you want to continue?", MessageBoxButtons.YesNo);
+                Translate(this, "CloneForEasierDiffs.Title", "Are you sure?"),
+                string.Format(Translate(this, "CloneForEasierDiffs.Description", "Cloning this AI trigger for easier difficulties will create duplicate instances{0}" +
+                "of this AI trigger for Medium and Easy difficulties, setting the difficulty{0}" +
+                "setting for each AI trigger to Medium and Easy, respectively.{0}" +
+                "This will set the current AI trigger's difficulty to Hard only.{0}{0}" +
+                "In case the AI trigger references a Primary or Secondary TeamTypes,{0}" +
+                "those TeamTypes and their TaskForoces would be duplicated for easier difficulties.{0}" +
+                "If those duplicates already exist, this action will set the AI triggers to use those {0}" +
+                "TeamTypes instead.{0}{0}" +
+                "The script assumes that this AI Trigger has the words 'H' or 'Hard'{0}" +
+                "in their name and in their respective TeamTypes and TaskForces.{0}{0}" +
+                "No un-do is available. Do you want to continue?"),
+                    Environment.NewLine),
+				MessageBoxButtons.YesNo
+			);
 
             messageBox.YesClickedAction = _ => DoCloneForEasierDifficulties();
         }
@@ -242,7 +245,7 @@ namespace TSMapEditor.UI.Windows
         {
             var aiTrigger = new AITriggerType(map.GetNewUniqueInternalId());
             aiTrigger.Name = "New AITrigger";
-            aiTrigger.OwnerName = "<all>";            
+            aiTrigger.OwnerName = "<all>";
             map.AITriggerTypes.Add(aiTrigger);
             ListAITriggers();
             SelectAITrigger(aiTrigger);
