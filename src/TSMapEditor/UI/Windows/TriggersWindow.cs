@@ -763,12 +763,12 @@ namespace TSMapEditor.UI.Windows
 
             if (mediumDiffGlobalVariableIndex < 0)
             {
-                Logger.Log($"{nameof(TriggersWindow)}.{nameof(DoCloneForEasierDifficulties)}: {"Medium difficulty global variable not found!"}");
+                Logger.Log($"{nameof(TriggersWindow)}.{nameof(DoCloneForEasierDifficulties)}: Medium difficulty global variable not found!");
             }
 
             if (easyDiffGlobalVariableIndex < 0)
             {
-                Logger.Log($"{nameof(TriggersWindow)}.{nameof(DoCloneForEasierDifficulties)}: {"Easy difficulty global variable not found!"}");
+                Logger.Log($"{nameof(TriggersWindow)}.{nameof(DoCloneForEasierDifficulties)}: Easy difficulty global variable not found!");
             }
 
             // Go through used events. If there's a reference to the
@@ -1466,7 +1466,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var msgBox = EditorMessageBox.Show(WindowManager,
                     Translate(this, "DeleteTrigger.Title", "Are you sure?"),
-                    string.Format(Translate(this, "DeleteTrigger.Description", "Do you really want to delete trigger \"{0}\"?" + Environment.NewLine +
+                    string.Format(Translate(this, "DeleteTrigger.Description", "Do you really want to delete trigger \"{0}\"?" + Environment.NewLine + Environment.NewLine +
                         "(You can hold Shift to skip this confirmation dialog.)"),
                         editedTrigger.Name), 
                     MessageBoxButtons.YesNo);
@@ -2269,7 +2269,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (!map.Rules.GlobalVariables.Exists(v => v.Index == intValue))
-                        return intValue + Translate(this, "UnknownGlobalVariable", " - nonexistent variable");
+                        return intValue + Translate(this, "NonexistentGlobalVariable", " - nonexistent variable");
 
                     return intValue + " " + map.Rules.GlobalVariables.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.LocalVariable:
@@ -2277,7 +2277,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (!map.LocalVariables.Exists(v => v.Index == intValue))
-                        return intValue + Translate(this, "UnknownLocalVariable", " - nonexistent variable");
+                        return intValue + Translate(this, "NonexistentLocalVariable", " - nonexistent variable");
 
                     return intValue + " " + map.LocalVariables.Find(v => v.Index == intValue).Name;
                 case TriggerParamType.WaypointZZ:
@@ -2322,14 +2322,14 @@ namespace TSMapEditor.UI.Windows
 
                     Theme theme = map.Rules.Themes.Get(intValue);
                     if (theme == null)
-                        return paramValue + Translate(this, "UnknownTheme", " - nonexistent theme");
+                        return paramValue + Translate(this, "NonexistentTheme", " - nonexistent theme");
 
                     return theme.ToString();
                 case TriggerParamType.Tag:
                     Tag tag = map.Tags.Find(t => t.ID == paramValue);
 
                     if (tag == null)
-                        return paramValue + Translate(this, "UnknownTag", " - nonexistent tag");
+                        return paramValue + Translate(this, "NonexistentTag", " - nonexistent tag");
 
                     return paramValue + " " + tag.Name;
                 case TriggerParamType.SuperWeapon:
@@ -2337,7 +2337,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (intValue >= map.Rules.SuperWeaponTypes.Count)
-                        return intValue + Translate(this, "UnknownSuperWeapon", " - nonexistent super weapon");
+                        return intValue + Translate(this, "NonexistentSuperWeapon", " - nonexistent super weapon");
 
                     return intValue + " " + map.Rules.SuperWeaponTypes[intValue].GetDisplayStringWithoutIndex();
                 case TriggerParamType.SuperWeaponName:
@@ -2352,7 +2352,7 @@ namespace TSMapEditor.UI.Windows
                         return paramValue;
 
                     if (intValue >= map.Rules.ParticleSystemTypes.Count)
-                        return intValue + Translate(this, "UnknownParticleSystem", " - nonexistent particle system");
+                        return intValue + Translate(this, "NonexistentParticleSystem", " - nonexistent particle system");
 
                     return intValue + " " + map.Rules.ParticleSystemTypes[intValue].ININame;
                 case TriggerParamType.Speech:

@@ -363,8 +363,7 @@ namespace TSMapEditor.UI.Windows
 
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "ScriptReferences.Title", "Script References"),
-                    string.Format(Translate(this, "ScriptReferences.Description", "The selected Script \"{0}\" ({1}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine +
-                        "{2}"),
+                    string.Format(Translate(this, "ScriptReferences.Description", "The selected Script \"{0}\" ({1}) is used by the following TeamTypes:" + Environment.NewLine + Environment.NewLine + "{2}"),
                         editedScript.Name, editedScript.ININame, stringBuilder.ToString()),
                     MessageBoxButtons.OK);
             }

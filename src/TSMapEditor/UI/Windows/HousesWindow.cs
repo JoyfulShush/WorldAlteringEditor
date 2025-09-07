@@ -587,8 +587,8 @@ namespace TSMapEditor.UI.Windows
             objectCountStats += Translate(this, "HouseStats.Infantry", "Infantry: ") + map.Infantry.Count(s => s.Owner == editedHouse) + Environment.NewLine;
             objectCountStats += Translate(this, "HouseStats.Vehicles", "Vehicles: ") + map.Units.Count(s => s.Owner == editedHouse) + Environment.NewLine;
             objectCountStats += Translate(this, "HouseStats.Buildings", "Buildings: ") + map.Structures.Count(s => s.Owner == editedHouse) + Environment.NewLine;
-            objectCountStats += Translate(this, "HouseStats.AIRepairable", "AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && s.AIRepairable) + Environment.NewLine;
-            objectCountStats += Translate(this, "HouseStats.NotAIRepairable", "not AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && !s.AIRepairable);
+            objectCountStats += Translate(this, "HouseStats.AIRepairable", "  AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && s.AIRepairable) + Environment.NewLine;
+            objectCountStats += Translate(this, "HouseStats.NotAIRepairable", "  not AI repairable: ") + map.Structures.Count(s => s.Owner == editedHouse && !s.AIRepairable);
 
             lblStatsObjectsCount.Text = objectCountStats;
 
@@ -602,15 +602,15 @@ namespace TSMapEditor.UI.Windows
             lblStatsAllianceOneSidedEnemies.Text = $"{Translate(this, "HouseStats.OneSidedEnemies", "One-Sided Enemies:")} {oneSidedEnemyHouses.Count}";
             lblStatsAllianceEnemies.Text = $"{Translate(this, "HouseStats.Enemies", "Enemies:")} {enemyHouses.Count}";
 
-            string noneText = Translate(this, "Tooltips.None", "None");
+            string noneText = Translate(this, "ToolTips.None", "None");
 
-            mutualAllianceToolTip.Text = Translate(this, "Tooltips.MutualAlliances", "Houses that are in a mutual alliance with this house:") + Environment.NewLine +
+            mutualAllianceToolTip.Text = Translate(this, "ToolTips.MutualAlliances", "Houses that are in a mutual alliance with this house:") + Environment.NewLine +
                 (mutualAllianceHouses.Count == 0 ? noneText : string.Join(", ", mutualAllianceHouses.Select(house => house.ININame)));
-            oneSidedAlliesToolTip.Text = Translate(this, "Tooltips.OneSidedAllies", "Houses that this house is allied to, but are hostile in return:") + Environment.NewLine +
+            oneSidedAlliesToolTip.Text = Translate(this, "ToolTips.OneSidedAllies", "Houses that this house is allied to, but are hostile in return:") + Environment.NewLine +
                 (oneSidedAlliesHouses.Count == 0 ? noneText : string.Join(", ", oneSidedAlliesHouses.Select(house => house.ININame)));
-            oneSidedEnemiesToolTip.Text = Translate(this, "Tooltips.OneSidedEnemies", "Houses that this house is hostile towards, but are allied in return:") + Environment.NewLine +
+            oneSidedEnemiesToolTip.Text = Translate(this, "ToolTips.OneSidedEnemies", "Houses that this house is hostile towards, but are allied in return:") + Environment.NewLine +
                 (oneSidedEnemyHouses.Count == 0 ? noneText : string.Join(", ", oneSidedEnemyHouses.Select(house => house.ININame)));
-            enemiesToolTip.Text = Translate(this, "Tooltips.Enemies", "Houses that this house is mutually hostile towards:") + Environment.NewLine +
+            enemiesToolTip.Text = Translate(this, "ToolTips.Enemies", "Houses that this house is mutually hostile towards:") + Environment.NewLine +
                 (enemyHouses.Count == 0 ? noneText : string.Join(", ", enemyHouses.Select(house => house.ININame)));
 
             foreach (var tooltip in tooltips)

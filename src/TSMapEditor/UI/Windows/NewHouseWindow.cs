@@ -125,7 +125,7 @@ namespace TSMapEditor.UI.Windows
             ListParentCountries();
 
             ddParentCountry.SelectedIndex = 0;
-            tbHouseName.Text = Translate(this, "DefaultName", "NewHouse");
+            tbHouseName.Text = Translate(this, "DefaultNewHouseName", "NewHouse");
 
             Success = false;
         }
