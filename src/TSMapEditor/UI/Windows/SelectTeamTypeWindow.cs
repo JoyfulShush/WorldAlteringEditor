@@ -41,7 +41,7 @@ namespace TSMapEditor.UI.Windows
             lbObjectList.Clear();
 
             if (IncludeNone)
-                lbObjectList.AddItem("None");
+                lbObjectList.AddItem(Translate(this, "None", "None"));
 
             foreach (TeamType teamType in map.TeamTypes)
             {
