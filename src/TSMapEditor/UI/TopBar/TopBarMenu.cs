@@ -93,7 +93,7 @@ namespace TSMapEditor.UI.TopBar
 
             var fileButton = new MenuButton(WindowManager, fileContextMenu);
             fileButton.Name = nameof(fileButton);
-            fileButton.Text = Translate(this, "File.MenuButton", "File");
+            fileButton.Text = Translate(this, "File.Header", "File");
             AddChild(fileButton);
 
             var editContextMenu = new EditorContextMenu(WindowManager);
@@ -162,7 +162,7 @@ namespace TSMapEditor.UI.TopBar
             var editButton = new MenuButton(WindowManager, editContextMenu);
             editButton.Name = nameof(editButton);
             editButton.X = fileButton.Right;
-            editButton.Text = Translate(this, "Edit.MenuButton", "Edit");
+            editButton.Text = Translate(this, "Edit.Header", "Edit");
             AddChild(editButton);
 
             var viewContextMenu = new EditorContextMenu(WindowManager);
@@ -196,7 +196,7 @@ namespace TSMapEditor.UI.TopBar
             var viewButton = new MenuButton(WindowManager, viewContextMenu);
             viewButton.Name = nameof(viewButton);
             viewButton.X = editButton.Right;
-            viewButton.Text = Translate(this, "View.MenuButton", "View");
+            viewButton.Text = Translate(this, "View.Header", "View");
             AddChild(viewButton);
 
             var toolsContextMenu = new EditorContextMenu(WindowManager);
@@ -231,7 +231,7 @@ namespace TSMapEditor.UI.TopBar
             var toolsButton = new MenuButton(WindowManager, toolsContextMenu);
             toolsButton.Name = nameof(toolsButton);
             toolsButton.X = viewButton.Right;
-            toolsButton.Text = Translate(this, "Tools.MenuButton", "Tools");
+            toolsButton.Text = Translate(this, "Tools.Header", "Tools");
             AddChild(toolsButton);
 
             var scriptingContextMenu = new EditorContextMenu(WindowManager);
@@ -247,7 +247,7 @@ namespace TSMapEditor.UI.TopBar
             var scriptingButton = new MenuButton(WindowManager, scriptingContextMenu);
             scriptingButton.Name = nameof(scriptingButton);
             scriptingButton.X = toolsButton.Right;
-            scriptingButton.Text = Translate(this, "Scripting.MenuButton", "Scripting");
+            scriptingButton.Text = Translate(this, "Scripting.Header", "Scripting");
             AddChild(scriptingButton);
 
             base.Initialize();
