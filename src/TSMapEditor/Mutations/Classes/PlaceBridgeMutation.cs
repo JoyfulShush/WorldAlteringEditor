@@ -67,7 +67,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return $"Place bridge '{bridgeType.Name}' of direction {bridgeDirection} from {startPoint} to {endPoint}";
+            return Translate(this, "DisplayString", 
+                string.Format("Place bridge '{0}' of direction {1} from {2} to {3}",
+                    bridgeType.Name, bridgeDirection, startPoint, endPoint));
         }
 
         public override void Perform()
