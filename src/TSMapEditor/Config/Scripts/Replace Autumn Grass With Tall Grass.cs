@@ -24,8 +24,8 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return error ?? Translate("MapScripts.ReplaceAutumnGrassTallGrass.SuccessMessage", 
-                string.Format("Successfully replaced the terrain of {0} cells.", count));
+            return error ?? string.Format(Translate("MapScripts.ReplaceAutumnGrassTallGrass.SuccessMessage", 
+                "Successfully replaced the terrain of {0} cells."), count);
         }
 
         int count = 0;

@@ -24,8 +24,8 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return Translate("MapScripts.ReplaceAutumNTreesSummerTrees.SuccessMessage", 
-                string.Format("Replaced {0} terrain objects.", count);
+            return string.Format(Translate("MapScripts.ReplaceAutumNTreesSummerTrees.SuccessMessage", 
+                "Replaced {0} terrain objects."), count);
         }
 
         int count = 0;

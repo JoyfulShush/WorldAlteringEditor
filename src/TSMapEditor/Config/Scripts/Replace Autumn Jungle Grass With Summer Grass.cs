@@ -24,8 +24,8 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return error ?? Translate("MapScripts.ReplaceAutumnGrassSummerGrass.Description",
-                string.Format("Successfully replaced {0} AJGRASS overlay with JGRASS overlay.", count));
+            return error ?? string.Format(Translate("MapScripts.ReplaceAutumnGrassSummerGrass.Description",
+                "Successfully replaced {0} AJGRASS overlay with JGRASS overlay."), count);
         }
 
         int count = 0;

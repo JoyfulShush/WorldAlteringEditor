@@ -26,8 +26,8 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return Translate("MapScripts.CountCreditsOnMap.SuccessMessage", 
-                string.Format("There are {0} credits' worth of resources present.", count));
+            return string.Format(Translate("MapScripts.CountCreditsOnMap.SuccessMessage", 
+                "There are {0} credits' worth of resources present."), count);
         }
 
         int count = 0;
