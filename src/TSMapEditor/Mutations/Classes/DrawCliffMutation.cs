@@ -53,8 +53,8 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString",
-                string.Format("Draw Connected Tiles of type {0}", cliffType.Name));
+            return string.Format(Translate(this, "DisplayString",
+                "Draw Connected Tiles of type {0}"), cliffType.Name);
         }
 
         public override void Perform()

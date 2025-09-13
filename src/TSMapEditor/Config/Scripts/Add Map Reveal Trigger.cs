@@ -28,9 +28,9 @@ namespace WAEScript
         public string GetSuccessMessage()
         {
             if (error == null)
-                return Translate("MapScripts.AddMapRevealTrigger.SuccessMessage",
-                    string.Format("Successfully created a map reveal trigger with name \"{0}\". You can locate it in the Triggers window.",
-                        mapRevealTriggerName));
+                return string.Format(Translate("MapScripts.AddMapRevealTrigger.SuccessMessage",
+                    "Successfully created a map reveal trigger with name \"{0}\". You can locate it in the Triggers window."),
+                    mapRevealTriggerName);
 
             return error;
         }

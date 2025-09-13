@@ -168,8 +168,8 @@ namespace TSMapEditor.Scripts
                 return ExtractScriptV2(instance, scriptDependencies);
             }
 
-            return Translate("ScriptRunner.CompileSource.UnsupportedApiVersion", 
-                string.Format("Unsupported scripting API version: {0}. Contact the script's author for troubleshooting.", version));
+            return string.Format(Translate("ScriptRunner.CompileSource.UnsupportedApiVersion", 
+                "Unsupported scripting API version: {0}. Contact the script's author for troubleshooting."), version);
         }
 
         private static string ExtractScriptV2(object instance, ScriptDependencies scriptDependencies)

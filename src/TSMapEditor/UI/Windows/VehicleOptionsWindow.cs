@@ -136,9 +136,9 @@ namespace TSMapEditor.UI.Windows
             tbGroup.Value = unit.Group;
             followerSelector.Tag = unit.FollowerUnit;
             followerSelector.Text = unit.FollowerUnit == null ? Translate(this, "None", "none") :
-                Translate(this, "FollowerSelectorText",
-                    string.Format("{0} at {1}", 
-                    unit.FollowerUnit.UnitType.GetEditorDisplayName(), unit.FollowerUnit.Position));
+                string.Format(Translate(this, "FollowerSelectorText",
+                    "{0} at {1}"), 
+                    unit.FollowerUnit.UnitType.GetEditorDisplayName(), unit.FollowerUnit.Position);
             chkOnBridge.Checked = unit.High;
             chkAutocreateNoRecruitable.Checked = unit.AutocreateNoRecruitable;
             chkAutocreateYesRecruitable.Checked = unit.AutocreateYesRecruitable;

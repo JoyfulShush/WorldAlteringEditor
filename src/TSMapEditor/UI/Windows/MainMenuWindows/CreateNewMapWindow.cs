@@ -79,8 +79,8 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MapTooNarrow.Title", "Map too narrow"),
-                    Translate(this, "MapTooNarrow.Description", 
-                        string.Format("Map width must be at least {0} cells.", MinMapSize)), 
+                    string.Format(Translate(this, "MapTooNarrow.Description", 
+                        "Map width must be at least {0} cells."), MinMapSize), 
                     MessageBoxButtons.OK);
                 return;
             }
@@ -89,8 +89,8 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MapTooSmall.Title", "Map too small"),
-                    Translate(this, "MapTooSmall.Description",
-                        string.Format("Map height must be at least {0} cells.", MinMapSize)),
+                    string.Format(Translate(this, "MapTooSmall.Description",
+                        "Map height must be at least {0} cells."), MinMapSize),
                     MessageBoxButtons.OK);
                 return;
             }
@@ -99,8 +99,8 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MapTooWide.Title", "Map too wide"),
-                    Translate(this, "MapTooWide.Description", 
-                        string.Format("Map width cannot exceed {0} cells.", Constants.MaxMapWidth)),
+                    string.Format(Translate(this, "MapTooWide.Description", 
+                        "Map width cannot exceed {0} cells."), Constants.MaxMapWidth),
                     MessageBoxButtons.OK);
                 return;
             }
@@ -109,8 +109,8 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MapTooLong.Title", "Map too long"),
-                    Translate(this, "MapTooLong.Description", 
-                        string.Format("Map height cannot exceed {0} cells.", Constants.MaxMapHeight)),
+                    string.Format(Translate(this, "MapTooLong.Description", 
+                        "Map height cannot exceed {0} cells."), Constants.MaxMapHeight),
                     MessageBoxButtons.OK);
                 return;
             }
@@ -119,8 +119,8 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MapTooLarge.Title", "Map too large"),
-                    Translate(this, "MapTooLarge.Description",
-                        string.Format("Map width + height cannot exceed {0} cells.", MaxMapSize)),
+                    string.Format(Translate(this, "MapTooLarge.Description",
+                        "Map width + height cannot exceed {0} cells."), MaxMapSize),
                     MessageBoxButtons.OK);
                 return;
             }

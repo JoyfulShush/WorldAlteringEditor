@@ -64,8 +64,8 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager,
                     Translate(this, "WaypointExists.Title", "Waypoint already exists"),
-                    Translate(this, "WaypointExists.Description", 
-                        string.Format("A waypoint with the given number {0} already exists on the map!", tbWaypointNumber.Value)),
+                    string.Format(Translate(this, "WaypointExists.Description", 
+                        "A waypoint with the given number {0} already exists on the map!"), tbWaypointNumber.Value),
                     MessageBoxButtons.OK);
 
                 return;

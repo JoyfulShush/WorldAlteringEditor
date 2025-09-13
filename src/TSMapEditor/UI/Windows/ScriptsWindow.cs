@@ -359,11 +359,11 @@ namespace TSMapEditor.UI.Windows
             {
                 var stringBuilder = new StringBuilder();
                 referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
-                    Translate(this, "ReferringTeamTypes.Local", 
-                        string.Format("- Local TeamType \"{0}\" ({1})", tt.Name, tt.ININame))));
+                    string.Format(Translate(this, "ReferringTeamTypes.Local", 
+                        "- Local TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
                 referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
-                    Translate(this, "ReferringTeamTypes.Global", 
-                        string.Format("- Global TeamType \"{0}\" ({1})", tt.Name, tt.ININame))));
+                    string.Format(Translate(this, "ReferringTeamTypes.Global", 
+                        "- Global TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
 
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "ScriptReferences.Title", "Script References"),

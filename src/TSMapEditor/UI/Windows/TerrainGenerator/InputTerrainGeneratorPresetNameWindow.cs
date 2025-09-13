@@ -40,8 +40,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "PresetAlreadyExists.Title", "Preset already exists"),
-                    Translate(this, "PresetAlreadyExists.Description", 
-                        string.Format("A preset with the name {0} already exists for the current theater!", tbPresetName.Text)),
+                    string.Format(Translate(this, "PresetAlreadyExists.Description", 
+                        "A preset with the name {0} already exists for the current theater!"), tbPresetName.Text),
                     MessageBoxButtons.OK);
                 return;
             }

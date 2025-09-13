@@ -29,13 +29,13 @@ namespace TSMapEditor.Mutations.Classes
         public override string GetDisplayString()
         {
             if (overlayType != null)
-                return Translate(this, "DisplayStringPlace", 
-                    string.Format("Place overlay '{0}' at {1} with a brush size of {2}",
-                        overlayType.GetEditorDisplayName(), cellCoords, brush));
+                return string.Format(Translate(this, "DisplayStringPlace", 
+                    "Place overlay '{0}' at {1} with a brush size of {2}"),
+                        overlayType.GetEditorDisplayName(), cellCoords, brush);
             else
-                return Translate(this, "DisplayStringErase", 
-                    string.Format("Erase overlay at {0} with a brush size of {1}",
-                        cellCoords, brush));
+                return string.Format(Translate(this, "DisplayStringErase", 
+                    "Erase overlay at {0} with a brush size of {1}"),
+                        cellCoords, brush);
         }
 
         public override void Perform()

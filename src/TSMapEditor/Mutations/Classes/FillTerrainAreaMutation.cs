@@ -27,9 +27,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString", 
-                string.Format("Flood-fill terrain tiles at {0} with tile from set '{1}'",
-                    targetTile.CoordsToPoint(), MutationTarget.TheaterGraphics.Theater.TileSets[tile.TileSetId].SetName));
+            return string.Format(Translate(this, "DisplayString", 
+                "Flood-fill terrain tiles at {0} with tile from set '{1}'"),
+                    targetTile.CoordsToPoint(), MutationTarget.TheaterGraphics.Theater.TileSets[tile.TileSetId].SetName);
         }
 
         public override void Perform()

@@ -43,8 +43,8 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "WaypointNotFound.Title", "Waypoint not found"),
-                    Translate(this, "WaypointNotFound.Description", 
-                        string.Format("Waypoint #{0} does not exist on the map!", waypointNumber)),
+                    string.Format(Translate(this, "WaypointNotFound.Description", 
+                        "Waypoint #{0} does not exist on the map!"), waypointNumber),
                     MessageBoxButtons.OK);
 
                 return;

@@ -65,9 +65,9 @@ namespace TSMapEditor.UI.Windows
                 Logger.Log("Compilation error when attempting to run script: " + error);
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "ScriptCompilationError.Title", "Error"),
-                    Translate(this, "ScriptCompilationError.Description", 
-                        string.Format("Compiling the script failed! Check its syntax, or contact its author for support." + Environment.NewLine + Environment.NewLine +
-                        "Returned error was: {0}", error)),
+                    string.Format(Translate(this, "ScriptCompilationError.Description", 
+                        "Compiling the script failed! Check its syntax, or contact its author for support." + Environment.NewLine + Environment.NewLine +
+                        "Returned error was: {0}"), error),
                    MessageBoxButtons.OK);
                 return;
             }
@@ -98,8 +98,8 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "UnsupportedScriptApiVersion.Title", "Unsupported Scripting API Version"),
-                    Translate(this, "UnsupportedScriptApiVersion.Description", 
-                        string.Format("Script uses an unsupported scripting API version: {0}", ScriptRunner.ActiveScriptAPIVersion)),
+                    string.Format(Translate(this, "UnsupportedScriptApiVersion.Description", 
+                        "Script uses an unsupported scripting API version: {0}"), ScriptRunner.ActiveScriptAPIVersion),
                     MessageBoxButtons.OK);
             }
         }
@@ -127,8 +127,8 @@ namespace TSMapEditor.UI.Windows
                 Logger.Log("WAE scipts directory not found!");
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "WAEScriptsDirectoryNotFound.Title", "Error"),
-                    Translate(this, "WAEScriptsDirectoryNotFound.Description", 
-                        string.Format("Scripts directory not found!\r\n\r\nExpected path: {0}", directoryPath)),
+                    string.Format(Translate(this, "WAEScriptsDirectoryNotFound.Description", 
+                        "Scripts directory not found!\r\n\r\nExpected path: {0}"), directoryPath),
                     MessageBoxButtons.OK);
                 return;
             }

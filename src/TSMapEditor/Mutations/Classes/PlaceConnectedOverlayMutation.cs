@@ -26,9 +26,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString", 
-                string.Format("Place connected overlay '{0}' at {1} with a brush size of {2}",
-                    connectedOverlayType.UIName, cellCoords, brush));
+            return string.Format(Translate(this, "DisplayString", 
+                "Place connected overlay '{0}' at {1} with a brush size of {2}"),
+                    connectedOverlayType.UIName, cellCoords, brush);
         }
 
         public override void Perform()

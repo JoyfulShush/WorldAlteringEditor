@@ -21,9 +21,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString",
-                string.Format("Change owner of {0} at {1} to {2}",
-                    techno.GetObjectType().GetEditorDisplayName(), techno.Position, newOwner.ININame));
+            return string.Format(Translate(this, "DisplayString",
+                "Change owner of {0} at {1} to {2}"),
+                    techno.GetObjectType().GetEditorDisplayName(), techno.Position, newOwner.ININame);
         }
 
         public override void Perform()

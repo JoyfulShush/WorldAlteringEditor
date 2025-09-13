@@ -20,9 +20,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString",
-                string.Format("Delete tunnel tube of length {0} at {1}",
-                    deletedTube.Directions.Count, cellCoords));
+            return string.Format(Translate(this, "DisplayString",
+                "Delete tunnel tube of length {0} at {1}"),
+                    deletedTube.Directions.Count, cellCoords);
         }
 
         public override void Perform()

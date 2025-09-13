@@ -38,9 +38,9 @@ namespace TSMapEditor
 
         private static void HandleException(Exception ex)
         {
-            MessageBox.Show(Translate("Program.HandleException", 
-                string.Format("The map editor failed to launch.\r\n\r\nReason: {0}\r\n\r\n Stack trace: {1}",
-                ex.Message, ex.StackTrace)));
+            MessageBox.Show(string.Format(Translate("Program.HandleException", 
+                "The map editor failed to launch.\r\n\r\nReason: {0}\r\n\r\n Stack trace: {1}"),
+                ex.Message, ex.StackTrace));
         }
 
         public static void DisableExceptionHandler()

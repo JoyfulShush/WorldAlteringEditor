@@ -159,8 +159,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     {
                         EditorMessageBox.Show(WindowManager, 
                             Translate(this, "GeneratorConfigError.TileSetNotFound.Title", "Generator Config Error"),
-                            Translate(this, "GeneratorConfigError.TileSetNotFound.Description",
-                                string.Format("Tile with index '{0}' does not exist in tile set '{1}'!", invalidElement, tileSet.SetName)),
+                            string.Format(Translate(this, "GeneratorConfigError.TileSetNotFound.Description",
+                                "Tile with index '{0}' does not exist in tile set '{1}'!"), invalidElement, tileSet.SetName),
                             MessageBoxButtons.OK);
                         return null;
                     }

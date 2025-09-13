@@ -53,8 +53,8 @@ namespace TSMapEditor.Extensions
 
                 if (script == null)
                 {
-                    errorLogger(Translate("ListExtensions.ScriptParseError", 
-                        string.Format("Failed to load Script {0}. It might be missing a section or be otherwise invalid.", kvp.Value)));
+                    errorLogger(string.Format(Translate("ListExtensions.ScriptParseError", 
+                        "Failed to load Script {0}. It might be missing a section or be otherwise invalid."), kvp.Value));
 
                     continue;
                 }
@@ -114,8 +114,8 @@ namespace TSMapEditor.Extensions
 
                     if (teamType.HouseType == null)
                     {
-                        errorLogger(Translate("ListExtensions.ScriptParseError", 
-                            string.Format("TeamType {0} has an invalid owner ({1}) specified!", teamType.ININame, houseTypeIniName)));
+                        errorLogger(string.Format(Translate("ListExtensions.ScriptParseError", 
+                            "TeamType {0} has an invalid owner ({1}) specified!"), teamType.ININame, houseTypeIniName));
                     }
                 }
 
@@ -124,8 +124,8 @@ namespace TSMapEditor.Extensions
 
                 if (teamType.Script == null)
                 {
-                    errorLogger(Translate("ListExtensions.TeamTypes.ScriptNotFound", 
-                        string.Format("TeamType {0} has an invalid script ({1}) specified!", teamType.ININame, scriptId)));
+                    errorLogger(string.Format(Translate("ListExtensions.TeamTypes.ScriptNotFound", 
+                        "TeamType {0} has an invalid script ({1}) specified!"), teamType.ININame, scriptId));
                 }
 
                 if (teamType.TaskForce == null)
@@ -140,8 +140,8 @@ namespace TSMapEditor.Extensions
 
                     if (teamType.Tag == null)
                     {
-                        errorLogger(Translate("ListExtensions.TeamTypes.TagNotFound", 
-                            string.Format("TeamType {0} has an invalid tag ({1}) specified!", teamType.ININame, tagId)));
+                        errorLogger(string.Format(Translate("ListExtensions.TeamTypes.TagNotFound", 
+                            "TeamType {0} has an invalid tag ({1}) specified!"), teamType.ININame, tagId));
                     }
                 }
 

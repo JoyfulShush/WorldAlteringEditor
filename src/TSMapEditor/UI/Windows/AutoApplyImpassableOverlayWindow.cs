@@ -66,9 +66,9 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "MissingOverlayType.Title", "Cannot apply impassable overlay"),
-                    Translate(this, "MissingOverlayType.Description", 
-                        string.Format("The editor has not been configured properly for applying impassable overlay.\r\n\r\n" +
-                            "Expected overlay type not found, name: {0}", overlayTypeName)),
+                    string.Format(Translate(this, "MissingOverlayType.Description", 
+                        "The editor has not been configured properly for applying impassable overlay.\r\n\r\n" +
+                            "Expected overlay type not found, name: {0}"), overlayTypeName),
                     MessageBoxButtons.OK);
 
                 return;

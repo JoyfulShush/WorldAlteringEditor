@@ -32,9 +32,9 @@ namespace TSMapEditor.Mutations.Classes
         public override string GetDisplayString()
         {
             var tileSet = MutationTarget.TheaterGraphics.Theater.TileSets[tile.TileSetId];
-            return Translate(this, "DisplayString", 
-                string.Format("Place terrain tile of TileSet {0} at {1} with a brush size of {2}",
-                    tileSet.SetName, targetCellCoords, brushSize));
+            return string.Format(Translate(this, "DisplayString", 
+                "Place terrain tile of TileSet {0} at {1} with a brush size of {2}"),
+                    tileSet.SetName, targetCellCoords, brushSize);
         }
 
         private void AddUndoDataForTile(Point2D brushOffset)

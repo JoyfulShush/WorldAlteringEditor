@@ -364,9 +364,9 @@ namespace TSMapEditor.UI
             {
                 EditorMessageBox.Show(WindowManager,
                     Translate(this, "InvalidGameDirectory.Title", "Invalid game directory"),
-                    Translate(this, "InvalidGameDirectory.Description", 
-                        string.Format("{0} not found, please check that you typed the correct game directory.", 
-                            Constants.ExpectedClientExecutableNames[0])),
+                    string.Format(Translate(this, "InvalidGameDirectory.Description", 
+                        "{0} not found, please check that you typed the correct game directory."), 
+                            Constants.ExpectedClientExecutableNames[0]),
                     MessageBoxButtons.OK);
 
                 return false;

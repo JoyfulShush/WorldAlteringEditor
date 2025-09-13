@@ -766,10 +766,10 @@ namespace TSMapEditor.UI
                 string error = autosaveTimer.Update(gameTime.ElapsedGameTime);
                 if (error != null)
                 {
-                    NotificationManager.AddNotification(Translate(this, "MapAutoSaveFailure", 
-                        string.Format("Failed to auto-save the map." + Environment.NewLine + Environment.NewLine + 
+                    NotificationManager.AddNotification(string.Format(Translate(this, "MapAutoSaveFailure", 
+                        "Failed to auto-save the map." + Environment.NewLine + Environment.NewLine + 
                             "Please make sure that you are not running the editor from a write-protected directory (such as Program Files)." + Environment.NewLine + Environment.NewLine + 
-                            "Returned OS error: {0}", error)));
+                            "Returned OS error: {0}"), error));
                 }
 
                 UpdateMapFileWatcher();

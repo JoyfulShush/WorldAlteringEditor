@@ -27,8 +27,8 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return Translate("MapScripts.CivilianVehiclesSleep.SuccessMessage",
-               string.Format("Successfully changed the mission of {0} vehicles to Sleep.", count));
+            return string.Format(Translate("MapScripts.CivilianVehiclesSleep.SuccessMessage",
+               "Successfully changed the mission of {0} vehicles to Sleep."), count);
         }
 
         int count = 0;

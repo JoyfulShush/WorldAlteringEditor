@@ -113,8 +113,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     {
                         EditorMessageBox.Show(WindowManager, 
                             Translate(this, "GeneratorConfigError.TerrainTypeNotFound.Title", "Generator Config Error"),
-                            Translate(this, "GeneratorConfigError.TerrainTypeNotFound.Description",
-                                string.Format("Specified terrain type '{0}' does not exist!", parts[a])),
+                            string.Format(Translate(this, "GeneratorConfigError.TerrainTypeNotFound.Description",
+                                "Specified terrain type '{0}' does not exist!"), parts[a]),
                             MessageBoxButtons.OK);
                         return null;
                     }

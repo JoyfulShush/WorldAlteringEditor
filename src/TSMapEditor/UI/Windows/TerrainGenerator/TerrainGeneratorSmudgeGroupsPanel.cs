@@ -111,8 +111,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     {
                         EditorMessageBox.Show(WindowManager, 
                             Translate(this, "GeneratorConfigError.SmudgeNotFound.Title", "Generator Config Error"),
-                            Translate(this, "GeneratorConfigError.SmudgeNotFound.Description", 
-                                string.Format("Specified smudge type '{0}' does not exist!", parts[a])),
+                            string.Format(Translate(this, "GeneratorConfigError.SmudgeNotFound.Description", 
+                                "Specified smudge type '{0}' does not exist!"), parts[a]),
                             MessageBoxButtons.OK);
                         return null;
                     }

@@ -45,9 +45,9 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "InvalidWidth.Title", "Invalid width"),
-                    Translate(this, "InvalidWidth.Description", 
-                    string.Format("The given values would make the map's width {0}.\r\nIt should be between 1 and {1}.",
-                        newWidth, Constants.MaxMapWidth)),
+                    string.Format(Translate(this, "InvalidWidth.Description", 
+                    "The given values would make the map's width {0}.\r\nIt should be between 1 and {1}."),
+                        newWidth, Constants.MaxMapWidth),
                     MessageBoxButtons.OK);
 
                 return;
@@ -58,9 +58,9 @@ namespace TSMapEditor.UI.Windows
             {
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "InvalidHeight.Title", "Invalid height"),
-                    Translate(this, "InvalidHeight.Description",
-                        string.Format("The given values would make the map's height {0}.\r\nIt should be between 0 and {1}.",
-                            newHeight, Constants.MaxMapHeight)),
+                    string.Format(Translate(this, "InvalidHeight.Description",
+                        "The given values would make the map's height {0}.\r\nIt should be between 0 and {1}."),
+                            newHeight, Constants.MaxMapHeight),
                     MessageBoxButtons.OK);
 
                 return;
@@ -89,8 +89,8 @@ namespace TSMapEditor.UI.Windows
 
         public void Open()
         {
-            lblCurrentMapSize.Text = Translate(this, "CurrentMapSize", 
-                string.Format("Current map size: {0}x{1}", map.Size.X, map.Size.Y));
+            lblCurrentMapSize.Text = string.Format(Translate(this, "CurrentMapSize", 
+                "Current map size: {0}x{1}"), map.Size.X, map.Size.Y);
 
             Show();
         }

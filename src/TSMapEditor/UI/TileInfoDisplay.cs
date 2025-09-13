@@ -125,9 +125,9 @@ namespace TSMapEditor.UI
                     Constants.UIDefaultFont, subtleTextColor));
 
                 textRenderer.AddTextPart(new XNATextPart(
-                    Translate(this, "OverlayDetails",
-                    string.Format("{0} ({1} {2}), Frame: {3}, Terrain Type: {4}",
-                        overlay.OverlayType.Name, overlay.OverlayType.Index, overlay.OverlayType.ININame, overlay.FrameIndex, overlay.OverlayType.Land)),
+                    string.Format(Translate(this, "OverlayDetails",
+                    "{0} ({1} {2}), Frame: {3}, Terrain Type: {4}"),
+                    overlay.OverlayType.Name, overlay.OverlayType.Index, overlay.OverlayType.ININame, overlay.FrameIndex, overlay.OverlayType.Land),
                     Constants.UIDefaultFont, baseTextColor));
             }
 
@@ -226,8 +226,8 @@ namespace TSMapEditor.UI
 
                     if (scriptAction.ParamType == TriggerParamType.Waypoint && actionEntry.Argument == waypoint.Identifier)
                     {
-                        usages.Add(Translate(this, "ScriptInWaypoint", 
-                            string.Format("script '{0}', ", script.Name)));
+                        usages.Add(string.Format(Translate(this, "ScriptInWaypoint", 
+                            "script '{0}', "), script.Name));
                     }
                 }
             }
@@ -236,8 +236,8 @@ namespace TSMapEditor.UI
             {
                 if (team.Waypoint == Helpers.WaypointNumberToAlphabeticalString(waypoint.Identifier))
                 {
-                    usages.Add(Translate(this, "TeamTypeInwaypoint", 
-                        string.Format("team '{0}', ", team.Name)));
+                    usages.Add(string.Format(Translate(this, "TeamTypeInwaypoint", 
+                        "team '{0}', "), team.Name));
                 }
             }
 
@@ -246,8 +246,8 @@ namespace TSMapEditor.UI
                 string lastUsage = usages[usages.Count - 1];
                 usages[usages.Count - 1] = lastUsage.Substring(0, lastUsage.Length - 2);
 
-                textRenderer.AddTextLine(new XNATextPart(Translate(this, "UsagesWaypoints", 
-                    string.Format("Usages of waypoint {0}:", waypoint.Identifier)), 
+                textRenderer.AddTextLine(new XNATextPart(string.Format(Translate(this, "UsagesWaypoints", 
+                    "Usages of waypoint {0}:"), waypoint.Identifier), 
                     Constants.UIDefaultFont, 
                     Color.Gray));
 
@@ -262,17 +262,17 @@ namespace TSMapEditor.UI
         {
             textRenderer.AddTextLine(new XNATextPart(objectTypeLabel,
                 Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(Translate(this, "TechnoInformation", 
-                string.Format("{0} ({1}), Owner:",
-                    techno.ObjectType.GetEditorDisplayName(), techno.ObjectType.ININame)),
-                    Constants.UIDefaultFont, Color.White));
+            textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoInformation", 
+                "{0} ({1}), Owner:"),
+                techno.ObjectType.GetEditorDisplayName(), techno.ObjectType.ININame),
+                Constants.UIDefaultFont, Color.White));
             textRenderer.AddTextPart(new XNATextPart(techno.Owner.ININame, Constants.UIBoldFont, techno.Owner.XNAColor));
 
             if (techno.IsFoot())
             {
                 var technoAsFoot = techno as Foot<T>;
-                textRenderer.AddTextPart(new XNATextPart(Translate(this, "TechnoMission", 
-                    string.Format("Mission: {0}", technoAsFoot.Mission)),
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoMission", 
+                    "Mission: {0}"), technoAsFoot.Mission),
                     Constants.UIDefaultFont, Color.White));
             }
 
@@ -280,8 +280,8 @@ namespace TSMapEditor.UI
             {
                 var unit = techno as Unit;
                 int id = map.Units.IndexOf(unit);
-                textRenderer.AddTextPart(new XNATextPart(Translate(this, "TechnoFacing",
-                    string.Format("Facing: {0}", techno.Facing)),
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoFacing",
+                    "Facing: {0}"), techno.Facing),
                     Constants.UIDefaultFont, Color.White));
 
                 if (unit.FollowerUnit != null)
@@ -290,8 +290,8 @@ namespace TSMapEditor.UI
                     if (followerId > -1)
                     {
                         string followerName = unit.FollowerUnit.UnitType.GetEditorDisplayName();
-                        textRenderer.AddTextPart(new XNATextPart(Translate(this, "TechnoFolloweR",
-                            string.Format("Follower: {0} at {1}", followerName, unit.FollowerUnit.Position)),
+                        textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoFolloweR",
+                            "Follower: {0} at {1}"), followerName, unit.FollowerUnit.Position),
                             Constants.UIDefaultFont, Color.White));
                     }
                 }
@@ -316,8 +316,8 @@ namespace TSMapEditor.UI
                     return;
 
                 textRenderer.AddTextLine(new XNATextPart(Translate(this, "HouseBaseNodesHeader", "Base Node: "), Constants.UIDefaultFont, Color.Gray));
-                textRenderer.AddTextPart(new XNATextPart(Translate(this, "HouseBaseNodesInfo",
-                    string.Format("{0} ({1}), Owner:", nodeBuildingType.Name, nodeBuildingType.ININame)),
+                textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "HouseBaseNodesInfo",
+                    "{0} ({1}), Owner:"), nodeBuildingType.Name, nodeBuildingType.ININame),
                     Constants.UIDefaultFont, Color.White));
                 textRenderer.AddTextPart(new XNATextPart(house.ININame, Constants.UIBoldFont, house.XNAColor));
             }
@@ -329,8 +329,9 @@ namespace TSMapEditor.UI
                 return;
 
             textRenderer.AddTextLine(new XNATextPart(Translate(this, "TerrainObjectHeader", "Terrain Object: "), Constants.UIDefaultFont, Color.Gray));
-            textRenderer.AddTextPart(new XNATextPart(Translate(this, "TerrainObjectInfo", 
-                string.Format("{0} ({1})", terrainObject.TerrainType.Name, terrainObject.TerrainType.ININame)),
+            textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TerrainObjectInfo", 
+                "{0} ({1})"),
+                terrainObject.TerrainType.Name, terrainObject.TerrainType.ININame),
                 Constants.UIDefaultFont, Color.White));
         }
     }

@@ -24,9 +24,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString",
-                string.Format("Delete {0} objects at {1} with a brush size of {2}",
-                    DeletedCount, cellCoords, brushSize));
+            return string.Format(Translate(this, "DisplayString",
+                "Delete {0} objects at {1} with a brush size of {2}"),
+                    DeletedCount, cellCoords, brushSize);
         }
 
         public int DeletedCount => deletedObjects.Count;

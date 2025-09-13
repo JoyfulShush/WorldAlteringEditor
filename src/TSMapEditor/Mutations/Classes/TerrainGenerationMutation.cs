@@ -404,8 +404,8 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString", 
-                string.Format("Generate Terrain over {0} cells", cells.Count));
+            return string.Format(Translate(this, "DisplayString", 
+                "Generate Terrain over {0} cells"), cells.Count);
         }
 
         public override void Perform()

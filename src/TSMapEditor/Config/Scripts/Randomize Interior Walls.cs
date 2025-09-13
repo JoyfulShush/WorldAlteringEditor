@@ -29,8 +29,8 @@ namespace WAEScript
 		public string GetSuccessMessage()
 		{
 			if (error == null)
-			    return Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage", 
-                    string.Format("Successfully randomized {0} interior walls in the map.", modifiedWallsCount));
+			    return string.Format(Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage", 
+                    "Successfully randomized {0} interior walls in the map."), modifiedWallsCount);
 
 			return error;
 		}

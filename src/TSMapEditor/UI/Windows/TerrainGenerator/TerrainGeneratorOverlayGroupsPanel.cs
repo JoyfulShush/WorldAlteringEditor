@@ -126,8 +126,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 {
                     EditorMessageBox.Show(WindowManager, 
                         Translate(this, "GeneratorConfigError.OverlayNotFound.Title", "Generator Config Error"),
-                        Translate(this, "GeneratorConfigError.OverlayNotFound.Description", 
-                            string.Format("An overlay type named '{0}' does not exist! Make sure you typed the overlay type's INI name and spelled it correctly.", overlayTypeName)), 
+                        string.Format(Translate(this, "GeneratorConfigError.OverlayNotFound.Description", 
+                            "An overlay type named '{0}' does not exist! Make sure you typed the overlay type's INI name and spelled it correctly."), overlayTypeName), 
                         MessageBoxButtons.OK);
                     return null;
                 }
@@ -144,8 +144,8 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                     {
                         EditorMessageBox.Show(WindowManager, 
                             Translate(this, "GeneratorConfigError.InvalidFrame.Title", "Generator Config Error"),
-                            Translate(this, "GeneratorConfigError.InvalidFrame.Description",
-                                string.Format("Frame '{0}' does not exist in overlay type '{1}'!", invalidElement, overlayType.ININame)),
+                            string.Format(Translate(this, "GeneratorConfigError.InvalidFrame.Description",
+                                "Frame '{0}' does not exist in overlay type '{1}'!"), invalidElement, overlayType.ININame),
                             MessageBoxButtons.OK);
                         return null;
                     }

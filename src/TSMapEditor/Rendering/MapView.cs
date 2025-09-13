@@ -1894,9 +1894,9 @@ namespace TSMapEditor.Rendering
 
                 EditorMessageBox.Show(windowManager, 
                     Translate(this, "ExtractMegamapTo.Failure.Title", "Failed to extract megamap"),
-                    Translate(this, "ExtractMegamapTo.Failure.Description", 
-                        string.Format("Error encountered while attempting to extract megamap. Returned operating system error message: {0}",
-                            ex.Message)), 
+                    string.Format(Translate(this, "ExtractMegamapTo.Failure.Description", 
+                        "Error encountered while attempting to extract megamap. Returned operating system error message: {0}"),
+                            ex.Message), 
                     MessageBoxButtons.OK);
             }
 

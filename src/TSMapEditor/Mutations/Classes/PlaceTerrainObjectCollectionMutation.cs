@@ -21,9 +21,9 @@ namespace TSMapEditor.Mutations.Classes
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString", 
-                string.Format("Place terrain object collection '{0}' at {1}",
-                    terrainObjectCollection.Name, cellCoords));
+            return string.Format(Translate(this, "DisplayString", 
+                "Place terrain object collection '{0}' at {1}"),
+                    terrainObjectCollection.Name, cellCoords);
         }
 
         public override void Perform()
