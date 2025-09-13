@@ -69,11 +69,13 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                 }
                 catch (IniParseException ex)
                 {
-                    return "The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?\r\n\r\nReturned error: " + ex.Message;
+                    return Translate("MapSetup.InitializeMap.IniParseException", 
+                        string.Format("The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?\r\n\r\nReturned error: {0}", ex.Message)) ;
                 }
                 catch (MapLoadException ex)
                 {
-                    return "Failed to load the selected map file.\r\n\r\nReturned error: " + ex.Message;
+                    return Translate("MapSetup.InitializeMap.MapLoadException",
+                        string.Format("Failed to load the selected map file.\r\n\r\nReturned error: {0}", ex.Message));
                 }
             }
 
@@ -127,13 +129,18 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
 
             if (errorListHeight > windowManager.RenderResolutionY - margin)
             {
-                EditorMessageBox.Show(windowManager, "Errors while loading map",
-                    "A massive number of errors was encountered while loading the map. See MapEditorLog.log for details.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(windowManager, 
+                    Translate("MapSetup.ManyMapLoadErrors.Title", "Errors while loading map"),
+                    Translate("MapSetup.ManyMapLoadErrors.Description", "A massive number of errors was encountered while loading the map. See MapEditorLog.log for details."),
+                    MessageBoxButtons.OK);
             }
             else if (MapLoader.MapLoadErrors.Count > 0)
             {
-                EditorMessageBox.Show(windowManager, "Errors while loading map",
-                    "One or more errors were encountered while loading the map:\r\n\r\n" + errorList, MessageBoxButtons.OK);
+                EditorMessageBox.Show(windowManager, 
+                    Translate("MapSetup.MapLoadErrors.Title", "Errors while loading map"),
+                    Translate("MapSetup.MapLoadErrors.Description", 
+                        string.Format("One or more errors were encountered while loading the map:\r\n\r\n{0}", errorList)),
+                    MessageBoxButtons.OK);
             }
         }
 

@@ -21,8 +21,8 @@ namespace TSMapEditor.Extensions
                 var taskForce = TaskForce.ParseTaskForce(rules, iniFile.GetSection(kvp.Value));
                 if (taskForce == null)
                 {
-                    errorLogger(Translate("ListExtensions.TaskForceParseError", 
-                        string.Format("Failed to load TaskForce {0}. It might be missing a section or be otherwise invalid.", kvp.Value)));
+                    errorLogger(string.Format(Translate("ListExtensions.TaskForceParseError", 
+                        "Failed to load TaskForce {0}. It might be missing a section or be otherwise invalid."), kvp.Value));
 
                     continue;
                 }
@@ -130,8 +130,8 @@ namespace TSMapEditor.Extensions
 
                 if (teamType.TaskForce == null)
                 {
-                    errorLogger(Translate("ListExtensions.TeamTypes.TaskForceNotFound", 
-                        string.Format("TeamType {0} has an invalid TaskForce ({1}) specified!", teamType.ININame, taskForceId)));
+                    errorLogger(string.Format(Translate("ListExtensions.TeamTypes.TaskForceNotFound", 
+                        "TeamType {0} has an invalid TaskForce ({1}) specified!"), teamType.ININame, taskForceId));
                 }
 
                 if (tagFinder != null && !string.IsNullOrWhiteSpace(tagId))
