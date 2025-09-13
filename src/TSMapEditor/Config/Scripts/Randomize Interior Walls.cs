@@ -22,20 +22,20 @@ namespace WAEScript
         /// </summary>
         public string GetDescription() => Translate("MapScripts.RandomizeInteriorWalls.Description", "This script will randomize all interior walls on the map with random variants of interior walls to reduce repetition. Continue?");
 
-		/// <summary>
-		/// Returns the message that is presented to the user if running this script succeeded.
-		/// All scripts must contain this function.
-		/// </summary>
-		public string GetSuccessMessage()
-		{
-			if (error == null)
-			    return string.Format(Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage", 
+        /// <summary>
+        /// Returns the message that is presented to the user if running this script succeeded.
+        /// All scripts must contain this function.
+        /// </summary>
+        public string GetSuccessMessage()
+        {
+            if (error == null)
+                return string.Format(Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage",
                     "Successfully randomized {0} interior walls in the map."), modifiedWallsCount);
 
-			return error;
-		}
+            return error;
+        }
 
-		private string error;		
+        private string error;
 
         private int modifiedWallsCount = 0;
         private const string interiorWallOverlayTypeName = "INTWALL1";
@@ -54,37 +54,37 @@ namespace WAEScript
                 error = Translate("MapScripts.RandomizeInteriorWalls.Errors.NoInteriorWallOverlay", "Interior wall overlay collection was not found");
             }
 
-			map.DoForAllValidTiles(mapCell =>
-			{
-				if (mapCell.Overlay == null) 
-					return;				
+            map.DoForAllValidTiles(mapCell =>
+            {
+                if (mapCell.Overlay == null)
+                    return;
 
                 if (mapCell.Overlay.OverlayType == null)
-					return;                
+                    return;
 
                 if (mapCell.Overlay.OverlayType.ININame != interiorWallOverlayType.ININame)
-					return;                
+                    return;
 
                 int overlayTypeFrameIndex = mapCell.Overlay.FrameIndex;
 
-                if (!frontInteriorWallFrames.Contains(overlayTypeFrameIndex) && !backInteriorWallFrames.Contains(overlayTypeFrameIndex)) 
-					return;                
+                if (!frontInteriorWallFrames.Contains(overlayTypeFrameIndex) && !backInteriorWallFrames.Contains(overlayTypeFrameIndex))
+                    return;
 
                 var random = new Random();
                 bool isFrontInteriorWallFrame = frontInteriorWallFrames.Contains(overlayTypeFrameIndex);
-				int overlayTypeFrameLength = isFrontInteriorWallFrame ? frontInteriorWallFrames.Count : backInteriorWallFrames.Count;
+                int overlayTypeFrameLength = isFrontInteriorWallFrame ? frontInteriorWallFrames.Count : backInteriorWallFrames.Count;
 
-				int chosenElementIndex = random.Next(overlayTypeFrameLength);
+                int chosenElementIndex = random.Next(overlayTypeFrameLength);
 
-				mapCell.Overlay = new Overlay()
-				{
-					Position = mapCell.CoordsToPoint(),
-					OverlayType = interiorWallOverlayType,
-					FrameIndex = isFrontInteriorWallFrame ? frontInteriorWallFrames[chosenElementIndex] : backInteriorWallFrames[chosenElementIndex]
-				};
-                
+                mapCell.Overlay = new Overlay()
+                {
+                    Position = mapCell.CoordsToPoint(),
+                    OverlayType = interiorWallOverlayType,
+                    FrameIndex = isFrontInteriorWallFrame ? frontInteriorWallFrames[chosenElementIndex] : backInteriorWallFrames[chosenElementIndex]
+                };
+
                 modifiedWallsCount++;
             });
         }
-	}
+    }
 }
