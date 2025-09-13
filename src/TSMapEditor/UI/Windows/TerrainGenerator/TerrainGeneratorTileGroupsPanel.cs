@@ -56,7 +56,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTileSet.X = Constants.UIEmptySideSpace;
                 lblTileSet.Y = y;
                 lblTileSet.FontIndex = Constants.UIBoldFont;
-                lblTileSet.Text = Translate(this, "TileSetGroups", string.Format("Tile Set (Group #{0})", i + 1));
+                lblTileSet.Text = string.Format(Translate(this, "TileSetGroups", "Tile Set (Group #{0})"), i + 1);
                 AddChild(lblTileSet);
 
                 var selTileSet = new EditorPopUpSelector(WindowManager);

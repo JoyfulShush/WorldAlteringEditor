@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblSmudgeTypes.X = Constants.UIEmptySideSpace;
                 lblSmudgeTypes.Y = y;
                 lblSmudgeTypes.FontIndex = Constants.UIBoldFont;
-                lblSmudgeTypes.Text = Translate(this, "SmudgeType", string.Format("Smudge Types (Group #{0})", i + 1));
+                lblSmudgeTypes.Text = string.Format(Translate(this, "SmudgeType", "Smudge Types (Group #{0})"), i + 1);
                 AddChild(lblSmudgeTypes);
 
                 var tbSmudgeTypes = new EditorTextBox(WindowManager);

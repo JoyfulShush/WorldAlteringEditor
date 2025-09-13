@@ -61,32 +61,32 @@ namespace TSMapEditor.Models
         public string GetHintText()
         {
             var stringBuilder = new StringBuilder();
-            stringBuilder.Append(Translate(this, "GetHintText.Owner", string.Format("Owner: {0}", HouseType == null ? Constants.NoneValue2 : HouseType.ININame)));
+            stringBuilder.Append(string.Format(Translate(this, "GetHintText.Owner", "Owner: {0}"), HouseType == null ? Constants.NoneValue2 : HouseType.ININame));
             stringBuilder.Append(Environment.NewLine + Environment.NewLine);
-            stringBuilder.Append(Translate(this, "GetHintText.Script", string.Format("Script: {0}", Script == null ? Constants.NoneValue2 : Script.Name)));
+            stringBuilder.Append(string.Format(Translate(this, "GetHintText.Script", "Script: {0}"), Script == null ? Constants.NoneValue2 : Script.Name));
             stringBuilder.Append(Environment.NewLine + Environment.NewLine);
 
             if (Tag != null)
             {
-                stringBuilder.Append(Translate(this, "GetHintText.Tag", string.Format("Tag: {0}", Tag.Name)));
+                stringBuilder.Append(string.Format(Translate(this, "GetHintText.Tag", "Tag: {0}"), Tag.Name));
                 stringBuilder.Append(Environment.NewLine + Environment.NewLine);
             }
 
-            stringBuilder.Append(Translate(this, "GetHintText.Waypoint", string.Format("Waypoint: {0}", string.IsNullOrWhiteSpace(Waypoint) ? Constants.NoneValue2 : Helpers.GetWaypointNumberFromAlphabeticalString(Waypoint))));
+            stringBuilder.Append(string.Format(Translate(this, "GetHintText.Waypoint", "Waypoint: {0}"), string.IsNullOrWhiteSpace(Waypoint) ? Constants.NoneValue2 : Helpers.GetWaypointNumberFromAlphabeticalString(Waypoint)));
 
             if (Constants.IsRA2YR)
             {
                 stringBuilder.Append(Environment.NewLine + Environment.NewLine);
-                stringBuilder.Append(Translate(this, "GetHintText.TransportWaypoint", string.Format("TransportWaypoint: {0}", string.IsNullOrWhiteSpace(TransportWaypoint) ? Constants.NoneValue2 : Helpers.GetWaypointNumberFromAlphabeticalString(TransportWaypoint))));
+                stringBuilder.Append(string.Format(Translate(this, "GetHintText.TransportWaypoint", "TransportWaypoint: {0}"), string.IsNullOrWhiteSpace(TransportWaypoint) ? Constants.NoneValue2 : Helpers.GetWaypointNumberFromAlphabeticalString(TransportWaypoint)));
             }
 
             stringBuilder.Append(Environment.NewLine + Environment.NewLine);
 
             if (VeteranLevel > 1)
             {
-                stringBuilder.Append(Translate(this, "GetHintText.VeteranLevel", string.Format("Veteran Level: {0}", VeteranLevel > 2 ?
+                stringBuilder.Append(string.Format(Translate(this, "GetHintText.VeteranLevel", "Veteran Level: {0}"), VeteranLevel > 2 ?
                     Translate(this, "GetHintText.Elite", "Elite") :
-                    Translate(this, "GetHintText.Veteran", "Veteran"))));
+                    Translate(this, "GetHintText.Veteran", "Veteran")));
                 stringBuilder.Append(Environment.NewLine + Environment.NewLine);
             }
 

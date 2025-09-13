@@ -97,9 +97,8 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
 
         public override string GetDisplayString()
         {
-            return Translate(this, "DisplayString", 
-                string.Format("Lower ground at {0} with a brush size of {1} using steep ramps",
-                    OriginCell, BrushSize));
+            return string.Format(Translate(this, "DisplayString", "Lower ground at {0} with a brush size of {1} using steep ramps"),
+                OriginCell, BrushSize);
         }
 
 

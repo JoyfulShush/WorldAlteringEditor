@@ -43,7 +43,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTerrainTypes.X = Constants.UIEmptySideSpace;
                 lblTerrainTypes.Y = y;
                 lblTerrainTypes.FontIndex = Constants.UIBoldFont;
-                lblTerrainTypes.Text = Translate(this, "TerrainTypeGroups", string.Format("Terrain Types (Group #{0})", i + 1));
+                lblTerrainTypes.Text = string.Format(Translate(this, "TerrainTypeGroups", "Terrain Types (Group #{0})"), i + 1);
                 AddChild(lblTerrainTypes);
 
                 var tbTerrainTypes = new EditorTextBox(WindowManager);

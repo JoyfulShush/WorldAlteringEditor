@@ -210,7 +210,7 @@ namespace TSMapEditor.UI
                 }
 
                 if (usageFound)
-                    usages.Add(Translate(this, "TriggerInWaypoint", string.Format("trigger '{0}', ", trigger.Name)));
+                    usages.Add(string.Format(Translate(this, "TriggerInWaypoint", "trigger '{0}', "), trigger.Name));
             }
 
             foreach (Script script in map.Scripts)

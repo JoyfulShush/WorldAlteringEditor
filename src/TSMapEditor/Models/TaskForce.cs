@@ -148,7 +148,7 @@ namespace TSMapEditor.Models
 
             sb.Append(Environment.NewLine);
             sb.Append(Environment.NewLine);
-            sb.Append(Translate(this, "GetHintText.TotalCost", string.Format("Total Cost: ${0}", totalCost)));
+            sb.Append(string.Format(Translate(this, "GetHintText.TotalCost", "Total Cost: ${0}"), totalCost));
 
             return sb.ToString();
         }

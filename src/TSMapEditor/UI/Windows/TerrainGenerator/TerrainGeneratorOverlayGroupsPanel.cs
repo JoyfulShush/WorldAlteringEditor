@@ -47,7 +47,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblTileSet.X = Constants.UIEmptySideSpace;
                 lblTileSet.Y = y;
                 lblTileSet.FontIndex = Constants.UIBoldFont;
-                lblTileSet.Text = Translate(this, "OverlayNameType", string.Format("Overlay Type Name (Group #{0})", i + 1));
+                lblTileSet.Text = string.Format(Translate(this, "OverlayNameType", "Overlay Type Name (Group #{0})"), i + 1);
                 AddChild(lblTileSet);
 
                 var selTileSet = new EditorTextBox(WindowManager);

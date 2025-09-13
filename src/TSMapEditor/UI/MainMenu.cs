@@ -188,7 +188,7 @@ namespace TSMapEditor.UI
 
             var lblVersion = new XNALabel(WindowManager);
             lblVersion.Name = nameof(lblVersion);
-            lblVersion.Text = Translate(this, "VersionText", string.Format("Version {0}", Constants.ReleaseVersion));
+            lblVersion.Text = string.Format(Translate(this, "VersionText", "Version {0}"), Constants.ReleaseVersion);
             lblVersion.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblVersion);
             lblVersion.CenterOnControlVertically(btnLoad);

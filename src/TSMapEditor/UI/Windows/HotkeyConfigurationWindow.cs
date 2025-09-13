@@ -204,7 +204,7 @@ namespace TSMapEditor.UI.Windows
                 {
                     if (string.IsNullOrEmpty(lblCurrentlyAssignedTo.Text))
                     {
-                        lblCurrentlyAssignedTo.Text = Translate(this, "AlsoAssigned", string.Format("Also assigned to: {0}", otherHotkey.UIName));
+                        lblCurrentlyAssignedTo.Text = string.Format(Translate(this, "AlsoAssigned", "Also assigned to: {0}"), otherHotkey.UIName);
                     }
                     else
                     {
