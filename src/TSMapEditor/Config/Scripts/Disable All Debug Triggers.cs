@@ -29,8 +29,8 @@ namespace WAEScript
         public string GetSuccessMessage()
         {
             if (error == null)
-                return Translate("MapScripts.DisableDebugTriggers.SuccessMessage", 
-                    string.Format("Successfully disabled all {0} debug triggers.", debugTriggerCount));
+                return string.Format(Translate("MapScripts.DisableDebugTriggers.SuccessMessage", 
+                    "Successfully disabled all {0} debug triggers."), debugTriggerCount);
 
             return error;
         }
