@@ -10,6 +10,7 @@ using TSMapEditor.Models;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Rendering;
 using TSMapEditor.GameMath;
+using TSMapEditor.Misc;
 
 namespace WAEScript
 {
@@ -19,7 +20,7 @@ namespace WAEScript
         /// Returns the description of this script.
         /// All scripts must contain this function.
         /// </summary>
-        public string GetDescription() => Translate("MapScripts.CivilianVehiclesSleep.Description", "This script will make change the mission of all vehicles belonging to the \"Civilians\" house to \"Sleep\". Continue?");
+        public string GetDescription() => Translator.Translate("MapScripts.CivilianVehiclesSleep.Description", "This script will make change the mission of all vehicles belonging to the \"Civilians\" house to \"Sleep\". Continue?");
 
         /// <summary>
         /// Returns the message that is presented to the user if running this script succeeded.
@@ -27,7 +28,7 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return string.Format(Translate("MapScripts.CivilianVehiclesSleep.SuccessMessage",
+            return string.Format(Translator.Translate("MapScripts.CivilianVehiclesSleep.SuccessMessage",
                "Successfully changed the mission of {0} vehicles to Sleep."), count);
         }
 

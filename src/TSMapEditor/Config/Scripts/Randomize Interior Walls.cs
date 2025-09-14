@@ -11,6 +11,7 @@ using TSMapEditor.CCEngine;
 using TSMapEditor.Rendering;
 using TSMapEditor.GameMath;
 using System.Collections.Generic;
+using TSMapEditor.Misc;
 
 namespace WAEScript
 {
@@ -20,7 +21,7 @@ namespace WAEScript
         /// Returns the description of this script.
         /// All scripts must contain this function.
         /// </summary>
-        public string GetDescription() => Translate("MapScripts.RandomizeInteriorWalls.Description", "This script will randomize all interior walls on the map with random variants of interior walls to reduce repetition. Continue?");
+        public string GetDescription() => Translator.Translate("MapScripts.RandomizeInteriorWalls.Description", "This script will randomize all interior walls on the map with random variants of interior walls to reduce repetition. Continue?");
 
         /// <summary>
         /// Returns the message that is presented to the user if running this script succeeded.
@@ -29,7 +30,7 @@ namespace WAEScript
         public string GetSuccessMessage()
         {
             if (error == null)
-                return string.Format(Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage",
+                return string.Format(Translator.Translate("MapScripts.RandomizeInteriorWalls.SuccessMessage",
                     "Successfully randomized {0} interior walls in the map."), modifiedWallsCount);
 
             return error;
@@ -51,7 +52,7 @@ namespace WAEScript
             var interiorWallOverlayType = map.Rules.OverlayTypes.Find(overlayType => overlayType.ININame == interiorWallOverlayTypeName);
             if (interiorWallOverlayType == null)
             {
-                error = Translate("MapScripts.RandomizeInteriorWalls.Errors.NoInteriorWallOverlay", "Interior wall overlay collection was not found");
+                error = Translator.Translate("MapScripts.RandomizeInteriorWalls.Errors.NoInteriorWallOverlay", "Interior wall overlay collection was not found");
             }
 
             map.DoForAllValidTiles(mapCell =>

@@ -7,6 +7,7 @@ using TSMapEditor.Models;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Rendering;
 using TSMapEditor.GameMath;
+using TSMapEditor.Misc;
 
 namespace WAEScript
 {
@@ -16,7 +17,7 @@ namespace WAEScript
         /// Returns the description of this script.
         /// All scripts must contain this function.
         /// </summary>
-        public string GetDescription() => Translate("MapScripts.ReplaceFrostWithClear.Description", "This script replaces all '---Frost' terrain tiles with clear terrain. Continue?");
+        public string GetDescription() => Translator.Translate("MapScripts.ReplaceFrostWithClear.Description", "This script replaces all '---Frost' terrain tiles with clear terrain. Continue?");
 
         /// <summary>
         /// Returns the message that is presented to the user if running this script succeeded.
@@ -24,7 +25,7 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return error ?? string.Format(Translate("MapScripts.ReplaceFrostWithClear.SuccessMessage", 
+            return error ?? string.Format(Translator.Translate("MapScripts.ReplaceFrostWithClear.SuccessMessage", 
                 "Successfully replaced the terrain of {0} cells."), count);
         }
 
@@ -42,7 +43,7 @@ namespace WAEScript
 
             if (frostTileSet == null)
             {
-                error = Translate("MapScripts.ReplaceFrostWithClear.Errors.FrostTileSet", "Failed to find '---Frost' TileSet!");
+                error = Translator.Translate("MapScripts.ReplaceFrostWithClear.Errors.FrostTileSet", "Failed to find '---Frost' TileSet!");
                 return;
             }
 
