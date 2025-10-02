@@ -258,7 +258,7 @@ namespace TSMapEditor.Initialization
                 TerrainType terrainType = map.Rules.TerrainTypes.Find(tt => tt.ININame == kvp.Value);
                 if (terrainType == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.NullTerrainTile",
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.NonexistentTerrainObjectType",
                         "Skipping loading of terrain type {0}, placed at {1}, {2}, because it does not exist in Rules."),
                         kvp.Value, x, y));
                     continue;
@@ -268,7 +268,7 @@ namespace TSMapEditor.Initialization
                 var tile = map.GetTile(x, y);
                 if (tile == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.TerrainObjectOutOfBounds", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadTerrainObjects.TerrainObjectOutsideOfMap", 
                         "Terrain object {0} has been placed outside of the valid map area, at {1}, {2}. Skipping placing it on the map."),
                         terrainType.ININame, x, y));
                     continue;
@@ -364,7 +364,7 @@ namespace TSMapEditor.Initialization
                             var upgradeBuildingType = map.Rules.BuildingTypes.Find(b => b.ININame == upgradeIds[i]);
                             if (upgradeBuildingType == null)
                             {
-                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.BuildingTypeNotFound", 
+                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.BuildingTypeForUpgradeNotFound", 
                                     "Invalid building upgrade specified for building {0}: {1}"), 
                                     buildingTypeId, upgradeIds[i]));
                                 continue;
@@ -381,7 +381,7 @@ namespace TSMapEditor.Initialization
 
                             if (appliedUpgrades >= buildingType.Upgrades)
                             {
-                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.UpgradesCountMismatch", 
+                                AddMapLoadError(string.Format(Translate("MapLoader.ReadBuildings.UpgradeCountMismatch", 
                                     "Building {0} at {1} has more upgrades ({2}) " +
                                     "than specified by its Upgrades= value ({3}) in Rules. Skipping adding one or more of the building's upgrades."),
                                     buildingTypeId, building.Position, appliedUpgrades + 1, buildingType.Upgrades));
@@ -472,7 +472,7 @@ namespace TSMapEditor.Initialization
                 var aircraftType = map.Rules.AircraftTypes.Find(ut => ut.ININame == aircraftTypeId);
                 if (aircraftType == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAircraft.AircraftNotFound", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAircraft.AircraftTypeNotFound", 
                         "Unable to find aircraft type {0} - skipping adding it to map."), aircraftTypeId));
                     continue;
                 }
@@ -536,7 +536,7 @@ namespace TSMapEditor.Initialization
                 var unitType = map.Rules.UnitTypes.Find(ut => ut.ININame == unitTypeId);
                 if (unitType == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadUnits.UnitNotFound",
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadUnits.UnitTypeNotFound",
                         "Unable to find unit type {0} - skipping adding it to map."), unitTypeId));
                     continue;
                 }
@@ -611,7 +611,7 @@ namespace TSMapEditor.Initialization
                 var infantryType = map.Rules.InfantryTypes.Find(it => it.ININame == infantryTypeId);
                 if (infantryType == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadInfantry.InfantryNotFound",
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadInfantry.InfantryTypeNotFound",
                         "Unable to find infantry type {0} - skipping adding it to map."), infantryTypeId));
                     continue;
                 }
@@ -674,7 +674,7 @@ namespace TSMapEditor.Initialization
                 var smudgeType = map.Rules.SmudgeTypes.Find(st => st.ININame == smudgeTypeId);
                 if (smudgeType == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.SmudgeNotFound", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadSmudges.SmudgeTypeNotFound", 
                         "Cell at {0},{1} contains a smudge '{2}' that does not exist in Rules.ini. Ignoring it."), x, y, smudgeTypeId));
                     continue;
                 }
@@ -1064,7 +1064,7 @@ namespace TSMapEditor.Initialization
                 AITriggerComparator? comparator = AITriggerComparator.Parse(aiTriggerType.LoadedComparatorString);
                 if (comparator == null)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.ConditionComparatorNotFound", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadAITriggerTypes.ConditionComparatorParseError", 
                         "Failed to parse comparator of AITriggerType {0} ({1})! Skipping loading of the AI trigger."),
                             kvp.Key, aiTriggerType.Name));
                     continue;
@@ -1218,7 +1218,7 @@ namespace TSMapEditor.Initialization
                     if (houseType == null)
                     {
                         houseType = map.GetHouseTypes()[0];
-                        AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.InvalidHouseType", 
+                        AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.InvalidCountry", 
                             "Nonexistent Country= or no Country= specified for House {0}. This makes it default to the first standard Country ({1})."),
                                 houseName, houseType.ININame));
                     }
@@ -1248,7 +1248,7 @@ namespace TSMapEditor.Initialization
                         var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
                         if (alliedHouse == null)
                         {
-                            AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.InvalidHouseType", 
+                            AddMapLoadError(string.Format(Translate("MapLoader.ReadHouses.NonexistentAlliedHouse", 
                                 "House with name {0} was not found when loading up allies for the house {1}. Skipping the alliance."),
                                     allyHouseName, house.ININame));
                             continue;
@@ -1302,14 +1302,14 @@ namespace TSMapEditor.Initialization
             {
                 if (!int.TryParse(kvp.Key, out int variableIndex))
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvaidIndex", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvalidIndex", 
                         "Invalid local variable index in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }
 
                 if (map.LocalVariables.Exists(c => c.Index == variableIndex))
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvaidIndex", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.DuplicateIndex", 
                         "Duplicate local variable index in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }
@@ -1318,7 +1318,7 @@ namespace TSMapEditor.Initialization
 
                 if (parts.Length != 2)
                 {
-                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvaidIndex", 
+                    AddMapLoadError(string.Format(Translate("MapLoader.ReadLocalVariables.InvalidSyntax", 
                         "Invalid local variable syntax in entry {0}: {1}, skipping reading local variable."), kvp.Key, kvp.Value));
                     continue;
                 }

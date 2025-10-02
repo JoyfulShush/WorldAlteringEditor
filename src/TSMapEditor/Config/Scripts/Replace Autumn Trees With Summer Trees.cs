@@ -17,7 +17,7 @@ namespace WAEScript
         /// Returns the description of this script.
         /// All scripts must contain this function.
         /// </summary>
-        public string GetDescription() => Translator.Translate("MapScripts.ReplaceAutumNTreesSummerTrees.Description", "This script replaces all autumn trees with regular trees. Continue?");
+        public string GetDescription() => Translator.Translate("MapScripts.ReplaceAutumnTreesSummerTrees.Description", "This script replaces all autumn trees with regular trees. Continue?");
 
         /// <summary>
         /// Returns the message that is presented to the user if running this script succeeded.
@@ -25,7 +25,7 @@ namespace WAEScript
         /// </summary>
         public string GetSuccessMessage()
         {
-            return string.Format(Translator.Translate("MapScripts.ReplaceAutumNTreesSummerTrees.SuccessMessage", 
+            return string.Format(Translator.Translate("MapScripts.ReplaceAutumnTreesSummerTrees.SuccessMessage", 
                 "Replaced {0} terrain objects."), count);
         }
 

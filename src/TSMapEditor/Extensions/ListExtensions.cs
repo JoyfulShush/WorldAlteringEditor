@@ -114,7 +114,7 @@ namespace TSMapEditor.Extensions
 
                     if (teamType.HouseType == null)
                     {
-                        errorLogger(string.Format(Translate("ListExtensions.ScriptParseError", 
+                        errorLogger(string.Format(Translate("ListExtensions.InvalidTeamTypeOwner", 
                             "TeamType {0} has an invalid owner ({1}) specified!"), teamType.ININame, houseTypeIniName));
                     }
                 }

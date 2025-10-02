@@ -17,7 +17,7 @@ namespace TSMapEditor.Misc
             new NamedColor(Translate("NamedColors.Pink", "Pink"), Color.HotPink),
             new NamedColor(Translate("NamedColors.Cherry", "Cherry"), Color.Pink),
             new NamedColor(Translate("NamedColors.Purple", "Purple"), Color.MediumPurple),
-            new NamedColor(Translate("NamedColors.BlueSky", "Sky Blue"), Color.SkyBlue),
+            new NamedColor(Translate("NamedColors.SkyBlue", "Sky Blue"), Color.SkyBlue),
             new NamedColor(Translate("NamedColors.Blue", "Blue"), new Color(40, 40, 255)),
             new NamedColor(Translate("NamedColors.Brown", "Brown"), Color.Brown),
             new NamedColor(Translate("NamedColors.Metalic", "Metalic"), new Color(160, 160, 200)),
