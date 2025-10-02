@@ -52,7 +52,7 @@ namespace TSMapEditor.Mutations.Classes
             {
                 MGTMPImage image = tile.TMPImages[i];
 
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = targetCellCoords.X + (brushOffset.X * tile.Width) + i % tile.Width;
@@ -89,7 +89,7 @@ namespace TSMapEditor.Mutations.Classes
             {
                 MGTMPImage image = tile.TMPImages[i];
 
-                if (image.TmpImage == null)
+                if (image == null)
                     continue;
 
                 int cx = targetCellCoords.X + i % tile.Width;
@@ -123,7 +123,7 @@ namespace TSMapEditor.Mutations.Classes
                 {
                     MGTMPImage image = tile.TMPImages[i];
 
-                    if (image.TmpImage == null)
+                    if (image == null)
                         continue;
 
                     int cx = targetCellCoords.X + (offset.X * tile.Width) + i % tile.Width;
@@ -134,7 +134,7 @@ namespace TSMapEditor.Mutations.Classes
                     {
                         mapTile.ChangeTileIndex(tile.TileID, (byte)i);
                         mapTile.Level = (byte)Math.Min(originLevel + image.TmpImage.Height, Constants.MaxMapHeightLevel);
-                        mapTile.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                        RefreshCellLighting(mapTile);
                     }
                 }
             });
@@ -183,7 +183,7 @@ namespace TSMapEditor.Mutations.Classes
                 {
                     mapCell.ChangeTileIndex(originalTerrainData.TileIndex, originalTerrainData.SubTileIndex);
                     mapCell.Level = originalTerrainData.Level;
-                    mapCell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                    RefreshCellLighting(mapCell);
                 }
             }
 

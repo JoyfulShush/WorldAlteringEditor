@@ -28,6 +28,8 @@ namespace TSMapEditor.UI.Controls
 
         protected string SubDirectory { get; set; } = "Windows";
 
+        public bool CenterByDefault { get; set; } = true;
+
         public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
         {
             T child = FindChild<T>(Children, childName);
@@ -115,6 +117,9 @@ namespace TSMapEditor.UI.Controls
 
             if (btnClose != null)
                 btnClose.X = Width - btnClose.Width;
+
+            if (CenterByDefault)
+                CenterOnParent();
         }
 
         private bool ReadINIForControl(XNAControl control, bool isForLayout = false)
@@ -138,7 +143,7 @@ namespace TSMapEditor.UI.Controls
                     else
                     {
                         string childName = GetChildControlName(control, kvp.Value);
-                        var child = Children.First(cc => cc.Name == childName);
+                        var child = control.Children.First(cc => cc.Name == childName);
                         if (child == null)
                             throw new INIConfigException($"Processing {control.Name} in {nameof(INItializableWindow)}: Unable to find child control {kvp.Value} while calculating layout");
 
@@ -160,6 +165,14 @@ namespace TSMapEditor.UI.Controls
                 else if (kvp.Key == "$Height")
                 {
                     control.Height = Parser.Instance.GetExprValue(kvp.Value, control);
+                }
+                else if (kvp.Key == "$Text")
+                {
+                    control.Text = Parser.Instance.GetExprValueString(kvp.Value, "Text", control);
+                }
+                else if (kvp.Key == "$Suggestion" && control is XNASuggestionTextBox)
+                {
+                    ((XNASuggestionTextBox)control).Suggestion = Parser.Instance.GetExprValueString(kvp.Value, "Suggestion", control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {
@@ -253,6 +266,15 @@ namespace TSMapEditor.UI.Controls
                     {
                         var toolTipControl = new ToolTip(WindowManager, child);
                         toolTipControl.Text = toolTipText;
+                        toolTipControl.ToolTipDelay = 0;
+                    }
+
+                    string parsedToolTipText = childSection.GetStringValue("$ToolTip", null);
+                    if (parsedToolTipText != null)
+                    {
+                        parsedToolTipText = Parser.Instance.GetExprValueString(parsedToolTipText, "ToolTip", child);
+                        var toolTipControl = new ToolTip(WindowManager, child);
+                        toolTipControl.Text = parsedToolTipText;
                         toolTipControl.ToolTipDelay = 0;
                     }
                 }

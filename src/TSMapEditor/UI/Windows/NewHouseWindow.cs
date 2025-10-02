@@ -53,8 +53,8 @@ namespace TSMapEditor.UI.Windows
         {
             if (string.IsNullOrWhiteSpace(tbHouseName.Text))
             {
-                EditorMessageBox.Show(WindowManager, "House Name Required",
-                    "Please input a name for the house.", MessageBoxButtons.OK);
+                EditorMessageBox.Show(WindowManager, Translate(this, "NoHouseNameError.Title", "House Name Required"),
+                    Translate(this, "NoHouseNameError.Description", "Please input a name for the house."), MessageBoxButtons.OK);
 
                 return;
             }
@@ -79,8 +79,7 @@ namespace TSMapEditor.UI.Windows
             map.AddHouseType(newHouseType);
 
             var newHouse = new House(houseName)
-            {
-                Allies = houseName,
+            {                
                 Credits = 0,
                 Edge = "West",
                 IQ = 0,
@@ -90,6 +89,7 @@ namespace TSMapEditor.UI.Windows
                 ID = map.Houses.Count
             };
 
+            newHouse.Allies = [newHouse];
             newHouse.Color = newHouseType.Color;
             newHouse.XNAColor = newHouseType.XNAColor;
             newHouse.Country = houseTypeName;
@@ -125,7 +125,7 @@ namespace TSMapEditor.UI.Windows
             ListParentCountries();
 
             ddParentCountry.SelectedIndex = 0;
-            tbHouseName.Text = "NewHouse";
+            tbHouseName.Text = Translate(this, "DefaultNewHouseName", "NewHouse");
 
             Success = false;
         }

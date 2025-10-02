@@ -65,7 +65,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
             if (cell.Level < Constants.MaxMapHeightLevel)
             {
                 cell.Level++;
-                cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                RefreshCellLighting(cell);
                 affectedCells.Add(cell.CoordsToPoint());
             }
         }
@@ -81,7 +81,7 @@ namespace TSMapEditor.Mutations.Classes.HeightMutations
                 if (cell.Level > 0)
                 {
                     cell.Level--;
-                    cell.RefreshLighting(Map.Lighting, MutationTarget.LightingPreviewState);
+                    RefreshCellLighting(cell);
                 }
             }
 

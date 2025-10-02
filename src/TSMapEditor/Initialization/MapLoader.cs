@@ -102,7 +102,7 @@ namespace TSMapEditor.Initialization
                     return;
                 }
 
-                if (tile.GetSubTile(t.SubTileIndex).TmpImage == null)
+                if (tile.GetSubTile(t.SubTileIndex) == null)
                 {
                     AddMapLoadError($"Null sub-tile {t.SubTileIndex} for cell at {t.CoordsToPoint()} - clearing the tile. " +
                         $"TileSet: {tileSet.SetName} ({tileSet.FileName}), index of tile within its set: {tile.TileIndexInTileSet}");
@@ -1178,6 +1178,27 @@ namespace TSMapEditor.Initialization
                 {
                     houseType.Color = house.Color;
                     houseType.XNAColor = house.XNAColor;
+                }
+            }
+            
+            // Once all houses were loaded into WAE, read and set up the alliances of each house as a list of allied houses
+            foreach (var house in map.Houses)
+            {
+                var houseSection = mapIni.GetSection(house.ININame);
+                if (houseSection != null)
+                {
+                    List<string> allyHouseNames = houseSection.GetListValue("Allies", ',', s => s);
+                    foreach (string allyHouseName in allyHouseNames)
+                    {
+                        var alliedHouse = map.Houses.Find(house => house.ININame == allyHouseName);
+                        if (alliedHouse == null)
+                        {
+                            AddMapLoadError($"House with name {allyHouseName} was not found when loading up allies for the house {house.ININame}. Skipping the alliance.");
+                            continue;
+                        }
+
+                        house.Allies.Add(alliedHouse);
+                    }
                 }
             }
 

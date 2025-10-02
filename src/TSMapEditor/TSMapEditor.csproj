@@ -27,6 +27,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Config\Scripts\Apply Animated Water.cs" />
+    <Compile Remove="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs" />
     <Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
@@ -70,6 +71,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\UI\Windows\SelectSuperWeaponTypeWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Default\UI\Windows\SettingsPanel.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\MapCode\Enable Blue Tiberium Spreader Lighting.ini">
@@ -180,6 +184,9 @@
     <None Update="Config\Default\UI\Windows\HousesWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Default\UI\Windows\CreateAllianceWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Config\Default\UI\Windows\InfantryOptionsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -229,6 +236,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\UI\Windows\SelectHouseTypeWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Translations.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Translations\en\ObjectNames_en.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Translations\en\Translation_en.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\UI\Windows\SelectScriptActionPresetOptionWindow.ini">
@@ -310,6 +326,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\UI\Windows\SelectTutorialLineWindow.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Default\UI\Windows\SelectColorsWindow.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Config\Default\UI\Windows\StructureOptionsWindow.ini">
@@ -465,17 +484,14 @@
     <None Update="Content\trackbarButton.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="MapEditorSettings.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.3" />
     <PackageReference Include="Rampastring.Tools" Version="2.0.7" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.3" />
-    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="3.0.6" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
+    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="3.1.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
     <PackageReference Include="Westwind.Scripting" Version="1.3.3" />
   </ItemGroup>
   <ItemGroup>
@@ -483,6 +499,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config\Scripts\Apply Animated Water.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Count Credits On Map.cs">

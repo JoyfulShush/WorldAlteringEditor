@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TSMapEditor.Models;
 using TSMapEditor.Rendering;
 
@@ -11,7 +12,7 @@ namespace TSMapEditor.UI
 {
     class OverlayFrameSelectorFrame
     {
-        public OverlayFrameSelectorFrame(Point location, Point offset, Point size, int overlayFrameIndex, Texture2D texture)
+        public OverlayFrameSelectorFrame(Point location, Point offset, Point size, int overlayFrameIndex, PositionedTexture texture)
         {
             Location = location;
             Offset = offset;
@@ -24,7 +25,7 @@ namespace TSMapEditor.UI
         public Point Offset { get; set; }
         public Point Size { get; set; }
         public int OverlayFrameIndex { get; set; }
-        public Texture2D Texture { get; set; }
+        public PositionedTexture Texture { get; set; }
     }
 
     public class OverlayFrameSelector : XNAPanel
@@ -99,7 +100,7 @@ namespace TSMapEditor.UI
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 2, 2);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
-            palettedDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedDrawNoDepth");
+            palettedDrawEffect = AssetLoader.LoadEffect("Shaders/PalettedDrawNoDepth") ?? throw new FileNotFoundException("Shader not found: PalettedDrawNoDepth");
 
             KeyboardCommands.Instance.NextTile.Triggered += NextTile_Triggered;
             KeyboardCommands.Instance.PreviousTile.Triggered += PreviousTile_Triggered;
@@ -241,8 +242,8 @@ namespace TSMapEditor.UI
                 if (frame == null)
                     continue;
 
-                int width = frame.Texture.Width;
-                int height = frame.Texture.Height;
+                int width = frame.SourceRectangle.Width;
+                int height = frame.SourceRectangle.Height;
 
                 if (x + width > usableWidth)
                 {
@@ -255,7 +256,7 @@ namespace TSMapEditor.UI
                     tilesOnCurrentLine.Clear();
                 }
 
-                var tileDisplayTile = new OverlayFrameSelectorFrame(new Point(x, y), new Point(0, 0), new Point(width, height), i, frame.Texture);
+                var tileDisplayTile = new OverlayFrameSelectorFrame(new Point(x, y), new Point(0, 0), new Point(width, height), i, frame);
                 framesInView.Add(tileDisplayTile);
 
                 if (height > currentLineHeight)
@@ -341,8 +342,8 @@ namespace TSMapEditor.UI
                 palettedDrawEffect.Parameters["PaletteTexture"].SetValue(currentOverlayShape.GetPaletteTexture());
                 palettedDrawEffect.Parameters["Lighting"].SetValue(Vector4.One);
 
-                DrawTexture(frame.Texture, new Rectangle(frame.Location.X + frame.Offset.X,
-                    viewY + frame.Location.Y + frame.Offset.Y, frame.Texture.Width, frame.Texture.Height), Color.White);
+                DrawTexture(frame.Texture.Texture, frame.Texture.SourceRectangle, new Rectangle(frame.Location.X + frame.Offset.X,
+                    viewY + frame.Location.Y + frame.Offset.Y, frame.Texture.SourceRectangle.Width, frame.Texture.SourceRectangle.Height), Color.White);
             }
 
             Renderer.PopSettings();

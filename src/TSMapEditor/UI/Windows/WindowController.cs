@@ -131,7 +131,7 @@ namespace TSMapEditor.UI.Windows
             LocalVariablesWindow = new LocalVariablesWindow(windowParentControl.WindowManager, map);
             Windows.Add(LocalVariablesWindow);
 
-            StructureOptionsWindow = new StructureOptionsWindow(windowParentControl.WindowManager, map);
+            StructureOptionsWindow = new StructureOptionsWindow(windowParentControl.WindowManager, map, editorState);
             Windows.Add(StructureOptionsWindow);
 
             VehicleOptionsWindow = new VehicleOptionsWindow(windowParentControl.WindowManager, map, editorState, cursorActionTarget);

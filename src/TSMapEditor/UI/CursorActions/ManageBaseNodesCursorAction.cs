@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using TSMapEditor.GameMath;
 using TSMapEditor.Misc;
 using TSMapEditor.Models;
+using TSMapEditor.UI.Windows;
 
 namespace TSMapEditor.UI.CursorActions
 {
@@ -14,14 +15,17 @@ namespace TSMapEditor.UI.CursorActions
     /// </summary>
     public class ManageBaseNodesCursorAction : CursorAction
     {
-        public ManageBaseNodesCursorAction(ICursorActionTarget cursorActionTarget) : base(cursorActionTarget)
+        public ManageBaseNodesCursorAction(ICursorActionTarget cursorActionTarget, WindowManager windowManager) : base(cursorActionTarget)
         {
+            this.windowManager = windowManager;
         }
+
+        private readonly WindowManager windowManager;
 
         private BaseNode draggedBaseNode = null;
         private bool isDragging = false;
 
-        public override string GetName() => "Manage Base Nodes";
+        public override string GetName() => Translate("Name", "Manage Base Nodes");
 
         public override bool DrawCellCursor => true;
 
@@ -31,14 +35,14 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void DrawPreview(Point2D cellCoords, Point2D cameraTopLeftPoint)
         {
-            string text = "Placement actions:" + Environment.NewLine +
-                "Click on building to place a base node." + Environment.NewLine +
-                "Hold SHIFT while clicking to also delete the source building." + Environment.NewLine +
-                "Hold CTRL while clicking to erase a base node." + Environment.NewLine + Environment.NewLine +
-                "Hold M while dragging a base node to move it." + Environment.NewLine + Environment.NewLine +
-                "Ordering actions:" + Environment.NewLine +
-                "Press E while hovering over a base node to shift it to be built earlier." + Environment.NewLine +
-                "Press D while hovering over a base node to shift it to be built later.";
+            string text = Translate("Text","Placement actions:") + Environment.NewLine +
+                Translate("PlaceText","Click on building to place a base node.") + Environment.NewLine +
+                Translate("DeleteSourceText", "Hold SHIFT while clicking to also delete the source building.") + Environment.NewLine +
+                Translate("EraseText", "Hold CTRL while clicking to erase a base node.") + Environment.NewLine + Environment.NewLine +
+                Translate("MoveText", "Hold M while dragging a base node to move it.") + Environment.NewLine + Environment.NewLine +
+                Translate("OrderText", "Ordering actions:") + Environment.NewLine +
+                Translate("EarlierText", "Press E while hovering over a base node to shift it to be built earlier.") + Environment.NewLine +
+                Translate("LaterText", "Press D while hovering over a base node to shift it to be built later.");
 
             DrawText(cellCoords, cameraTopLeftPoint, 60, -240, text, UISettings.ActiveSettings.AltColor);
 
@@ -196,21 +200,53 @@ namespace TSMapEditor.UI.CursorActions
                     break;
             }
 
-            if (!overlappingNodes)
+            if (overlappingNodes)
             {
-                // All OK, create the base node
-                var baseNode = new BaseNode(structureType.ININame, mapCell.Structures[0].Position);
-                owner.BaseNodes.Add(baseNode);
-                CursorActionTarget.Map.RegisterBaseNode(owner, baseNode);
+                EditorMessageBox.Show(windowManager, "Error", "The house already has one or more base nodes on the cell!", MessageBoxButtons.OK);
+                return;
             }
 
-            // If the user is holding Shift, then also delete the building
-            if (CursorActionTarget.WindowManager.Keyboard.IsShiftHeldDown())
+            // All OK, create the base node
+
+            bool removeBuilding = CursorActionTarget.WindowManager.Keyboard.IsShiftHeldDown();
+
+            if (mapCell.Structures[0].UpgradeCount > 0)
             {
-                CursorActionTarget.Map.RemoveBuildingsFrom(cellCoords);
+                var messageBox = EditorMessageBox.Show(windowManager, "Create node for upgrades?", "The building has one or more upgrades. Do you also want to create a base node for them?", MessageBoxButtons.YesNo);
+                messageBox.YesClickedAction = _ => CreateNode(mapCell.Structures[0], true, removeBuilding);
+                messageBox.NoClickedAction = _ => CreateNode(mapCell.Structures[0], false, removeBuilding);
+                return;
             }
 
-            CursorActionTarget.AddRefreshPoint(cellCoords);
+            CreateNode(mapCell.Structures[0], false, removeBuilding);
+        }
+
+        private void CreateNode(Structure structure, bool createForUpgrades, bool delete)
+        {
+            var baseNode = new BaseNode(structure.ObjectType.ININame, structure.Position);
+            structure.Owner.BaseNodes.Add(baseNode);
+            CursorActionTarget.Map.RegisterBaseNode(structure.Owner, baseNode);
+
+            if (createForUpgrades)
+            {
+                for (int i = 0; i < structure.Upgrades.Length; i++)
+                {
+                    var upgrade = structure.Upgrades[i];
+                    if (upgrade == null)
+                        continue;
+
+                    var upgradeBaseNode = new BaseNode(upgrade.ININame, structure.Position);
+                    structure.Owner.BaseNodes.Add(upgradeBaseNode);
+                    CursorActionTarget.Map.RegisterBaseNode(structure.Owner, upgradeBaseNode);
+                }
+            }
+
+            if (delete)
+            {
+                CursorActionTarget.Map.RemoveBuilding(structure);
+            }
+
+            CursorActionTarget.AddRefreshPoint(structure.Position);
         }
 
         private int GetBaseNodeIndexForHouse(House house, Point2D cellCoords)

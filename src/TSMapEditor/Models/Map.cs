@@ -750,7 +750,7 @@ namespace TSMapEditor.Models
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -1424,7 +1424,7 @@ namespace TSMapEditor.Models
             return -1;
         }
 
-        public void RefreshCellLighting(LightingPreviewMode lightingPreviewMode, List<MapTile> affectedTiles)
+        public void RefreshCellLighting(LightingPreviewMode lightingPreviewMode, bool lightDisabledLightSources, List<MapTile> affectedTiles)
         {
             if (affectedTiles == null)
             {
@@ -1434,7 +1434,7 @@ namespace TSMapEditor.Models
                     return;
                 }
 
-                DoForAllValidTiles(cell => cell.RefreshLighting(Lighting, lightingPreviewMode));
+                DoForAllValidTiles(cell => cell.RefreshLighting(Lighting, lightingPreviewMode, lightDisabledLightSources));
             }
             else
             {
@@ -1444,7 +1444,7 @@ namespace TSMapEditor.Models
                     return;
                 }
 
-                affectedTiles.ForEach(cell => cell.RefreshLighting(Lighting, lightingPreviewMode));
+                affectedTiles.ForEach(cell => cell.RefreshLighting(Lighting, lightingPreviewMode, lightDisabledLightSources));
             }
         }
 
@@ -1743,6 +1743,17 @@ namespace TSMapEditor.Models
                     }
                 }
             });
+
+            // Check for multiple houses having the same ININame
+            for (int i = 0; i < Houses.Count; i++)
+            {
+                House duplicate = Houses.Find(h => h != Houses[i] && h.ININame == Houses[i].ININame);
+                if (duplicate != null)
+                {
+                    issueList.Add($"The map has multiple houses named \"{duplicate.ININame}\"! This will result in a corrupted house list in-game!");
+                    break;
+                }
+            }
 
             // Check for teamtypes having no taskforce or script
             TeamTypes.ForEach(tt =>

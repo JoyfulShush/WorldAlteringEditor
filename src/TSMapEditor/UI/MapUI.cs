@@ -32,6 +32,7 @@ namespace TSMapEditor.UI
         Randomizer Randomizer { get; }
         bool AutoLATEnabled { get; }
         LightingPreviewMode LightingPreviewState { get; }
+        bool LightDisabledLightSources { get; }
         bool OnlyPaintOnClearGround { get; }
     }
 
@@ -107,6 +108,7 @@ namespace TSMapEditor.UI
         public LightingPreviewMode LightingPreviewState => EditorState.IsLighting ? EditorState.LightingPreviewState : LightingPreviewMode.NoLighting;
         public Randomizer Randomizer => EditorState.Randomizer;
         public bool AutoLATEnabled => EditorState.AutoLATEnabled;
+        public bool LightDisabledLightSources => EditorState.LightDisabledLightSources;
         public bool OnlyPaintOnClearGround => EditorState.OnlyPaintOnClearGround;
         public CopiedMapData CopiedMapData
         {
@@ -308,7 +310,7 @@ namespace TSMapEditor.UI
             mapView.RefreshRenderTargets();
 
             windowController.MinimapWindow.MegamapTexture = mapView.MinimapTexture; // mapRenderTarget;
-            Map.RefreshCellLighting(EditorState.LightingPreviewState, null);
+            Map.RefreshCellLighting(EditorState.LightingPreviewState, EditorState.LightDisabledLightSources, null);
 
             // And then re-draw the whole map
             InvalidateMap();
@@ -603,7 +605,7 @@ namespace TSMapEditor.UI
             // Make scroll rate independent of FPS
             // Scroll rate is designed for 60 FPS
             // 1000 ms (1 second) divided by 60 frames =~ 16.667 ms / frame
-            int scrollRate = (int)(this.scrollRate * (gameTime.ElapsedGameTime.TotalMilliseconds / 16.667));
+            float scrollRate = (float)(this.scrollRate * (gameTime.ElapsedGameTime.TotalMilliseconds / 16.667));
 
             if (IsActive)
             {

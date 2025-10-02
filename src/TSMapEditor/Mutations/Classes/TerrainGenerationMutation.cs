@@ -6,6 +6,7 @@ using System.Linq;
 using TSMapEditor.CCEngine;
 using TSMapEditor.GameMath;
 using TSMapEditor.Models;
+using TSMapEditor.Models.Enums;
 using TSMapEditor.Rendering;
 using TSMapEditor.UI;
 
@@ -466,6 +467,11 @@ namespace TSMapEditor.Mutations.Classes
             {
                 foreach (Point2D cellCoords in cells)
                 {
+                    // Don't place terrain objects on roads
+                    var cell = Map.GetTile(cellCoords);
+                    if (cell.MatchesLandType(LandType.Road))
+                        continue;
+
                     bool isOccupied = occupiedCells.Contains(cellCoords);
                     double chance = isOccupied ? terrainTypeGroup.OverlapChance : terrainTypeGroup.OpenChance;
 
@@ -612,7 +618,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -634,7 +640,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;
@@ -662,7 +668,7 @@ namespace TSMapEditor.Mutations.Classes
             for (int i = 0; i < tile.SubTileCount; i++)
             {
                 var subTile = tile.GetSubTile(i);
-                if (subTile.TmpImage == null)
+                if (subTile == null)
                     continue;
 
                 Point2D offset = tile.GetSubTileCoordOffset(i).Value;

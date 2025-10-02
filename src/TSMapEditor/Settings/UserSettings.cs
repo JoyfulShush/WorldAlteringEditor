@@ -28,6 +28,7 @@ namespace TSMapEditor.Settings
                 RenderScale,
                 Borderless,
                 FullscreenWindowed,
+                ConserveVRAM,
 
                 ScrollRate,
                 MapWideOverlayOpacity,
@@ -43,7 +44,9 @@ namespace TSMapEditor.Settings
                 GameDirectory,
                 LastScenarioPath,
 
-                TextEditorPath
+                TextEditorPath,
+
+                Language
             };
 
             foreach (var setting in settings)
@@ -82,6 +85,7 @@ namespace TSMapEditor.Settings
         public DoubleSetting RenderScale = new DoubleSetting(Display, "RenderScale", 1.0);
         public BoolSetting Borderless = new BoolSetting(Display, "Borderless", false);
         public BoolSetting FullscreenWindowed = new BoolSetting(Display, "FullscreenWindowed", false);
+        public BoolSetting ConserveVRAM = new BoolSetting(Display, "ConserveVRAM", false);
 
         public IntSetting ScrollRate = new IntSetting(MapView, nameof(ScrollRate), 15);
         public IntSetting MapWideOverlayOpacity = new IntSetting(MapView, "MapWideOverlayOpacity", 50);
@@ -98,6 +102,8 @@ namespace TSMapEditor.Settings
         public StringSetting LastScenarioPath = new StringSetting(General, nameof(LastScenarioPath), "Maps/Custom/");
 
         public StringSetting TextEditorPath = new StringSetting(General, "TextEditorPath", string.Empty);
+
+        public StringSetting Language = new StringSetting(General, nameof(Language), string.Empty);
 
         public RecentFiles RecentFiles = new RecentFiles();
     }
