@@ -359,8 +359,12 @@ namespace TSMapEditor.UI.Windows
             else
             {
                 var stringBuilder = new StringBuilder();
-                referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Local TeamType \"{tt.Name}\" ({tt.ININame})"));
-                referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine($"- Global TeamType \"{tt.Name}\" ({tt.ININame})"));
+                referringLocalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
+                    string.Format(Translate(this, "ReferringTeamTypes.Local", 
+                        "- Local TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
+                referringGlobalTeamTypes.ForEach(tt => stringBuilder.AppendLine(
+                    string.Format(Translate(this, "ReferringTeamTypes.Global", 
+                        "- Global TeamType \"{0}\" ({1})"), tt.Name, tt.ININame)));
 
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "ScriptReferences.Title", "Script References"),
@@ -585,7 +589,7 @@ namespace TSMapEditor.UI.Windows
                 selTypeOfAction.Text = string.Empty;
                 selTypeOfAction.Tag = null;
                 tbParameterValue.Text = string.Empty;
-                lblParameterDescription.Text = "Parameter:";
+                lblParameterDescription.Text = Translate(this, "ParameterDescriptionText", "Parameter:");
                 lblActionDescriptionValue.Text = string.Empty;
                 return;
             }
@@ -599,7 +603,9 @@ namespace TSMapEditor.UI.Windows
             SetParameterEntryText(entry, action);
             tbParameterValue.TextChanged += TbParameterValue_TextChanged;
 
-            lblParameterDescription.Text = action == null ? "Parameter:" : action.ParamDescription + ":";
+            lblParameterDescription.Text = action == null ? 
+                Translate(this, "ParameterDescriptionText", "Parameter:") :
+                action.ParamDescription + ":";
             lblActionDescriptionValue.Text = GetActionDescriptionFromIndex(entry.Action);
 
             string text = null;
@@ -834,7 +840,7 @@ namespace TSMapEditor.UI.Windows
                 tbParameterValue.Text = string.Empty;
                 btnEditorPresetValues.ContextMenu.ClearItems();
                 lblActionDescriptionValue.Text = string.Empty;
-                lblParameterDescription.Text = "Parameter:";
+                lblParameterDescription.Text = Translate(this, "ParameterDescriptionText", "Parameter:");
                 ddScriptColor.SelectedIndex = -1;
 
                 return;
