@@ -59,7 +59,7 @@ namespace TSMapEditor.UI.Sidebar
 
         public int CategoryMargin { get; set; } = 5;
 
-        private int CategoryHeight => LineHeight + CategoryMargin * 2;
+        private int CategoryHeight => Constants.UITreeViewCategoryHeight + CategoryMargin * 2;
 
         /// <summary>
         /// Gets or sets the distance between the text of a tree view item
@@ -470,16 +470,14 @@ namespace TSMapEditor.UI.Sidebar
                                     UISettings.ActiveSettings.FocusColor);
                             }
 
-                            x = TextBorderDistance + NODE_INDENTATION;
-                            int textHeight = (int)Renderer.GetTextDimensions(node.Text, Constants.UIDefaultFont).Y;
-                            int textY = y + ((LineHeight - textHeight) / 2);
-                            DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(x, textY), UISettings.ActiveSettings.AltColor);
+                            int textX = TextBorderDistance + NODE_INDENTATION * 3 + MARGIN;
 
                             if (node.Texture != null)
                             {
                                 int textureHeight = node.Texture.Height;
                                 int textureWidth = node.Texture.Width;
                                 int textureYPosition = 0;
+                                int textureXPosition = textX - NODE_INDENTATION - MARGIN - (textureWidth / 2);
 
                                 if (node.Texture.Height > LineHeight)
                                 {
@@ -491,18 +489,22 @@ namespace TSMapEditor.UI.Sidebar
                                     textureYPosition = (LineHeight - textureHeight) / 2;
 
                                 DrawTexture(node.Texture,
-                                    new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                    new Rectangle(textureXPosition,
                                     y + textureYPosition,
                                     textureWidth, textureHeight), Color.White);
 
                                 if (node.RemapTexture != null)
                                 {
                                     DrawTexture(node.RemapTexture,
-                                        new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                        new Rectangle(textureXPosition,
                                         y + textureYPosition,
                                         textureWidth, textureHeight), node.RemapColor);
                                 }
                             }
+                            
+                            int textHeight = (int)Renderer.GetTextDimensions(node.Text, Constants.UIDefaultFont).Y;
+                            int textY = y + ((LineHeight - textHeight) / 2);
+                            DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(textX, textY), UISettings.ActiveSettings.AltColor);
                         }
 
                         height += LineHeight;
