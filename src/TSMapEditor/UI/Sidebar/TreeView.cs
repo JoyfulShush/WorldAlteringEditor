@@ -471,9 +471,6 @@ namespace TSMapEditor.UI.Sidebar
                             }
 
                             x = TextBorderDistance + NODE_INDENTATION;
-                            int textHeight = (int)Renderer.GetTextDimensions(node.Text, Constants.UIDefaultFont).Y;
-                            int textY = y + ((LineHeight - textHeight) / 2);
-                            DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(x, textY), UISettings.ActiveSettings.AltColor);
 
                             if (node.Texture != null)
                             {
@@ -491,18 +488,22 @@ namespace TSMapEditor.UI.Sidebar
                                     textureYPosition = (LineHeight - textureHeight) / 2;
 
                                 DrawTexture(node.Texture,
-                                    new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                    new Rectangle(x,
                                     y + textureYPosition,
                                     textureWidth, textureHeight), Color.White);
 
                                 if (node.RemapTexture != null)
                                 {
                                     DrawTexture(node.RemapTexture,
-                                        new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                        new Rectangle(x,
                                         y + textureYPosition,
                                         textureWidth, textureHeight), node.RemapColor);
                                 }
                             }
+                            
+                            int textHeight = (int)Renderer.GetTextDimensions(node.Text, Constants.UIDefaultFont).Y;
+                            int textY = y + ((LineHeight - textHeight) / 2);
+                            DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(x + NODE_INDENTATION * 2 + MARGIN, textY), UISettings.ActiveSettings.AltColor);
                         }
 
                         height += LineHeight;
