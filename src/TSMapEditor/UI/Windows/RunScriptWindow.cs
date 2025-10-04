@@ -128,7 +128,7 @@ namespace TSMapEditor.UI.Windows
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "WAEScriptsDirectoryNotFound.Title", "Error"),
                     string.Format(Translate(this, "WAEScriptsDirectoryNotFound.Description", 
-                        "Scripts directory not found!\r\n\r\nExpected path: {0}"), directoryPath),
+                        "Scripts directory not found!" + Environment.NewLine + Environment.NewLine + "Expected path: {0}"), directoryPath),
                     MessageBoxButtons.OK);
                 return;
             }

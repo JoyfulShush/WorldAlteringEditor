@@ -410,7 +410,7 @@ namespace TSMapEditor.UI
                     Translate(this, "IssuesFound.Title", "Issues Found"),
                     Translate(this, "IssuesFound.Description", 
                         "The map has been saved, but one or more issues have been found in the map. Please consider resolving them." +
-                        newline + newline + newline + 
+                        newline + newline +
                         issuesString),
                     MessageBoxButtons.OK);
             }

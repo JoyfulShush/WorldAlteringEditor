@@ -96,7 +96,7 @@ namespace TSMapEditor.UI.Windows
                 EditorMessageBox.Show(WindowManager, 
                     Translate(this, "Error", "Error"),
                     string.Format(Translate(this, "DirectoryNotFound", 
-                        "Map INI code directory not found!\r\n\r\nExpected path: {0}"), directoryPath),
+                        "Map INI code directory not found!" + Environment.NewLine + Environment.NewLine + "Expected path: {0}"), directoryPath),
                     MessageBoxButtons.OK);
                 return;
             }

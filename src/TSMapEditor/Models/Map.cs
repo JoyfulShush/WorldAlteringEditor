@@ -1925,7 +1925,7 @@ namespace TSMapEditor.Models
 
                 if (!CellTags.Exists(ct => ct.Tag == tag))
                 {
-                    issueList.Add(string.Format(Translate(this, "CheckForIssues.TriggerBridgeDestroyedCellTags", 
+                    issueList.Add(string.Format(Translate(this, "CheckForIssues.TriggerBridgeDestroyedNoCellTags", 
                         "Trigger '{0}' is using the \"Bridge destroyed\" event, but it is not attached to any CellTag. Did you forget to place a celltag for it?"),
                             trigger.Name));
                 }

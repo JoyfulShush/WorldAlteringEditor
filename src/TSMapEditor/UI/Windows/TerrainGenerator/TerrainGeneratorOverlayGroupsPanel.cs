@@ -77,7 +77,7 @@ namespace TSMapEditor.UI.Windows.TerrainGenerator
                 lblOpenChance.Name = nameof(lblOpenChance) + i;
                 lblOpenChance.X = tbTileIndices.Right + Constants.UIHorizontalSpacing;
                 lblOpenChance.Y = lblTileSet.Y;
-                lblOpenChance.Text = Translate(this, "OpenCellChange", "Open cell chance:");
+                lblOpenChance.Text = Translate(this, "OpenCellChance", "Open cell chance:");
                 AddChild(lblOpenChance);
 
                 var tbOpenChance = new EditorNumberTextBox(WindowManager);

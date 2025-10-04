@@ -79,7 +79,7 @@ namespace TSMapEditor.UI
             btnBrowseGameDirectory = new EditorButton(WindowManager);
             btnBrowseGameDirectory.Name = nameof(btnBrowseGameDirectory);
             btnBrowseGameDirectory.Width = BrowseButtonWidth;
-            btnBrowseGameDirectory.Text = Translate(this, "BrowseGameDirectoryText","Browse...");
+            btnBrowseGameDirectory.Text = Translate(this, "BrowseGameDirectoryText", "Browse...");
             btnBrowseGameDirectory.Y = tbGameDirectory.Y;
             btnBrowseGameDirectory.X = tbGameDirectory.Right + Constants.UIEmptySideSpace;
             btnBrowseGameDirectory.Height = tbGameDirectory.Height;

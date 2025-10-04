@@ -70,12 +70,16 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                 catch (IniParseException ex)
                 {
                     return string.Format(Translate("MapSetup.InitializeMap.IniParseException", 
-                        "The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?\r\n\r\nReturned error: {0}"), ex.Message);
+                        "The selected file does not appear to be a proper map file (INI file). Maybe it's corrupted?" +
+                        Environment.NewLine + Environment.NewLine +
+                        "Returned error: {0}"), ex.Message);
                 }
                 catch (MapLoadException ex)
                 {
                     return string.Format(Translate("MapSetup.InitializeMap.MapLoadException",
-                        "Failed to load the selected map file.\r\n\r\nReturned error: {0}"), ex.Message);
+                        "Failed to load the selected map file." +
+                        Environment.NewLine + Environment.NewLine +
+                        "Returned error: {0}"), ex.Message);
                 }
             }
 
@@ -139,7 +143,7 @@ namespace TSMapEditor.UI.Windows.MainMenuWindows
                 EditorMessageBox.Show(windowManager, 
                     Translate("MapSetup.MapLoadErrors.Title", "Errors while loading map"),
                     string.Format(Translate("MapSetup.MapLoadErrors.Description", 
-                        "One or more errors were encountered while loading the map:\r\n\r\n{0}"), errorList),
+                        "One or more errors were encountered while loading the map:" + Environment.NewLine + Environment.NewLine + "{0}"), errorList),
                     MessageBoxButtons.OK);
             }
         }

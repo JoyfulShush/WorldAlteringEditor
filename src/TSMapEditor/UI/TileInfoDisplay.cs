@@ -246,7 +246,7 @@ namespace TSMapEditor.UI
                 string lastUsage = usages[usages.Count - 1];
                 usages[usages.Count - 1] = lastUsage.Substring(0, lastUsage.Length - 2);
 
-                textRenderer.AddTextLine(new XNATextPart(string.Format(Translate(this, "UsagesWaypoints", 
+                textRenderer.AddTextLine(new XNATextPart(string.Format(Translate(this, "UsagesOfWaypoint", 
                     "Usages of waypoint {0}:"), waypoint.Identifier), 
                     Constants.UIDefaultFont, 
                     Color.Gray));
@@ -290,7 +290,7 @@ namespace TSMapEditor.UI
                     if (followerId > -1)
                     {
                         string followerName = unit.FollowerUnit.UnitType.GetEditorDisplayName();
-                        textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "TechnoFolloweR",
+                        textRenderer.AddTextPart(new XNATextPart(string.Format(Translate(this, "UnitFollower",
                             "Follower: {0} at {1}"), followerName, unit.FollowerUnit.Position),
                             Constants.UIDefaultFont, Color.White));
                     }

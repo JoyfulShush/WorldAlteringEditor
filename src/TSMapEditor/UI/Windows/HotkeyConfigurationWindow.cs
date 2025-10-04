@@ -223,7 +223,6 @@ namespace TSMapEditor.UI.Windows
             lblCurrentlyAssignedTo.Text = "";
             lblDefaultHotkeyValue.Text = "";
         }
-        
         private KeyboardCommand GetSelectedCommand()
         {
             if (lbKeyboardCommands.SelectedIndex < 0 || lbKeyboardCommands.SelectedIndex >= lbKeyboardCommands.ItemCount)
