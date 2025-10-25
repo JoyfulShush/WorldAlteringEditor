@@ -41,7 +41,7 @@ namespace TSMapEditor.UI.Windows
             foreach (Tag tag in map.Tags)
             {
                 Color color = lbObjectList.DefaultItemColor;
-                var trigger = tag.Trigger;                
+                var trigger = tag.Trigger;
                 string tagText = $"{tag.Name} ({tag.ID})";
 
                 if (trigger != null)
