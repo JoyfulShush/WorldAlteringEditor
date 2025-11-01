@@ -1,10 +1,6 @@
-﻿
-
-using System;
+﻿using System;
 using System.IO;
-using System.Reflection.Metadata;
 using System.Text;
-using TSMapEditor.Models;
 
 namespace TSMapEditor
 {

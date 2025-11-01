@@ -112,7 +112,7 @@ namespace TSMapEditor.UI.Windows
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
 
-        private Trigger editedTrigger;        
+        private Trigger editedTrigger;
 
         /// <summary>
         /// Used to determine what we should do when the trigger selection window closes.
