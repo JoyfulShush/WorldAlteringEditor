@@ -28,29 +28,14 @@ namespace TSMapEditor.Models
 
         public void Serialize(MemoryStream memoryStream)
         {
-            byte[] bytes;
-
-            bytes = System.Text.Encoding.UTF8.GetBytes(Name);
-            memoryStream.Write(BitConverter.GetBytes(bytes.Length));
-            memoryStream.Write(bytes);
-
-            memoryStream.Write(BitConverter.GetBytes(Repeating));
+            StreamHelpers.WriteUnicodeString(memoryStream, Name);
+            StreamHelpers.WriteInt(memoryStream, Repeating);            
         }
 
         public void Deserialize(MemoryStream memoryStream)
-        {
-            byte[] buffer = new byte[4];
-            byte[] stringBytes;
-            int length;
-            
-            memoryStream.Read(buffer, 0, buffer.Length);
-            length = BitConverter.ToInt32(buffer, 0);
-            stringBytes = new byte[length];
-            memoryStream.Read(stringBytes, 0, stringBytes.Length);
-            Name = System.Text.Encoding.UTF8.GetString(stringBytes);
-            
-            memoryStream.Read(buffer, 0, buffer.Length);
-            Repeating = BitConverter.ToInt32(buffer, 0);
+        {   
+            Name = StreamHelpers.ReadUnicodeString(memoryStream);
+            Repeating = StreamHelpers.ReadInt(memoryStream);
         }
     }
 }

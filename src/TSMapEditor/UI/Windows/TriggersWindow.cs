@@ -208,7 +208,7 @@ namespace TSMapEditor.UI.Windows
             triggerContextMenu.AddItem(Translate(this, "CloneDiffs", "Clone for Easier Diffs"), CloneForEasierDifficulties, null, () => editedTrigger != null);
             triggerContextMenu.AddItem(Translate(this, "CloneDiffsNoDeps", "Clone for Easier Diffs (No Dependencies)"), CloneForEasierDifficultiesWithoutDependencies, null, () => editedTrigger != null);
             triggerContextMenu.AddItem(Translate(this, "CopyTrigger", "Copy Trigger"), CopyTrigger, null, () => editedTrigger != null);
-            triggerContextMenu.AddItem(Translate(this, "PasteTrigger", "Paste Trigger"), PasteTrigger, () => CopiedTrigger.HasTriggerInClipboard());
+            triggerContextMenu.AddItem(Translate(this, "PasteTrigger", "Paste Trigger"), PasteTrigger, () => Trigger.HasTriggerInClipboard());
             AddChild(triggerContextMenu);
 
             FindChild<EditorButton>("btnNewTrigger").LeftClick += BtnNewTrigger_LeftClick;
@@ -912,12 +912,12 @@ namespace TSMapEditor.UI.Windows
             if (associatedTag == null)
                 return;
 
-            CopiedTrigger.CopyToClipboard(editedTrigger, associatedTag);
+            Trigger.CopyToClipboard(editedTrigger, associatedTag);
         }
 
         private void PasteTrigger()
         {
-            var (trigger, tag) = CopiedTrigger.GetTriggerAndTagFromClipboard(map);
+            var (trigger, tag) = Trigger.GetTriggerAndTagFromClipboard(map);
             if (trigger == null || tag == null)
                 return;
 
@@ -2606,9 +2606,8 @@ namespace TSMapEditor.UI.Windows
 
             var triggerAction = new TriggerAction();
             triggerAction.Deserialize(memoryStream);
-            var triggerActionClone = (TriggerAction)triggerAction.Clone();
 
-            return triggerActionClone;
+            return triggerAction;
         }
 
         public static TriggerCondition GetTriggerEventFromClipboard()
@@ -2625,7 +2624,6 @@ namespace TSMapEditor.UI.Windows
 
             var triggerEvent = new TriggerCondition();
             triggerEvent.Deserialize(memoryStream);
-            var triggerEventClone = (TriggerCondition)triggerEvent.Clone();
 
             return triggerEvent;
         }
@@ -2644,21 +2642,24 @@ namespace TSMapEditor.UI.Windows
 
                 memoryStream.Read(buffer, 0, 4);
                 int stringLength = BitConverter.ToInt32(buffer);
+                if (stringLength <= 0) 
+                    continue;
+
                 memoryStream.Position += stringLength;
             }
         }
 
         public static bool HasTriggerActionDataInClipboard()
         {
-            return HasTriggerActionOrEventData(false);
+            return HasTriggerActionOrEventData(true);
         }
 
         public static bool HasTriggerEventDataInClipBoard()
         {
-            return HasTriggerActionOrEventData(true);
+            return HasTriggerActionOrEventData(false);
         }
 
-        private static bool HasTriggerActionOrEventData(bool checkForEvent)
+        private static bool HasTriggerActionOrEventData(bool skipEvent)
         {
             if (!Clipboard.ContainsData(Constants.ClipboardTriggerActionEventFormatValue))
                 return false;
@@ -2667,7 +2668,7 @@ namespace TSMapEditor.UI.Windows
 
             using var memoryStream = new MemoryStream(bytes);
 
-            if (!checkForEvent)
+            if (skipEvent)
                 SkipTriggerEventDataInStream(memoryStream);
 
             int hasTriggerEventOrActionFlag = memoryStream.ReadByte();
@@ -2700,47 +2701,5 @@ namespace TSMapEditor.UI.Windows
             ClearValuesIfClipboardEmpty();
             CopiedTriggerAction = triggerAction;
         }
-    }
-
-    public class CopiedTrigger
-    {
-        public static void CopyToClipboard(Trigger trigger, Tag tag)
-        {
-            if (trigger == null || tag == null)
-                return;
-
-            byte[] bytes;
-            using var memoryStream = new MemoryStream();
-
-            trigger.Serialize(memoryStream);
-            tag.Serialize(memoryStream);
-
-            bytes = memoryStream.ToArray();
-            Clipboard.SetData(Constants.ClipboardTriggerFormatValue, bytes);
-        }
-
-        public static (Trigger, Tag) GetTriggerAndTagFromClipboard(Map map)
-        {
-            if (!HasTriggerInClipboard())
-                return (null, null);
-               
-            var bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerFormatValue);
-            using var memoryStream = new MemoryStream(bytes);
-
-            var trigger = new Trigger(map.GetNewUniqueInternalId());
-            trigger.Deserialize(memoryStream);
-
-            var tag = new Tag();
-            tag.ID = map.GetNewUniqueInternalId();
-            tag.Deserialize(memoryStream);
-            tag.Trigger = trigger;
-
-            return (trigger, tag);
-        }
-
-        public static bool HasTriggerInClipboard()
-        {
-            return Clipboard.ContainsData(Constants.ClipboardTriggerFormatValue);
-        }
-    }
+    }    
 }

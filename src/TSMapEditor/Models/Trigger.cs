@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Models.Enums;
@@ -261,38 +262,24 @@ namespace TSMapEditor.Models
         public void Serialize(MemoryStream memoryStream)
         {
             byte[] bytes;
-            
-            bytes = System.Text.Encoding.UTF8.GetBytes(HouseType);
-            memoryStream.Write(BitConverter.GetBytes(bytes.Length));
-            memoryStream.Write(bytes);
-            
-            bytes = System.Text.Encoding.UTF8.GetBytes(Name);
-            memoryStream.Write(BitConverter.GetBytes(bytes.Length));
-            memoryStream.Write(bytes);
-            
-            memoryStream.WriteByte((byte)(Disabled ? 1 : 0));            
-            memoryStream.WriteByte((byte)(Easy ? 1 : 0));            
-            memoryStream.WriteByte((byte)(Normal ? 1 : 0));
-            memoryStream.WriteByte((byte)(Hard ? 1 : 0));
-            
-            if (EditorColor == null)
-            {
-                memoryStream.Write(BitConverter.GetBytes(-1));
-            }
-            else
-            {
-                bytes = System.Text.Encoding.UTF8.GetBytes(EditorColor);
-                memoryStream.Write(BitConverter.GetBytes(bytes.Length));
-                memoryStream.Write(bytes);
-            }
-            
-            memoryStream.Write(BitConverter.GetBytes(Conditions.Count));
+
+            StreamHelpers.WriteUnicodeString(memoryStream, HouseType);
+            StreamHelpers.WriteUnicodeString(memoryStream, Name);
+
+            StreamHelpers.WriteBool(memoryStream, Disabled);
+            StreamHelpers.WriteBool(memoryStream, Easy);
+            StreamHelpers.WriteBool(memoryStream, Normal);
+            StreamHelpers.WriteBool(memoryStream, Hard);
+
+            StreamHelpers.WriteUnicodeString(memoryStream, EditorColor);
+
+            StreamHelpers.WriteInt(memoryStream, Conditions.Count);
             foreach (var condition in Conditions)
             {
                 condition.Serialize(memoryStream);
             }
-            
-            memoryStream.Write(BitConverter.GetBytes(Actions.Count));
+
+            StreamHelpers.WriteInt(memoryStream, Actions.Count);
             foreach (var action in Actions)
             {
                 action.Serialize(memoryStream);
@@ -301,42 +288,17 @@ namespace TSMapEditor.Models
 
         public void Deserialize(MemoryStream memoryStream)
         {
-            byte[] buffer = new byte[4];
-            byte[] stringBytes;
-            int length;
+            HouseType = StreamHelpers.ReadUnicodeString(memoryStream);
+            Name = StreamHelpers.ReadUnicodeString(memoryStream);                        
             
-            memoryStream.Read(buffer, 0, buffer.Length);
-            length = BitConverter.ToInt32(buffer, 0);
-            stringBytes = new byte[length];
-            memoryStream.Read(stringBytes, 0, stringBytes.Length);
-            HouseType = System.Text.Encoding.UTF8.GetString(stringBytes);
-            
-            memoryStream.Read(buffer, 0, buffer.Length);
-            length = BitConverter.ToInt32(buffer, 0);
-            stringBytes = new byte[length];
-            memoryStream.Read(stringBytes, 0, stringBytes.Length);
-            Name = System.Text.Encoding.UTF8.GetString(stringBytes);
-            
-            Disabled = memoryStream.ReadByte() == 1;
-            Easy = memoryStream.ReadByte() == 1;
-            Normal = memoryStream.ReadByte() == 1;
-            Hard = memoryStream.ReadByte() == 1;
+            Disabled = StreamHelpers.ReadBool(memoryStream);
+            Easy = StreamHelpers.ReadBool(memoryStream);
+            Normal = StreamHelpers.ReadBool(memoryStream);
+            Hard = StreamHelpers.ReadBool(memoryStream);
 
-            memoryStream.Read(buffer, 0, buffer.Length);
-            length = BitConverter.ToInt32(buffer, 0);
-            if (length == -1)
-            {
-                EditorColor = null;
-            }
-            else
-            {
-                stringBytes = new byte[length];
-                memoryStream.Read(stringBytes, 0, stringBytes.Length);
-                EditorColor = System.Text.Encoding.UTF8.GetString(stringBytes);
-            }
+            EditorColor = StreamHelpers.ReadUnicodeString(memoryStream);            
             
-            memoryStream.Read(buffer, 0, buffer.Length);
-            int conditionCount = BitConverter.ToInt32(buffer, 0);
+            int conditionCount = StreamHelpers.ReadInt(memoryStream);
             Conditions = new List<TriggerCondition>(conditionCount);
             for (int i = 0; i < conditionCount; i++)
             {
@@ -344,9 +306,8 @@ namespace TSMapEditor.Models
                 condition.Deserialize(memoryStream);
                 Conditions.Add(condition);
             }
-            
-            memoryStream.Read(buffer, 0, buffer.Length);
-            int actionCount = BitConverter.ToInt32(buffer, 0);
+
+            int actionCount = StreamHelpers.ReadInt(memoryStream);
             Actions = new List<TriggerAction>(actionCount);
             for (int i = 0; i < actionCount; i++)
             {
@@ -354,6 +315,45 @@ namespace TSMapEditor.Models
                 action.Deserialize(memoryStream);
                 Actions.Add(action);
             }
+        }
+
+        public static void CopyToClipboard(Trigger trigger, Tag tag)
+        {
+            if (trigger == null || tag == null)
+                return;
+
+            byte[] bytes;
+            using var memoryStream = new MemoryStream();
+
+            trigger.Serialize(memoryStream);
+            tag.Serialize(memoryStream);
+
+            bytes = memoryStream.ToArray();
+            Clipboard.SetData(Constants.ClipboardTriggerFormatValue, bytes);
+        }
+
+        public static (Trigger, Tag) GetTriggerAndTagFromClipboard(Map map)
+        {
+            if (!HasTriggerInClipboard())
+                return (null, null);
+
+            var bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerFormatValue);
+            using var memoryStream = new MemoryStream(bytes);
+
+            var trigger = new Trigger(map.GetNewUniqueInternalId());
+            trigger.Deserialize(memoryStream);
+
+            var tag = new Tag();
+            tag.ID = map.GetNewUniqueInternalId();
+            tag.Deserialize(memoryStream);
+            tag.Trigger = trigger;
+
+            return (trigger, tag);
+        }
+
+        public static bool HasTriggerInClipboard()
+        {
+            return Clipboard.ContainsData(Constants.ClipboardTriggerFormatValue);
         }
     }
 }
