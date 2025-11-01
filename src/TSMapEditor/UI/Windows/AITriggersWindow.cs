@@ -70,9 +70,9 @@ namespace TSMapEditor.UI.Windows
             {
                 if (value != _aiTriggerSortMode)
                 {
-                    _aiTriggerSortMode = value;
-                    ListAITriggers();
+                    _aiTriggerSortMode = value;                    
                 }
+                ListAITriggers();
             }
         }
 
