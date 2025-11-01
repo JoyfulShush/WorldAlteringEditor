@@ -110,6 +110,7 @@ namespace TSMapEditor
         public static float DepthRenderStep = 0;
 
         public const string ClipboardMapDataFormatValue = "ScenarioEditorCopiedMapData";
+        public const string ClipboardTriggerActionEventFormatValue = "ScenarioEditorCopiedTriggerData";
         public const string UserDataFolder = "UserData";
 
         public const char NewTheaterGenericLetter = 'G';

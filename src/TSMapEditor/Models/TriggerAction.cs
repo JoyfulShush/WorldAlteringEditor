@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 
 namespace TSMapEditor.Models
 {
@@ -51,6 +52,37 @@ namespace TSMapEditor.Models
                 triggerAction.Parameters[i] = array[startIndex + 1 + i];
 
             return triggerAction;
+        }
+
+        public void Serialize(MemoryStream memoryStream)
+        {
+            memoryStream.Write(BitConverter.GetBytes(ActionIndex));
+
+            foreach (var parameter in Parameters)
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(parameter);
+                memoryStream.Write(BitConverter.GetBytes(bytes.Length));
+                memoryStream.Write(bytes);
+            }
+        }
+
+        public void Deserialize(MemoryStream memoryStream)
+        {
+            byte[] buffer = new byte[4];
+
+            memoryStream.Read(buffer, 0, 4);
+            ActionIndex = BitConverter.ToInt32(buffer);
+
+            for (int i = 0; i < Parameters.Length; i++)
+            {
+                memoryStream.Read(buffer, 0, 4);
+                int stringLength = BitConverter.ToInt32(buffer);
+
+                byte[] stringBytes = new byte[stringLength];
+                memoryStream.Read(stringBytes, 0, stringLength);
+
+                Parameters[i] = System.Text.Encoding.UTF8.GetString(stringBytes);
+            }
         }
     }
 }

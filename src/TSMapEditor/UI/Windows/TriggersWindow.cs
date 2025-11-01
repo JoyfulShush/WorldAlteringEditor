@@ -5,8 +5,10 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Models;
 using TSMapEditor.Models.Enums;
@@ -110,10 +112,7 @@ namespace TSMapEditor.UI.Windows
         private XNAContextMenu actionContextMenu;
         private XNAContextMenu eventContextMenu;
 
-        private Trigger editedTrigger;
-
-        private TriggerCondition copiedTriggerEvent;
-        private TriggerAction copiedTriggerAction;
+        private Trigger editedTrigger;        
 
         /// <summary>
         /// Used to determine what we should do when the trigger selection window closes.
@@ -332,7 +331,7 @@ namespace TSMapEditor.UI.Windows
             eventContextMenu.AddItem(Translate(this, "CloneEvent", "Clone Event"), EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
             eventContextMenu.AddItem(Translate(this, "DeleteEvent", "Delete Event"), () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
             eventContextMenu.AddItem(Translate(this, "CopyEvent", "Copy Event"), EventContextMenu_CopyAction, () => editedTrigger != null && lbEvents.SelectedItem != null);
-            eventContextMenu.AddItem(Translate(this, "PasteEvent", "Paste Event"), PasteEvent, () => editedTrigger != null && copiedTriggerEvent != null);
+            eventContextMenu.AddItem(Translate(this, "PasteEvent", "Paste Event"), EventContextMenu_PasteEvent, () => editedTrigger != null && CopiedTriggerData.HasTriggerEventDataInClipBoard());
             AddChild(eventContextMenu);
 
             lbEvents.AllowRightClickUnselect = false;
@@ -346,7 +345,7 @@ namespace TSMapEditor.UI.Windows
             actionContextMenu.AddItem(Translate(this, "CloneAction", "Clone Action"), ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
             actionContextMenu.AddItem(Translate(this, "DeleteAction", "Delete Action"), () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
             actionContextMenu.AddItem(Translate(this, "CopyAction", "Copy Action"), ActionContextMenu_CopyAction, () => editedTrigger != null && lbActions.SelectedItem != null);
-            actionContextMenu.AddItem(Translate(this, "PasteAction", "Paste Action"), PasteAction, () => editedTrigger != null && copiedTriggerAction != null);
+            actionContextMenu.AddItem(Translate(this, "PasteAction", "Paste Action"), ActionContextMenu_PasteAction, () => editedTrigger != null && CopiedTriggerData.HasTriggerActionDataInClipboard());
             AddChild(actionContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
@@ -883,27 +882,50 @@ namespace TSMapEditor.UI.Windows
 
         private void ActionContextMenu_CloneAction() => CloneEventOrAction(lbActions, editedTrigger?.Actions);
 
-        private void ActionContextMenu_CopyAction() => copiedTriggerAction = ((TriggerAction)lbActions.SelectedItem?.Tag) ?? null;
+        private void ActionContextMenu_CopyAction() => CopyActionOrEvent(false);
 
-        private void EventContextMenu_CopyAction() => copiedTriggerEvent = ((TriggerCondition)lbEvents.SelectedItem?.Tag) ?? null;
+        private void EventContextMenu_CopyAction() => CopyActionOrEvent(true);
 
-        private void PasteAction()
+        private void CopyActionOrEvent(bool isEvent)
         {
-            if (editedTrigger == null || copiedTriggerAction == null)
+            var relevantListBox = isEvent ? lbEvents : lbActions;
+            var tag = relevantListBox.SelectedItem?.Tag;
+            if (tag == null)
                 return;
 
-            var triggerActionClone = (TriggerAction)copiedTriggerAction.Clone();
-            editedTrigger.Actions.Add(triggerActionClone);
-            EditTrigger(editedTrigger);
+            if (isEvent)
+                CopiedTriggerData.SetCopiedTriggerEvent((TriggerCondition)tag);
+            else
+                CopiedTriggerData.SetCopiedTriggerAction((TriggerAction)tag);
+
+            CopiedTriggerData.CopyToClipboard();
         }
 
-        private void PasteEvent()
+        private void EventContextMenu_PasteEvent() => PasteActionOrEvent(true);
+        private void ActionContextMenu_PasteAction() => PasteActionOrEvent(false);
+
+        private void PasteActionOrEvent(bool isEvent)
         {
-            if (editedTrigger == null || copiedTriggerEvent == null)
+            if (editedTrigger == null)
                 return;
 
-            var triggerEventClone = (TriggerCondition)copiedTriggerEvent.Clone();
-            editedTrigger.Conditions.Add(triggerEventClone);
+            if (isEvent)
+            {
+                var triggerEvent = CopiedTriggerData.GetTriggerEventFromClipboard();
+                if (triggerEvent == null)
+                    return;
+
+                editedTrigger.Conditions.Add(triggerEvent);
+            }
+            else
+            {
+                var triggerAction = CopiedTriggerData.GetTriggerActionFromClipboard();
+                if (triggerAction == null)
+                    return;
+
+                editedTrigger.Actions.Add(triggerAction);
+            }
+
             EditTrigger(editedTrigger);
         }
 
@@ -2500,6 +2522,154 @@ namespace TSMapEditor.UI.Windows
                 ListTriggers();
                 SelectTrigger(editedTrigger);
             }
+        }
+    }
+
+    public static class CopiedTriggerData
+    {
+        public static TriggerCondition CopiedTriggerEvent = null;
+        public static TriggerAction CopiedTriggerAction = null;
+
+        public static void CopyToClipboard()
+        {
+            byte[] bytes;
+
+            using var memoryStream = new MemoryStream();
+
+            if (CopiedTriggerEvent == null)
+            {
+                memoryStream.WriteByte(0);
+            }
+            else
+            {
+                memoryStream.WriteByte(1);
+                CopiedTriggerEvent.Serialize(memoryStream);
+            }
+
+            if (CopiedTriggerAction == null)
+            {
+                memoryStream.WriteByte(0);
+            }
+            else
+            {
+                memoryStream.WriteByte(1);
+                CopiedTriggerAction.Serialize(memoryStream);
+            }
+
+            bytes = memoryStream.ToArray();
+            Clipboard.SetData(Constants.ClipboardTriggerActionEventFormatValue, bytes);
+        }
+
+        public static TriggerAction GetTriggerActionFromClipboard()
+        {
+            if (!Clipboard.ContainsData(Constants.ClipboardTriggerActionEventFormatValue))
+                return null;
+
+            var bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerActionEventFormatValue);
+
+            using var memoryStream = new MemoryStream(bytes);
+
+            SkipTriggerEventDataInStream(memoryStream);
+
+            int hasTriggerAction = memoryStream.ReadByte();
+            if (hasTriggerAction <= 0)
+                return null;
+
+            var triggerAction = new TriggerAction();
+            triggerAction.Deserialize(memoryStream);
+            var triggerActionClone = (TriggerAction)triggerAction.Clone();
+
+            return triggerActionClone;
+        }
+
+        public static TriggerCondition GetTriggerEventFromClipboard()
+        {
+            if (!Clipboard.ContainsData(Constants.ClipboardTriggerActionEventFormatValue))
+                return null;
+
+            var bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerActionEventFormatValue);
+
+            using var memoryStream = new MemoryStream(bytes);
+            int hasTriggerEvent = memoryStream.ReadByte();
+            if (hasTriggerEvent <= 0)
+                return null;
+
+            var triggerEvent = new TriggerCondition();
+            triggerEvent.Deserialize(memoryStream);
+            var triggerEventClone = (TriggerCondition)triggerEvent.Clone();
+
+            return triggerEvent;
+        }
+
+        private static void SkipTriggerEventDataInStream(MemoryStream memoryStream)
+        {
+            int hasTriggerEvent = memoryStream.ReadByte();
+            if (hasTriggerEvent <= 0)
+                return;
+            
+            memoryStream.Position += 4; // skip condition index
+
+            for (int i = 0; i < TriggerCondition.MAX_PARAM_COUNT; i++) // skip params
+            {
+                byte[] buffer = new byte[4];
+
+                memoryStream.Read(buffer, 0, 4);
+                int stringLength = BitConverter.ToInt32(buffer);
+                memoryStream.Position += stringLength;
+            }
+        }
+
+        public static bool HasTriggerActionDataInClipboard()
+        {
+            return HasTriggerActionOrEventData(false);
+        }
+
+        public static bool HasTriggerEventDataInClipBoard()
+        {
+            return HasTriggerActionOrEventData(true);
+        }
+
+        private static bool HasTriggerActionOrEventData(bool checkForEvent)
+        {
+            if (!Clipboard.ContainsData(Constants.ClipboardTriggerActionEventFormatValue))
+                return false;
+
+            byte[] bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerActionEventFormatValue);
+
+            using var memoryStream = new MemoryStream(bytes);
+
+            if (!checkForEvent)
+                SkipTriggerEventDataInStream(memoryStream);
+
+            int hasTriggerEventOrActionFlag = memoryStream.ReadByte();
+            return hasTriggerEventOrActionFlag == 1;
+        }
+
+        public static void ClearValuesIfClipboardEmpty()
+        {
+            if (Clipboard.ContainsData(Constants.ClipboardTriggerActionEventFormatValue))
+                return;
+
+            CopiedTriggerAction = null;
+            CopiedTriggerEvent = null;
+        }
+
+        public static void SetCopiedTriggerEvent(TriggerCondition triggerEvent)
+        {
+            if (triggerEvent == null)
+                return;
+
+            ClearValuesIfClipboardEmpty();
+            CopiedTriggerEvent = triggerEvent;
+        }
+
+        public static void SetCopiedTriggerAction(TriggerAction triggerAction)
+        {
+            if (triggerAction == null)
+                return;
+
+            ClearValuesIfClipboardEmpty();
+            CopiedTriggerAction = triggerAction;
         }
     }
 }

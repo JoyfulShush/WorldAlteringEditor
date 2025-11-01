@@ -1,5 +1,6 @@
 ﻿using Rampastring.Tools;
 using System;
+using System.IO;
 using TSMapEditor.CCEngine;
 
 namespace TSMapEditor.Models
@@ -87,6 +88,37 @@ namespace TSMapEditor.Models
                 return null;
 
             return triggerCondition;
+        }
+
+        public void Serialize(MemoryStream memoryStream)
+        {
+            memoryStream.Write(BitConverter.GetBytes(ConditionIndex));
+
+            foreach (var parameter in Parameters)
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(parameter);
+                memoryStream.Write(BitConverter.GetBytes(bytes.Length));
+                memoryStream.Write(bytes);
+            }
+        }
+
+        public void Deserialize(MemoryStream memoryStream)
+        {
+            byte[] buffer = new byte[4];
+
+            memoryStream.Read(buffer, 0, 4);
+            ConditionIndex = BitConverter.ToInt32(buffer);
+
+            for (int i = 0; i < Parameters.Length; i++)
+            {
+                memoryStream.Read(buffer, 0, 4);
+                int stringLength = BitConverter.ToInt32(buffer);
+
+                byte[] stringBytes = new byte[stringLength];
+                memoryStream.Read(stringBytes, 0, stringLength);
+
+                Parameters[i] = System.Text.Encoding.UTF8.GetString(stringBytes);
+            }
         }
     }
 }
