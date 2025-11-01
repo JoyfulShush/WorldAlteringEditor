@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TSMapEditor.CCEngine;
 using TSMapEditor.Misc;
 using TSMapEditor.Models.Enums;
@@ -255,6 +256,104 @@ namespace TSMapEditor.Models
                 Normal = Conversions.BooleanFromString(parts[5], true),
                 Hard = Conversions.BooleanFromString(parts[6], true),
             };
+        }
+
+        public void Serialize(MemoryStream memoryStream)
+        {
+            byte[] bytes;
+            
+            bytes = System.Text.Encoding.UTF8.GetBytes(HouseType);
+            memoryStream.Write(BitConverter.GetBytes(bytes.Length));
+            memoryStream.Write(bytes);
+            
+            bytes = System.Text.Encoding.UTF8.GetBytes(Name);
+            memoryStream.Write(BitConverter.GetBytes(bytes.Length));
+            memoryStream.Write(bytes);
+            
+            memoryStream.WriteByte((byte)(Disabled ? 1 : 0));            
+            memoryStream.WriteByte((byte)(Easy ? 1 : 0));            
+            memoryStream.WriteByte((byte)(Normal ? 1 : 0));
+            memoryStream.WriteByte((byte)(Hard ? 1 : 0));
+            
+            if (EditorColor == null)
+            {
+                memoryStream.Write(BitConverter.GetBytes(-1));
+            }
+            else
+            {
+                bytes = System.Text.Encoding.UTF8.GetBytes(EditorColor);
+                memoryStream.Write(BitConverter.GetBytes(bytes.Length));
+                memoryStream.Write(bytes);
+            }
+            
+            memoryStream.Write(BitConverter.GetBytes(Conditions.Count));
+            foreach (var condition in Conditions)
+            {
+                condition.Serialize(memoryStream);
+            }
+            
+            memoryStream.Write(BitConverter.GetBytes(Actions.Count));
+            foreach (var action in Actions)
+            {
+                action.Serialize(memoryStream);
+            }
+        }
+
+        public void Deserialize(MemoryStream memoryStream)
+        {
+            byte[] buffer = new byte[4];
+            byte[] stringBytes;
+            int length;
+            
+            memoryStream.Read(buffer, 0, buffer.Length);
+            length = BitConverter.ToInt32(buffer, 0);
+            stringBytes = new byte[length];
+            memoryStream.Read(stringBytes, 0, stringBytes.Length);
+            HouseType = System.Text.Encoding.UTF8.GetString(stringBytes);
+            
+            memoryStream.Read(buffer, 0, buffer.Length);
+            length = BitConverter.ToInt32(buffer, 0);
+            stringBytes = new byte[length];
+            memoryStream.Read(stringBytes, 0, stringBytes.Length);
+            Name = System.Text.Encoding.UTF8.GetString(stringBytes);
+            
+            Disabled = memoryStream.ReadByte() == 1;
+            Easy = memoryStream.ReadByte() == 1;
+            Normal = memoryStream.ReadByte() == 1;
+            Hard = memoryStream.ReadByte() == 1;
+
+            memoryStream.Read(buffer, 0, buffer.Length);
+            length = BitConverter.ToInt32(buffer, 0);
+            if (length == -1)
+            {
+                EditorColor = null;
+            }
+            else
+            {
+                stringBytes = new byte[length];
+                memoryStream.Read(stringBytes, 0, stringBytes.Length);
+                EditorColor = System.Text.Encoding.UTF8.GetString(stringBytes);
+            }
+            
+            memoryStream.Read(buffer, 0, buffer.Length);
+            int conditionCount = BitConverter.ToInt32(buffer, 0);
+            Conditions = new List<TriggerCondition>(conditionCount);
+            for (int i = 0; i < conditionCount; i++)
+            {
+                var condition = new TriggerCondition();
+                condition.Deserialize(memoryStream);
+                Conditions.Add(condition);
+            }
+            
+            memoryStream.Read(buffer, 0, buffer.Length);
+            int actionCount = BitConverter.ToInt32(buffer, 0);
+            Actions = new List<TriggerAction>(actionCount);
+            for (int i = 0; i < actionCount; i++)
+            {
+                var action = new TriggerAction();
+                action.Deserialize(memoryStream);
+                Actions.Add(action);
+            }
         }
     }
 }

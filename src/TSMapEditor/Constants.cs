@@ -111,6 +111,7 @@ namespace TSMapEditor
 
         public const string ClipboardMapDataFormatValue = "ScenarioEditorCopiedMapData";
         public const string ClipboardTriggerActionEventFormatValue = "ScenarioEditorCopiedTriggerData";
+        public const string ClipboardTriggerFormatValue = "ScenarioEditorCopiedTrigger";
         public const string UserDataFolder = "UserData";
 
         public const char NewTheaterGenericLetter = 'G';

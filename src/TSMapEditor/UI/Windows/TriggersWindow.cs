@@ -197,16 +197,18 @@ namespace TSMapEditor.UI.Windows
             var triggerContextMenu = new EditorContextMenu(WindowManager);
             triggerContextMenu.Name = nameof(triggerContextMenu);
             triggerContextMenu.Width = 270;
-            triggerContextMenu.AddItem(Translate(this, "PlaceCellTag", "Place CellTag"), PlaceCellTag);
-            triggerContextMenu.AddItem(Translate(this, "ClearCellTags", "Clear CellTags"), ClearCellTags);
-            triggerContextMenu.AddItem(Translate(this, "AttachToObjects", "Attach to Objects"), AttachTagToObjects);
-            triggerContextMenu.AddItem(Translate(this, "ViewReferences", "View References"), ShowReferences);
+            triggerContextMenu.AddItem(Translate(this, "PlaceCellTag", "Place CellTag"), PlaceCellTag, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "ClearCellTags", "Clear CellTags"), ClearCellTags, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "AttachToObjects", "Attach to Objects"), AttachTagToObjects, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "ViewReferences", "View References"), ShowReferences, null, () => editedTrigger != null);
             if (!Constants.IsRA2YR)
             {
-                triggerContextMenu.AddItem(Translate(this, "WrapEVA", "Wrap in EVA disable/enable actions"), WrapInEVADisableAndEnableActions);
+                triggerContextMenu.AddItem(Translate(this, "WrapEVA", "Wrap in EVA disable/enable actions"), WrapInEVADisableAndEnableActions, null,() => editedTrigger != null);
             }
-            triggerContextMenu.AddItem(Translate(this, "CloneDiffs", "Clone for Easier Diffs"), CloneForEasierDifficulties);
-            triggerContextMenu.AddItem(Translate(this, "CloneDiffsNoDeps", "Clone for Easier Diffs (No Dependencies)"), CloneForEasierDifficultiesWithoutDependencies);
+            triggerContextMenu.AddItem(Translate(this, "CloneDiffs", "Clone for Easier Diffs"), CloneForEasierDifficulties, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "CloneDiffsNoDeps", "Clone for Easier Diffs (No Dependencies)"), CloneForEasierDifficultiesWithoutDependencies, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "CopyTrigger", "Copy Trigger"), CopyTrigger, null, () => editedTrigger != null);
+            triggerContextMenu.AddItem(Translate(this, "PasteTrigger", "Paste Trigger"), PasteTrigger, () => CopiedTrigger.HasTriggerInClipboard());
             AddChild(triggerContextMenu);
 
             FindChild<EditorButton>("btnNewTrigger").LeftClick += BtnNewTrigger_LeftClick;
@@ -363,7 +365,7 @@ namespace TSMapEditor.UI.Windows
             FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
 
             lbTriggers.AllowRightClickUnselect = false;
-            lbTriggers.RightClick += (s, e) => { lbTriggers.SelectedIndex = lbTriggers.HoveredIndex; if (lbTriggers.SelectedItem != null) triggerContextMenu.Open(GetCursorPoint()); };
+            lbTriggers.RightClick += (s, e) => { lbTriggers.OnMouseLeftDown(new InputEventArgs()); triggerContextMenu.Open(GetCursorPoint()); };
             lbTriggers.SelectedIndexChanged += LbTriggers_SelectedIndexChanged;
 
             WindowManager.WindowSizeChangedByUser += WindowManager_WindowSizeChangedByUser;            
@@ -899,6 +901,30 @@ namespace TSMapEditor.UI.Windows
                 CopiedTriggerData.SetCopiedTriggerAction((TriggerAction)tag);
 
             CopiedTriggerData.CopyToClipboard();
+        }
+
+        private void CopyTrigger()
+        {
+            if (editedTrigger == null)
+                return;
+
+            var associatedTag = map.Tags.Find(tag => tag.Trigger == editedTrigger);
+            if (associatedTag == null)
+                return;
+
+            CopiedTrigger.CopyToClipboard(editedTrigger, associatedTag);
+        }
+
+        private void PasteTrigger()
+        {
+            var (trigger, tag) = CopiedTrigger.GetTriggerAndTagFromClipboard(map);
+            if (trigger == null || tag == null)
+                return;
+
+            map.AddTrigger(trigger);
+            map.AddTag(tag);
+
+            ListTriggers();
         }
 
         private void EventContextMenu_PasteEvent() => PasteActionOrEvent(true);
@@ -2532,6 +2558,9 @@ namespace TSMapEditor.UI.Windows
 
         public static void CopyToClipboard()
         {
+            if (CopiedTriggerEvent == null && CopiedTriggerAction == null)
+                return;
+
             byte[] bytes;
 
             using var memoryStream = new MemoryStream();
@@ -2670,6 +2699,48 @@ namespace TSMapEditor.UI.Windows
 
             ClearValuesIfClipboardEmpty();
             CopiedTriggerAction = triggerAction;
+        }
+    }
+
+    public class CopiedTrigger
+    {
+        public static void CopyToClipboard(Trigger trigger, Tag tag)
+        {
+            if (trigger == null || tag == null)
+                return;
+
+            byte[] bytes;
+            using var memoryStream = new MemoryStream();
+
+            trigger.Serialize(memoryStream);
+            tag.Serialize(memoryStream);
+
+            bytes = memoryStream.ToArray();
+            Clipboard.SetData(Constants.ClipboardTriggerFormatValue, bytes);
+        }
+
+        public static (Trigger, Tag) GetTriggerAndTagFromClipboard(Map map)
+        {
+            if (!HasTriggerInClipboard())
+                return (null, null);
+               
+            var bytes = (byte[])Clipboard.GetData(Constants.ClipboardTriggerFormatValue);
+            using var memoryStream = new MemoryStream(bytes);
+
+            var trigger = new Trigger(map.GetNewUniqueInternalId());
+            trigger.Deserialize(memoryStream);
+
+            var tag = new Tag();
+            tag.ID = map.GetNewUniqueInternalId();
+            tag.Deserialize(memoryStream);
+            tag.Trigger = trigger;
+
+            return (trigger, tag);
+        }
+
+        public static bool HasTriggerInClipboard()
+        {
+            return Clipboard.ContainsData(Constants.ClipboardTriggerFormatValue);
         }
     }
 }
