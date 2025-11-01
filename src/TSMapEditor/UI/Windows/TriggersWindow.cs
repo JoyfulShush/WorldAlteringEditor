@@ -112,6 +112,9 @@ namespace TSMapEditor.UI.Windows
 
         private Trigger editedTrigger;
 
+        private TriggerCondition copiedTriggerEvent;
+        private TriggerAction copiedTriggerAction;
+
         /// <summary>
         /// Used to determine what we should do when the trigger selection window closes.
         /// (apply selected trigger to a parameter for an action or attach selected trigger to our trigger)
@@ -328,6 +331,8 @@ namespace TSMapEditor.UI.Windows
             eventContextMenu.AddItem(Translate(this, "MoveDown", "Move Down"), EventContextMenu_MoveDown, () => editedTrigger != null && lbEvents.SelectedItem != null && lbEvents.SelectedIndex < lbEvents.Items.Count - 1);
             eventContextMenu.AddItem(Translate(this, "CloneEvent", "Clone Event"), EventContextMenu_CloneEvent, () => editedTrigger != null && lbEvents.SelectedItem != null);
             eventContextMenu.AddItem(Translate(this, "DeleteEvent", "Delete Event"), () => BtnDeleteEvent_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "CopyEvent", "Copy Event"), EventContextMenu_CopyAction, () => editedTrigger != null && lbEvents.SelectedItem != null);
+            eventContextMenu.AddItem(Translate(this, "PasteEvent", "Paste Event"), PasteEvent, () => editedTrigger != null && copiedTriggerEvent != null);
             AddChild(eventContextMenu);
 
             lbEvents.AllowRightClickUnselect = false;
@@ -340,6 +345,8 @@ namespace TSMapEditor.UI.Windows
             actionContextMenu.AddItem(Translate(this, "MoveUp", "Move Down"), ActionContextMenu_MoveDown, () => editedTrigger != null && lbActions.SelectedItem != null && lbActions.SelectedIndex < lbActions.Items.Count - 1);
             actionContextMenu.AddItem(Translate(this, "CloneAction", "Clone Action"), ActionContextMenu_CloneAction, () => editedTrigger != null && lbActions.SelectedItem != null);
             actionContextMenu.AddItem(Translate(this, "DeleteAction", "Delete Action"), () => BtnDeleteAction_LeftClick(this, EventArgs.Empty), () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "CopyAction", "Copy Action"), ActionContextMenu_CopyAction, () => editedTrigger != null && lbActions.SelectedItem != null);
+            actionContextMenu.AddItem(Translate(this, "PasteAction", "Paste Action"), PasteAction, () => editedTrigger != null && copiedTriggerAction != null);
             AddChild(actionContextMenu);
 
             lbActions.AllowRightClickUnselect = false;
@@ -875,6 +882,30 @@ namespace TSMapEditor.UI.Windows
         private void EventContextMenu_CloneEvent() => CloneEventOrAction(lbEvents, editedTrigger?.Conditions);
 
         private void ActionContextMenu_CloneAction() => CloneEventOrAction(lbActions, editedTrigger?.Actions);
+
+        private void ActionContextMenu_CopyAction() => copiedTriggerAction = ((TriggerAction)lbActions.SelectedItem?.Tag) ?? null;
+
+        private void EventContextMenu_CopyAction() => copiedTriggerEvent = ((TriggerCondition)lbEvents.SelectedItem?.Tag) ?? null;
+
+        private void PasteAction()
+        {
+            if (editedTrigger == null || copiedTriggerAction == null)
+                return;
+
+            var triggerActionClone = (TriggerAction)copiedTriggerAction.Clone();
+            editedTrigger.Actions.Add(triggerActionClone);
+            EditTrigger(editedTrigger);
+        }
+
+        private void PasteEvent()
+        {
+            if (editedTrigger == null || copiedTriggerEvent == null)
+                return;
+
+            var triggerEventClone = (TriggerCondition)copiedTriggerEvent.Clone();
+            editedTrigger.Conditions.Add(triggerEventClone);
+            EditTrigger(editedTrigger);
+        }
 
         private void CloneEventOrAction<T>(XNAListBox listBox, List<T> objectList) where T : ICloneable
         {
