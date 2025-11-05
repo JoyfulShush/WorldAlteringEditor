@@ -77,9 +77,9 @@ namespace TSMapEditor.UI.Windows
             {
                 if (value != _scriptSortMode)
                 {
-                    _scriptSortMode = value;
-                    ListScripts();
+                    _scriptSortMode = value;                    
                 }
+                ListScripts();
             }
         }
 

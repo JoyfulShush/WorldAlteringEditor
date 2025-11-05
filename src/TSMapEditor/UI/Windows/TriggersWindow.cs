@@ -128,8 +128,8 @@ namespace TSMapEditor.UI.Windows
                 if (value != _triggerSortMode)
                 {
                     _triggerSortMode = value;
-                    ListTriggers();
                 }
+                ListTriggers();
             }
         }
 
@@ -535,9 +535,13 @@ namespace TSMapEditor.UI.Windows
             }
 
             // Check other triggers to see whether this trigger is referenced by them
-            var allReferringTriggers = map.Triggers.FindAll(trig => {
+            var allReferringTriggers = map.Triggers.FindAll(trig =>
+            {
                 foreach (var triggerAction in trig.Actions)
                 {
+                    if (!map.EditorConfig.TriggerEventTypes.ContainsKey(triggerAction.ActionIndex))
+                        continue;
+
                     var actionType = map.EditorConfig.TriggerActionTypes[triggerAction.ActionIndex];
 
                     for (int i = 0; i < triggerAction.Parameters.Length && i < actionType.Parameters.Length; i++)
@@ -1155,6 +1159,9 @@ namespace TSMapEditor.UI.Windows
         private void btnActionGoToTarget_LeftClick(object sender, EventArgs e)
         {
             if (lbActions.SelectedItem == null)
+                return;
+
+            if (lbActionParameters.SelectedItem == null)
                 return;
 
             GetTriggerActionAndParamIndex(out TriggerAction triggerAction, out int paramIndex);            
