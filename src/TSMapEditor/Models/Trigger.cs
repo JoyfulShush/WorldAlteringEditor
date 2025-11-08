@@ -261,8 +261,6 @@ namespace TSMapEditor.Models
 
         public void Serialize(MemoryStream memoryStream)
         {
-            byte[] bytes;
-
             StreamHelpers.WriteUnicodeString(memoryStream, HouseType);
             StreamHelpers.WriteUnicodeString(memoryStream, Name);
 
