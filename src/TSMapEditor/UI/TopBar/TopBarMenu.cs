@@ -109,6 +109,7 @@ namespace TSMapEditor.UI.TopBar
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem(Translate(this, "Edit.Basic", "Basic"), () => windowController.BasicSectionConfigWindow.Open(), null, null, null);
             editContextMenu.AddItem(Translate(this, "Edit.MapSize", "Map Size"), () => windowController.MapSizeWindow.Open(), null, null, null, null);
+            editContextMenu.AddItem(Translate(this, "Edit.DifficultySettings", "Difficulty Settings"), () => windowController.TweakDifficultyWindow.Open(), null, null, null, null);
             editContextMenu.AddItem(" ", null, () => false, null, null);
             editContextMenu.AddItem(Translate(this, "Edit.Lighting", "Lighting"), () => windowController.LightingSettingsWindow.Open(), null, null, null);
             editContextMenu.AddItem(" ", null, () => false, null, null);
