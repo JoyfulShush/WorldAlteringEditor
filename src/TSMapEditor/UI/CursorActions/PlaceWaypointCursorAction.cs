@@ -19,8 +19,7 @@ namespace TSMapEditor.UI.CursorActions
 
         public override void LeftClick(Point2D cellCoords)
         {
-            bool isShiftHeldDown = Keyboard.IsShiftHeldDown();
-            if (isShiftHeldDown)
+            if (Keyboard.IsShiftHeldDown())
             {
                 int availableWaypointNumber = PlaceWaypointWindow.GetAvailableWaypointNumber();
                 PlaceWaypointWindow.PlaceWaypoint(availableWaypointNumber, cellCoords);
