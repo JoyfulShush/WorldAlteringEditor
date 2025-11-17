@@ -1112,7 +1112,7 @@ namespace TSMapEditor.Initialization
                 if (aiTrigger == null)
                     continue;
 
-                aiTrigger.Disabled = !Conversions.BooleanFromString(kvp.Value, true); // enabled by default
+                aiTrigger.Enabled = Conversions.BooleanFromString(kvp.Value, true);
             }
 
             Logger.Log("AITriggerTypesEnable read successfully.");

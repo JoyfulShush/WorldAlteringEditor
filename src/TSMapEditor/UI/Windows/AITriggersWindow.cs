@@ -44,7 +44,7 @@ namespace TSMapEditor.UI.Windows
         private EditorTextBox tbName;
         private XNADropDown ddSide;
         private XNADropDown ddHouseType;
-        private XNACheckBox chkDisabled;
+        private XNACheckBox chkEnabled;
         private XNADropDown ddConditionType;
         private XNADropDown ddComparator;
         private EditorNumberTextBox tbQuantity;
@@ -87,7 +87,7 @@ namespace TSMapEditor.UI.Windows
             tbName = FindChild<EditorTextBox>(nameof(tbName));
             ddSide = FindChild<XNADropDown>(nameof(ddSide));
             ddHouseType = FindChild<XNADropDown>(nameof(ddHouseType));
-            chkDisabled = FindChild<XNACheckBox>(nameof(chkDisabled));
+            chkEnabled = FindChild<XNACheckBox>(nameof(chkEnabled));
             ddConditionType = FindChild<XNADropDown>(nameof(ddConditionType));
             ddComparator = FindChild<XNADropDown>(nameof(ddComparator));
             tbQuantity = FindChild<EditorNumberTextBox>(nameof(tbQuantity));
@@ -360,7 +360,7 @@ namespace TSMapEditor.UI.Windows
             tbName.TextChanged -= TbName_TextChanged;
             ddSide.SelectedIndexChanged -= DdSide_SelectedIndexChanged;
             ddHouseType.SelectedIndexChanged -= DdHouse_SelectedIndexChanged;
-            chkDisabled.CheckedChanged -= ChkDisabled_CheckedChanged;
+            chkEnabled.CheckedChanged -= chkEnabled_CheckedChanged;
             ddConditionType.SelectedIndexChanged -= DdConditionType_SelectedIndexChanged;
             ddComparator.SelectedIndexChanged -= DdComparator_SelectedIndexChanged;
             tbQuantity.TextChanged -= TbQuantity_TextChanged;
@@ -381,7 +381,7 @@ namespace TSMapEditor.UI.Windows
                 tbName.Text = string.Empty;
                 ddSide.SelectedIndex = -1;
                 ddHouseType.SelectedIndex = -1;
-                chkDisabled.Checked = false;
+                chkEnabled.Checked = false;
                 ddConditionType.SelectedIndex = -1;
                 ddComparator.SelectedIndex = -1;
                 tbQuantity.Text = string.Empty;
@@ -403,7 +403,7 @@ namespace TSMapEditor.UI.Windows
             tbName.Text = editedAITrigger.Name;
             ddSide.SelectedIndex = editedAITrigger.Side < ddSide.Items.Count ? editedAITrigger.Side : 0;
             ddHouseType.SelectedIndex = ddHouseType.Items.FindIndex(ddi => ddi.Text == editedAITrigger.OwnerName);
-            chkDisabled.Checked = editedAITrigger.Disabled;
+            chkEnabled.Checked = editedAITrigger.Enabled;
             ddConditionType.SelectedIndex = ((int)aiTriggerType.ConditionType + 1);
             ddComparator.SelectedIndex = (int)aiTriggerType.Comparator.ComparatorOperator;
             tbQuantity.Value = aiTriggerType.Comparator.Quantity;
@@ -423,7 +423,7 @@ namespace TSMapEditor.UI.Windows
             tbName.TextChanged += TbName_TextChanged;
             ddSide.SelectedIndexChanged += DdSide_SelectedIndexChanged;
             ddHouseType.SelectedIndexChanged += DdHouse_SelectedIndexChanged;
-            chkDisabled.CheckedChanged += ChkDisabled_CheckedChanged;
+            chkEnabled.CheckedChanged += chkEnabled_CheckedChanged;
             ddConditionType.SelectedIndexChanged += DdConditionType_SelectedIndexChanged;
             ddComparator.SelectedIndexChanged += DdComparator_SelectedIndexChanged;
             tbQuantity.TextChanged += TbQuantity_TextChanged;
@@ -520,9 +520,9 @@ namespace TSMapEditor.UI.Windows
             editedAITrigger.Hard = chkEnabledOnHard.Checked;
         }
 
-        private void ChkDisabled_CheckedChanged(object sender, EventArgs e)
+        private void chkEnabled_CheckedChanged(object sender, EventArgs e)
         {
-            editedAITrigger.Disabled = chkDisabled.Checked;
+            editedAITrigger.Enabled = chkEnabled.Checked;
         }
 
         public void Open()
