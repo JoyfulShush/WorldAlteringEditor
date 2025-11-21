@@ -82,6 +82,7 @@ namespace TSMapEditor
         public const int UITopBarMenuHeight = 23;
 
         public static int UITreeViewLineHeight = 20;
+        public static int UITreeViewCategoryHeight = 20;
 
         public static double UIAccidentalClickPreventionTime = 0.2;
 
@@ -190,6 +191,7 @@ namespace TSMapEditor
             IniFile uiConstantsIni = Helpers.ReadConfigINI("UI/UIConstants.ini");
 
             UITreeViewLineHeight = uiConstantsIni.GetIntValue("UI", nameof(UITreeViewLineHeight), UITreeViewLineHeight);
+            UITreeViewCategoryHeight = uiConstantsIni.GetIntValue("UI", nameof(UITreeViewCategoryHeight), UITreeViewCategoryHeight);
         }
     }
 }
