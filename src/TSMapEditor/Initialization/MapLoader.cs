@@ -152,7 +152,7 @@ namespace TSMapEditor.Initialization
             map.TheaterName = section.GetStringValue("Theater", string.Empty);
 
             Logger.Log("[Map] section read successfully.");
-        }        
+        }
 
         public static void ReadIsoMapPack(IMap map, IniFile mapIni)
         {
