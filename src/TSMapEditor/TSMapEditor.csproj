@@ -26,10 +26,10 @@
     <ApplicationIcon>editoricon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Config\Scripts\Activate Assign Mission Cursor Action.cs" />
     <Compile Remove="Config\Scripts\Apply Animated Water.cs" />
     <Compile Remove="Config\Scripts\Assign All Guard Infantry Area Guard.cs" />
-    <Compile Remove="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs" />
-    <Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
+	<Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
     <Compile Remove="Config\Scripts\Replace Autumn Grass With Tall Grass.cs" />
@@ -525,14 +525,14 @@
     <Folder Include="Content\ToolIcons\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Config\Scripts\Activate Assign Mission Cursor Action.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Config\Scripts\Apply Animated Water.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Config\Scripts\Assign All Guard Infantry Area Guard.cs">
+	<None Include="Config\Scripts\Assign All Guard Infantry Area Guard.cs">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Config\Scripts\Area Guard Mission Assignment Cursor Action.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Config\Scripts\Count Credits On Map.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
