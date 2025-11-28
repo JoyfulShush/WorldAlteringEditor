@@ -865,7 +865,7 @@ namespace TSMapEditor.UI.Windows
             string actionEntryText;
             string textDetails = null;
 
-                ScriptAction action = GetScriptAction(entry.Action);
+            ScriptAction action = GetScriptAction(entry.Action);
             if (action == null)
             {                
                 actionEntryText = $"#{index} - Unknown";
@@ -891,7 +891,7 @@ namespace TSMapEditor.UI.Windows
                     case TriggerParamType.LocalVariable:
                         var localVar = map.LocalVariables.GetElementIfInRange(entry.Argument);
                         if (localVar != null)
-                            textDetails = $"({localVar.Name})";
+                            textDetails = $"({localVar.Index} - {localVar.Name})";
                         break;
 
                     case TriggerParamType.HouseType:
