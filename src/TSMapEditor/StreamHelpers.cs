@@ -27,8 +27,8 @@ namespace TSMapEditor
         {
             Span<byte> buffer = stackalloc byte[8];
 
-            if (stream.Read(buffer) != sizeof(int))
-                throw new StreamHelperReadException("Failed to read integer from stream: end of stream");
+            if (stream.Read(buffer) != sizeof(long))
+                throw new StreamHelperReadException("Failed to read long integer from stream: end of stream");
 
             return BitConverter.ToInt64(buffer);
         }
@@ -38,7 +38,7 @@ namespace TSMapEditor
             int length = ReadInt(stream);
             Span<byte> stringBuffer = stackalloc byte[length];
             if (stream.Read(stringBuffer) != length)
-                throw new StreamHelperReadException("Failed to read string from stream: end of stream");
+                throw new StreamHelperReadException("Failed to read ASCII string from stream: end of stream");
 
             if (length == -1)
                 return null;
