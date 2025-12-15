@@ -27,6 +27,7 @@ namespace TSMapEditor
         public static bool IsRA2YR = false;
         public static bool WarnOfTooManyTriggerActions = true;
         public static bool DefaultPreview = false;
+        public static bool EnableTileDisplayFilterDefault = false;
 
         public static string[] ExpectedClientExecutableNames = new string[] { "DTA.exe" };
         public static string GameRegistryInstallPath = "SOFTWARE\\DawnOfTheTiberiumAge";
@@ -152,6 +153,7 @@ namespace TSMapEditor
             IsRA2YR = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(IsRA2YR), IsRA2YR);
             WarnOfTooManyTriggerActions = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(WarnOfTooManyTriggerActions), WarnOfTooManyTriggerActions);
             DefaultPreview = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(DefaultPreview), DefaultPreview);
+            EnableTileDisplayFilterDefault = constantsIni.GetBooleanValue(ConstantsSectionName, nameof(EnableTileDisplayFilterDefault), EnableTileDisplayFilterDefault);
 
             // Check two keys for backwards compatibility
             if (constantsIni.KeyExists(ConstantsSectionName, "ExpectedClientExecutableName"))

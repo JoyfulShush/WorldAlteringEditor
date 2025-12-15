@@ -30,6 +30,9 @@ namespace TSMapEditor.UI.CursorActions
             }
         }
 
+        public PlacedTile LastPlacedTile { get; set; }
+        public PlacedTile SecondLastPlacedTile { get; set; }
+
         private int heightOffset;
 
         private HashSet<MapTile> previewTiles = new HashSet<MapTile>();
@@ -235,10 +238,10 @@ namespace TSMapEditor.UI.CursorActions
             }
             else
             {
-                mutation = new PlaceTerrainTileMutation(CursorActionTarget.MutationTarget, adjustedCellCoords, Tile, heightOffset);
+                mutation = new PlaceTerrainTileMutation(CursorActionTarget.MutationTarget, adjustedCellCoords, Tile, heightOffset, LastPlacedTile, SecondLastPlacedTile);
             }
 
-            CursorActionTarget.MutationManager.PerformMutation(mutation);
+            CursorActionTarget.MutationManager.PerformMutation(mutation);            
         }
 
         public override void LeftClick(Point2D cellCoords)

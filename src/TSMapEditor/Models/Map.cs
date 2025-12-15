@@ -13,6 +13,7 @@ using TSMapEditor.Initialization;
 using TSMapEditor.Misc;
 using TSMapEditor.Models.Enums;
 using TSMapEditor.Rendering;
+using TSMapEditor.UI;
 
 namespace TSMapEditor.Models
 {
@@ -24,6 +25,28 @@ namespace TSMapEditor.Models
         }
 
         public House House { get; }
+    }
+
+    public class PlaceTerrainTileEventArgs : EventArgs
+    {
+        public PlaceTerrainTileEventArgs(PlacedTile tile)
+        {
+            Tile = tile;
+        }
+
+        public PlacedTile Tile { get; set; }
+    }
+
+    public class UndoPlaceTerrainTileEventArgs : EventArgs
+    {
+        public UndoPlaceTerrainTileEventArgs(PlacedTile currentTile, PlacedTile previousTile)
+        {
+            CurrentTile = currentTile;
+            PreviousTile = previousTile;
+        }
+
+        public PlacedTile CurrentTile { get; set; }
+        public PlacedTile PreviousTile { get; set; }
     }
 
     public class Map : IMap
@@ -55,6 +78,8 @@ namespace TSMapEditor.Models
         /// </summary>
         public event EventHandler TeamTypesChanged;
 
+        public event EventHandler<PlaceTerrainTileEventArgs> TilePlaced;
+        public event EventHandler<UndoPlaceTerrainTileEventArgs> UndoTilePlaced;
         /// <summary>
         /// Raised when a trigger is added or removed.
         /// NOT raised when an individual trigger's data is modified.
@@ -2185,6 +2210,16 @@ namespace TSMapEditor.Models
             LocalVariables = null;
             Tubes = null;
             GraphicalBaseNodes = null;
+        }
+
+        public void TriggerTilePlacedEvent(PlacedTile tile)
+        {
+            TilePlaced?.Invoke(this, new PlaceTerrainTileEventArgs(new PlacedTile(tile.TileImage, tile.Coords)));
+        }
+
+        public void TriggerUndoTilePlacedEvent(PlacedTile currentTile, PlacedTile previousTile)
+        {
+            UndoTilePlaced?.Invoke(this, new UndoPlaceTerrainTileEventArgs(currentTile, previousTile));
         }
 
         public List<BaseNode> GetBaseNodes(Point2D cellCoords)

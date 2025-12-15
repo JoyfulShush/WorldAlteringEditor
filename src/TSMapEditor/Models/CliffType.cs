@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -52,6 +53,11 @@ namespace TSMapEditor.Models
         /// Whether the connection point faces "backwards" or "forwards"
         /// </summary>
         public CliffSide Side { get; init; }
+
+        /// <summary>
+        /// Whether Forbidden Tiles associated with this connection point are ignored for the Tile Display Filter
+        /// </summary>
+        public bool IgnoreForbiddenTilesInTileDisplayFilter { get; init; }
     }
 
     public class CliffAStarNode
@@ -193,6 +199,9 @@ namespace TSMapEditor.Models
             List <CliffAStarNode > nextNodes = new List<CliffAStarNode>();
             foreach (var tile in tiles)
             {
+                if (tile.ExcludeFromConnectedTileTool)
+                    continue;
+
                 if (!allowTurn && tile.ConnectionPoints[0].Side != tile.ConnectionPoints[1].Side)
                     continue;
 
@@ -222,14 +231,45 @@ namespace TSMapEditor.Models
 
             IndicesInTileSet = indicesString.Split(',').Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
-            ConnectionPoints = new CliffConnectionPoint[2];
+            ExcludeFromConnectedTileTool = iniSection.GetBooleanValue("ExcludeFromConnectedTileTool", false);
+            AllowRepeatingSelfInTileDisplayFilter = iniSection.GetBooleanValue("AllowRepeatingSelfInTileDisplayFilter", true);            
+
+            ConnectionPoints = new CliffConnectionPoint[4];
+            int actualConnectionPoints = 0;
 
             for (int i = 0; i < ConnectionPoints.Length; i++)
             {
                 string coordsString = iniSection.GetStringValue($"ConnectionPoint{i}", null);
-                if (coordsString == null || !Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
-                    throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
+                
+                if (coordsString == null)
+                {      
+                    // All tiles must have at least 1 CP
+                    if (i == 0)
+                    {
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has no connection points defined.");
+                    }                    
+                    // A tile is only allowed to have 1 CP if it's not being used by the Draw Connected Tiles tool
+                    else if (i == 1 && !ExcludeFromConnectedTileTool)
+                    {
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} is not excluded from the Draw Connected Tiles tool and only has 1 connection point defined.");
+                    } 
+                    // All tiles can omit beyond 2 CPs - they will be skipped and ignored.
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    // A tile cannot have more than 2 CPs if it's not excluded from the Draw Connected Tiles tool
+                    if (i > 1 && !ExcludeFromConnectedTileTool)
+                        throw new INIConfigException($"ConnectedTile {iniSection.SectionName} has at least {i + 1} connection points, but is not excluded from the Draw Connected Tiles tool. Either exclude it or reduce connection points to 2.");
 
+                    if (!Regex.IsMatch(coordsString, "^\\d+?,\\d+?$"))
+                        throw new INIConfigException($"Connected Tile {iniSection.SectionName} has invalid ConnectionPoint{i} value: {coordsString}!");
+                }
+
+                actualConnectionPoints++;
                 Point2D coords = Point2D.FromString(coordsString);
 
                 string directionsString = iniSection.GetStringValue($"ConnectionPoint{i}.Directions", null);
@@ -265,7 +305,7 @@ namespace TSMapEditor.Models
                     _ => throw new INIConfigException($"Connected Tile {iniSection.SectionName} has an invalid ConnectionPoint{i}.Side value: {sideString}!")
                 };
 
-                int[] requiredTiles, forbiddenTiles;
+                int[] requiredTiles, forbiddenTiles;                
 
                 var requiredTilesList =
                     iniSection.GetListValue($"ConnectionPoint{i}.RequiredTiles", ',', int.Parse);
@@ -284,6 +324,8 @@ namespace TSMapEditor.Models
                     requiredTiles = Array.Empty<int>();
                 }
 
+                bool ignoreForbiddenTilesInTileDisplayFilter = iniSection.GetBooleanValue($"ConnectionPoint{i}.IgnoreForbiddenTilesInTileDisplayFilter", false);
+
                 ConnectionPoints[i] = new CliffConnectionPoint
                 {
                     Index = i,
@@ -291,9 +333,12 @@ namespace TSMapEditor.Models
                     CoordinateOffset = coords,
                     Side = side,
                     RequiredTiles = requiredTiles,
-                    ForbiddenTiles = forbiddenTiles
+                    ForbiddenTiles = forbiddenTiles,
+                    IgnoreForbiddenTilesInTileDisplayFilter = ignoreForbiddenTilesInTileDisplayFilter,
                 };
             }
+
+            IsEnding = actualConnectionPoints == 1;
 
             if (iniSection.KeyExists("Foundation"))
             {
@@ -305,7 +350,7 @@ namespace TSMapEditor.Models
             }
 
             ExtraPriority = -iniSection.GetIntValue("ExtraPriority", IsStraight(ConnectionPoints) ? -1 : 0); // negated because sorting is in ascending order by default, but it's more intuitive to have larger numbers be more important
-            DistanceModifier = iniSection.GetIntValue("DistanceModifier", IsDiagonal(ConnectionPoints) ? -3 : 0);
+            DistanceModifier = iniSection.GetIntValue("DistanceModifier", IsDiagonal(ConnectionPoints) ? -3 : 0);            
         }
 
         /// <summary>
@@ -342,6 +387,23 @@ namespace TSMapEditor.Models
         /// A distance modifier added directly to the FScore. Use with caution!
         /// </summary>
         public int DistanceModifier { get; set; }
+
+        /// <summary>
+        /// When true, this tile is disallowed from being used in the Draw Connected Tile tool
+        /// </summary>
+        public bool ExcludeFromConnectedTileTool { get; init; }
+
+        /// <summary>
+        /// If enabled, tiles that are forbidden from referencing themselves are allowed by the Tile Display Filter.
+        /// This is useful if the tile can still connect to itself, but we don't want the Draw Connected Tiles tool to do so to prevent repeatitiveness.
+        /// </summary>
+        public bool AllowRepeatingSelfInTileDisplayFilter { get; init; }
+
+        /// <summary>
+        /// Determines whether this tile is an ending, denoted by it only having one connection point.
+        /// An ending tile is always excluded from the Draw Connected Tiles tool.
+        /// </summary>
+        public bool IsEnding { get; init; }
 
         public CliffConnectionPoint GetExit(int entryIndex)
         {
