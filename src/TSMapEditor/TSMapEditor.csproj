@@ -30,6 +30,7 @@
     <Compile Remove="Config\Scripts\Apply Animated Water.cs" />
     <Compile Remove="Config\Scripts\Assign All Guard Infantry Area Guard.cs" />
 	<Compile Remove="Config\Scripts\Disable All Debug Triggers.cs" />
+    <Compile Remove="Config\Scripts\List Unused Scripting Elements.cs" />
     <Compile Remove="Config\Scripts\Make Civilian Vehicles Sleep.cs" />
     <Compile Remove="Config\Scripts\Remove All Terrain Objects.cs" />
     <Compile Remove="Config\Scripts\Replace Autumn Grass With Tall Grass.cs" />
@@ -518,7 +519,7 @@
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.3" />
     <PackageReference Include="Rampastring.Tools" Version="2.0.7" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.3" />
-    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="3.1.6" />
+    <PackageReference Include="Rampastring.XNAUI.WindowsDX" Version="3.1.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
     <PackageReference Include="Westwind.Scripting" Version="1.3.3" />
   </ItemGroup>
@@ -540,7 +541,10 @@
     </None>
 	<None Include="Config\Scripts\Disable All Debug Triggers.cs">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
+	</None>    
+    <None Include="Config\Scripts\List Unused Scripting Elements.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Config\Scripts\Make Civilian Vehicles Sleep.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
