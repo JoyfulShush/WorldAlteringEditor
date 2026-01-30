@@ -862,7 +862,7 @@ namespace TSMapEditor.UI.Windows
                 return;
             }
 
-            lbActions.SelectedItem.Text = GetActionEntryText(scriptActionEntry.Action, scriptActionEntry);
+            lbActions.SelectedItem.Text = GetActionEntryText(scriptActionEntry.Action, scriptActionEntry).text;
 
             if (action.ParamType == TriggerParamType.BuildingWithProperty)
             {
