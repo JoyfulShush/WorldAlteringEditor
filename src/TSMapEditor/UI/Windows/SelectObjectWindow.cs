@@ -98,8 +98,6 @@ namespace TSMapEditor.UI.Windows
             if (string.IsNullOrWhiteSpace(tbSearch.Text) || tbSearch.Text == tbSearch.Suggestion)
             {                
                 RestoreFromOriginalList();
-
-                lbObjectList.ViewTop = 0;
             }
             else
             {
