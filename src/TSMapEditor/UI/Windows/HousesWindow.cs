@@ -44,6 +44,7 @@ namespace TSMapEditor.UI.Windows
         private XNALabel lblStatsAllianceOneSidedAllies;
         private XNALabel lblStatsAllianceOneSidedEnemies;
         private XNALabel lblStatsAllianceEnemies;
+        private XNALabel lblStatsBaseNodesCost;
 
         private ToolTip mutualAllianceToolTip;
         private ToolTip oneSidedAlliesToolTip;
@@ -83,6 +84,7 @@ namespace TSMapEditor.UI.Windows
 
             lblStatsPower = FindChild<XNALabel>(nameof(lblStatsPower));
             lblStatsObjectsCount = FindChild<XNALabel>(nameof(lblStatsObjectsCount));
+
             lblStatsAllianceMutualAlliance = FindChild<XNALabel>(nameof(lblStatsAllianceMutualAlliance));
             mutualAllianceToolTip = new ToolTip(WindowManager, lblStatsAllianceMutualAlliance);
 
@@ -95,10 +97,13 @@ namespace TSMapEditor.UI.Windows
             lblStatsAllianceEnemies = FindChild<XNALabel>(nameof(lblStatsAllianceEnemies));
             enemiesToolTip = new ToolTip(WindowManager, lblStatsAllianceEnemies);
 
+            lblStatsBaseNodesCost = FindChild<XNALabel>(nameof(lblStatsBaseNodesCost));
+
             statLabels.AddRange([
                 lblStatsPower, lblStatsObjectsCount,
                 lblStatsAllianceMutualAlliance, lblStatsAllianceOneSidedAllies,
-                lblStatsAllianceOneSidedEnemies, lblStatsAllianceEnemies
+                lblStatsAllianceOneSidedEnemies, lblStatsAllianceEnemies,
+                lblStatsBaseNodesCost
             ]);
 
             tooltips.AddRange([mutualAllianceToolTip, oneSidedAlliesToolTip, oneSidedEnemiesToolTip, enemiesToolTip]);
@@ -610,6 +615,16 @@ namespace TSMapEditor.UI.Windows
             lblStatsAllianceOneSidedAllies.Text = $"{Translate(this, "HouseStats.OneSidedAllies", "One-Sided Allies:")} {oneSidedAlliesHouses.Count}";
             lblStatsAllianceOneSidedEnemies.Text = $"{Translate(this, "HouseStats.OneSidedEnemies", "One-Sided Enemies:")} {oneSidedEnemyHouses.Count}";
             lblStatsAllianceEnemies.Text = $"{Translate(this, "HouseStats.Enemies", "Enemies:")} {enemyHouses.Count}";
+
+            int baseNodesCost = editedHouse.BaseNodes.Aggregate<BaseNode, int>(0, (value, baseNode) =>
+            {                
+                var buildingType = map.Rules.BuildingTypes.Find(buildingType => buildingType.ININame == baseNode.StructureTypeName);
+                if (buildingType == null)
+                    return value;
+
+                return value + buildingType.Cost;
+            });
+            lblStatsBaseNodesCost.Text = $"{Translate(this, "HouseStats.BaseNodesCost", "Base Nodes Cost:")} ${baseNodesCost}";
 
             string noneText = Translate(this, "ToolTips.None", "None");
 
