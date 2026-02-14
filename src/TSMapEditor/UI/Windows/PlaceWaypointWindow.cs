@@ -6,6 +6,7 @@ using TSMapEditor.GameMath;
 using TSMapEditor.Models;
 using TSMapEditor.Mutations;
 using TSMapEditor.Mutations.Classes;
+using TSMapEditor.Settings;
 using TSMapEditor.UI.Controls;
 
 namespace TSMapEditor.UI.Windows
@@ -26,6 +27,7 @@ namespace TSMapEditor.UI.Windows
         private EditorNumberTextBox tbWaypointNumber;
         private XNALabel lblDescription;
         private XNADropDown ddWaypointColor;
+        private XNACheckBox chkDoNotSuggestMPStartingWaypoints;
 
         private Point2D cellCoords;
 
@@ -36,16 +38,21 @@ namespace TSMapEditor.UI.Windows
 
             tbWaypointNumber = FindChild<EditorNumberTextBox>(nameof(tbWaypointNumber));
             tbWaypointNumber.MaximumTextLength = (Constants.MaxWaypoint - 1).ToString(CultureInfo.InvariantCulture).Length;
+            tbWaypointNumber.EnterPressed += (s, e) => BtnPlace_LeftClick(this, EventArgs.Empty);
 
             lblDescription = FindChild<XNALabel>(nameof(lblDescription));
             lblDescription.Text = string.Format(Translate(this, "DescriptionText", "Input waypoint number (0-{0}):"), Constants.MaxWaypoint - 1);
+
+            chkDoNotSuggestMPStartingWaypoints = FindChild<XNACheckBox>(nameof(chkDoNotSuggestMPStartingWaypoints));
 
             FindChild<EditorButton>("btnPlace").LeftClick += BtnPlace_LeftClick;
 
             // Init color dropdown options
             ddWaypointColor = FindChild<XNADropDown>(nameof(ddWaypointColor));
             ddWaypointColor.AddItem(Translate(this, "None", "None"));
-            Array.ForEach(Waypoint.SupportedColors, sc => ddWaypointColor.AddItem(Translate("NamedColors." + sc.Name, sc.Name), sc.Value));
+            UIHelpers.AddColorOptionsToDropDown(Waypoint.SupportedColors, ddWaypointColor);
+
+            chkDoNotSuggestMPStartingWaypoints.Checked = UserSettings.Instance.DoNotSuggestMPStartingWaypoints;
         }
 
         private void BtnPlace_LeftClick(object sender, EventArgs e)
@@ -79,7 +86,13 @@ namespace TSMapEditor.UI.Windows
                 return false;
             }
 
-            string waypointColor = ddWaypointColor.SelectedItem != null ? ddWaypointColor.SelectedItem.Text : null;
+            if (chkDoNotSuggestMPStartingWaypoints.Checked != UserSettings.Instance.DoNotSuggestMPStartingWaypoints)
+            {
+                UserSettings.Instance.DoNotSuggestMPStartingWaypoints.UserDefinedValue = chkDoNotSuggestMPStartingWaypoints.Checked;
+                _ = UserSettings.Instance.SaveSettingsAsync();
+            }
+
+            string waypointColor = ddWaypointColor.SelectedItem != null ? (string)ddWaypointColor.SelectedItem.Tag : null;
 
             mutationManager.PerformMutation(new PlaceWaypointMutation(mutationTarget, cellCoords, waypointNumber, waypointColor));
             return true;
@@ -96,6 +109,9 @@ namespace TSMapEditor.UI.Windows
             tbWaypointNumber.Value = availableWaypointNumber;
 
             Show();
+
+            WindowManager.SelectedControl = tbWaypointNumber;
+            tbWaypointNumber.SetSelection(0, tbWaypointNumber.Text.Length);
         }
 
         public int GetAvailableWaypointNumber()
@@ -110,7 +126,7 @@ namespace TSMapEditor.UI.Windows
                 return -1;
             }
 
-            for (int i = 0; i < Constants.MaxWaypoint; i++)
+            for (int i = chkDoNotSuggestMPStartingWaypoints.Checked ? Constants.MultiplayerMaxPlayers : 0; i < Constants.MaxWaypoint; i++)
             {
                 if (!map.Waypoints.Exists(w => w.Identifier == i) && (Constants.IsRA2YR || i != Constants.TS_WAYPT_SPECIAL))
                 {

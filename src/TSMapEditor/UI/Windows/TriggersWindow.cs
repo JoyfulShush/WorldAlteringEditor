@@ -159,10 +159,7 @@ namespace TSMapEditor.UI.Windows
             // Init color dropdown options
             ddTriggerColor = FindChild<XNADropDown>(nameof(ddTriggerColor));
             ddTriggerColor.AddItem(Translate(this, "Color.None", "None"));
-            Array.ForEach(Trigger.SupportedColors, sc =>
-            {
-                ddTriggerColor.AddItem(Translate("NamedColors." + sc.Name, sc.Name), sc.Value);
-            });
+            UIHelpers.AddColorOptionsToDropDown(Trigger.SupportedColors, ddTriggerColor);
 
             lbEvents = FindChild<EditorListBox>(nameof(lbEvents));
             selEventType = FindChild<EditorPopUpSelector>(nameof(selEventType));
@@ -1924,6 +1921,7 @@ namespace TSMapEditor.UI.Windows
             {
                 var condition = new TriggerCondition(triggerEventType);
                 editedTrigger.Conditions.Add(condition);
+                SetTriggerEventHardcodedParameters(condition);
                 EditTrigger(editedTrigger);
                 lbEvents.SelectedIndex = lbEvents.Items.Count - 1;
 
@@ -1987,15 +1985,16 @@ namespace TSMapEditor.UI.Windows
                     case TriggerParamType.TeamType:
                         TeamType teamType = map.TeamTypes.Count > 0 ? map.TeamTypes[map.TeamTypes.Count - 1] : null;
                         if (teamType != null)
+                        {
                             action.Parameters[parameterIndex] = teamType.ININame;
 
-                        // Special case for action "Reinforcement at Waypoint" - assign the team's waypoint
-                        if (!string.IsNullOrWhiteSpace(teamType.Waypoint) && triggerActionType.Parameters[TriggerActionType.MAX_PARAM_COUNT - 1].TriggerParamType == TriggerParamType.WaypointZZ)
-                        {
-                            action.Parameters[TriggerActionType.MAX_PARAM_COUNT - 1] = teamType.Waypoint;
-                            return;
+                            // Special case for action "Reinforcement at Waypoint" - assign the team's waypoint
+                            if (!string.IsNullOrWhiteSpace(teamType.Waypoint) && triggerActionType.Parameters[TriggerActionType.MAX_PARAM_COUNT - 1].TriggerParamType == TriggerParamType.WaypointZZ)
+                            {
+                                action.Parameters[TriggerActionType.MAX_PARAM_COUNT - 1] = teamType.Waypoint;
+                                return;
+                            }
                         }
-
                         break;
                     case TriggerParamType.WaypointZZ:
                         if (map.Waypoints.Count > 0)
@@ -2356,7 +2355,7 @@ namespace TSMapEditor.UI.Windows
             chkEasy.Checked = editedTrigger.Easy;
             chkMedium.Checked = editedTrigger.Normal;
             chkHard.Checked = editedTrigger.Hard;
-            ddTriggerColor.SelectedIndex = ddTriggerColor.Items.FindIndex(item => item.Text == editedTrigger.EditorColor);
+            ddTriggerColor.SelectedIndex = ddTriggerColor.Items.FindIndex(item => (string)item.Tag == editedTrigger.EditorColor);
             if (ddTriggerColor.SelectedIndex < 0)
                 ddTriggerColor.SelectedIndex = 0;
 
@@ -2415,7 +2414,7 @@ namespace TSMapEditor.UI.Windows
                 return;
             }
 
-            editedTrigger.EditorColor = ddTriggerColor.SelectedItem.Text;
+            editedTrigger.EditorColor = (string)ddTriggerColor.SelectedItem.Tag;
             lbTriggers.SelectedItem.TextColor = ddTriggerColor.SelectedItem.TextColor.Value;
         }
 

@@ -35,6 +35,7 @@ namespace TSMapEditor.Mutations.Classes
             var structure = new Structure(buildingType);
             structure.Owner = MutationTarget.ObjectOwner;
             structure.Position = cellCoords;
+            structure.AIRepairable = structure.ObjectType.Repairable && structure.Owner.DefaultRepairableStructures;
             MutationTarget.Map.PlaceBuilding(structure);
             MutationTarget.AddRefreshPoint(cellCoords);
 
