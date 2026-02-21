@@ -384,10 +384,12 @@ namespace TSMapEditor.Misc
             // Check for triggers having invalid owners
             foreach (var trigger in map.Triggers)
             {
-                if (!houseTypes.Exists(ht => trigger.HouseType == ht.ININame))
+                if (trigger.HouseType == null || map.FindHouseType(trigger.HouseType.ININame) == null)
+                {
                     issueList.Add(string.Format(Translate(map, "CheckForIssues.InvalidTriggerOwner",
-                        "Trigger '{0}' has a nonexistent HouseType '{1}' specified as its owner."),
-                            trigger.Name, trigger.HouseType));
+                        "Trigger '{0}' has a nonexistent HouseType as its owner."),
+                        trigger.Name));
+                }
             }
 
             // Check for triggers in SP that have Building Exists event but house belongs to an AI
@@ -397,7 +399,7 @@ namespace TSMapEditor.Misc
                 foreach (var trigger in map.Triggers)
                 {
                     // Get the house of the trigger
-                    var house = map.Houses.Find(house => house.ININame == trigger.HouseType);
+                    var house = map.Houses.Find(house => house.HouseType == trigger.HouseType);
                     
                     if (house == null)
                         continue; // will be reported by the check for invalid owners
@@ -514,6 +516,7 @@ namespace TSMapEditor.Misc
 
             CheckForMismatchedDifficultyEnableIssue(map, issueList);
             CheckForMismatchedDifficultyDisableIssue(map, issueList);
+            CheckForInvalidParentCountryIssue(map, issueList);
 
             return issueList;
         }
@@ -639,6 +642,20 @@ namespace TSMapEditor.Misc
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private static void CheckForInvalidParentCountryIssue(Map map, List<string> issueList)
+        {
+            if (!Constants.IsRA2YR)
+                return;
+
+            foreach (var customHouseType in map.HouseTypes)
+            {
+                if (map.Rules.RulesHouseTypes.Find(ht => ht.ININame == customHouseType.ParentCountry) == null)
+                {
+                    issueList.Add(string.Format(Translate(map, "CheckForIssues.InvalidParentCountry", "The map-defined country \"{0}\" has an invalid ParentCountry value \"{1}\"!")));
                 }
             }
         }
