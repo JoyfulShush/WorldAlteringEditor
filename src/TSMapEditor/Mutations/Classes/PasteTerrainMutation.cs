@@ -487,7 +487,7 @@ namespace TSMapEditor.Mutations.Classes
                 if (cell == null)
                     continue;
 
-                terrainUndoData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level));
+                terrainUndoData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level, null, null));
 
                 cell.TileImage = null;
                 cell.TileIndex = copiedTerrainData.TileIndex;

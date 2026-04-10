@@ -41,7 +41,7 @@ namespace TSMapEditor.Mutations.Classes
             foreach (Point2D cellCoords in tilesToProcess)
             {
                 var cell = MutationTarget.Map.GetTile(cellCoords);
-                originalData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level));
+                originalData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level, null, null));
 
                 cell.ChangeTileIndex(tile.TileID, 0);
             }

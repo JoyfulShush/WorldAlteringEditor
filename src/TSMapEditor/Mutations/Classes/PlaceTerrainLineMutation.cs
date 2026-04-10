@@ -143,7 +143,7 @@ namespace TSMapEditor.Mutations.Classes
                 if (undoData.Exists(d => d.CellCoords == cellCoords))
                     continue;
 
-                undoData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level));
+                undoData.Add(new OriginalCellTerrainData(cellCoords, cell.TileIndex, cell.SubTileIndex, cell.Level, null, null));
                 cell.ChangeTileIndex(tile.TileID, (byte)i);
                 cell.Level = (byte)Math.Min(cell.Level + tile.GetSubTile(i).TmpImage.Height, Constants.MaxMapHeightLevel);
 

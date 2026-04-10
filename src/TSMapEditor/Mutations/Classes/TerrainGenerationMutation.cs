@@ -628,7 +628,7 @@ namespace TSMapEditor.Mutations.Classes
                 if (mapTile == null)
                     continue;
 
-                undoData.Add(new OriginalCellTerrainData(cellCoords + offset, mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level));
+                undoData.Add(new OriginalCellTerrainData(cellCoords + offset, mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level, null, null));
 
                 mapTile.TileImage = null;
                 mapTile.TileIndex = tile.TileID;

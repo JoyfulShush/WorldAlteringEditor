@@ -7,13 +7,6 @@ using TSMapEditor.UI;
 
 namespace TSMapEditor.Mutations.Classes
 {
-    public struct PlaceTerrainTileUndoData
-    {
-        public List<OriginalTerrainData> OriginalTerrainData;
-        public PlacedTile currentTile;
-        public PlacedTile previousTile;
-    }
-
     /// <summary>
     /// A mutation that places a terrain tile on the map.
     /// </summary>
@@ -35,9 +28,8 @@ namespace TSMapEditor.Mutations.Classes
         private readonly BrushSize brushSize;
         private readonly PlacedTile currentTile;
         private readonly PlacedTile previousTile;
-
-        private PlaceTerrainTileUndoData undoData;
-        private List<OriginalCellTerrainData> undoData;
+        
+        private List<OriginalCellTerrainData> undoData;        
 
         private static readonly Point2D[] surroundingTiles = new Point2D[] { new Point2D(-1, 0), new Point2D(1, 0), new Point2D(0, -1), new Point2D(0, 1) };
 
@@ -63,9 +55,9 @@ namespace TSMapEditor.Mutations.Classes
 
                 var mapTile = MutationTarget.Map.GetTile(cx, cy);
                 if (mapTile != null && (!MutationTarget.OnlyPaintOnClearGround || mapTile.IsClearGround()) &&
-                    !undoData.OriginalTerrainData.Exists(otd => otd.CellCoords.X == cx && otd.CellCoords.Y == cy))
+                    !undoData.Exists(otd => otd.CellCoords.X == cx && otd.CellCoords.Y == cy))
                 {
-                    undoData.Add(new OriginalCellTerrainData(mapTile.CoordsToPoint(), mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level));
+                    undoData.Add(new OriginalCellTerrainData(mapTile.CoordsToPoint(), mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level, currentTile, previousTile));
                 }
             }
         }
@@ -73,8 +65,6 @@ namespace TSMapEditor.Mutations.Classes
         public override void Perform()
         {
             undoData = new List<OriginalCellTerrainData>(tile.TMPImages.Length * brushSize.Width * brushSize.Height);
-			undoData.currentTile = currentTile;
-            undoData.previousTile = previousTile;
 
             int totalWidth = tile.Width * brushSize.Width;
             int totalHeight = tile.Height * brushSize.Height;
@@ -174,7 +164,7 @@ namespace TSMapEditor.Mutations.Classes
 
         public override void Undo()
         {
-            for (int i = 0; i < undoData.OriginalTerrainData.Count; i++)
+            for (int i = 0; i < undoData.Count; i++)
             {
                 OriginalCellTerrainData originalTerrainData = undoData[i];
 
@@ -185,10 +175,12 @@ namespace TSMapEditor.Mutations.Classes
                     mapCell.Level = originalTerrainData.HeightLevel;
                     RefreshCellLighting(mapCell);
                 }
+
+                MutationTarget.Map.TriggerUndoTilePlacedEvent(originalTerrainData.CurrentTile, originalTerrainData.PreviousTile);
             }
 
             MutationTarget.AddRefreshPoint(targetCellCoords);
-            MutationTarget.Map.TriggerUndoTilePlacedEvent(undoData.currentTile, undoData.previousTile);
+            
         }
     }
 }
