@@ -230,6 +230,49 @@ namespace TSMapEditor
 
         public static Point2D VisualDirectionToPoint(Direction direction) => visualDirectionToPointTable[(int)direction];
 
+        private static string[] directionToNameTable = new string[]
+        {
+            "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest", "North"
+        };
+
+        public static string DirectionToName(Direction direction) => directionToNameTable[(int)direction];
+
+        public static Direction DirectionFromPoints(Point2D p1, Point2D p2)
+        {
+            if (p1 == p2)
+                throw new ArgumentException("Cannot get direction from two identical points.");
+
+            int xDiff = p2.X - p1.X;
+            int yDiff = p2.Y - p1.Y;
+
+            if (xDiff == 0 || Math.Abs(yDiff) > Math.Abs(xDiff * 2))
+            {
+                if (yDiff > 0)
+                    return Direction.SW;
+
+                return Direction.NE;
+            }
+
+            if (yDiff == 0 || Math.Abs(xDiff) > Math.Abs(yDiff * 2))
+            {
+                if (xDiff > 0)
+                    return Direction.SE;
+
+                return Direction.NW;
+            }
+
+            if (xDiff > 0 && yDiff > 0)
+                return Direction.S;
+
+            if (xDiff > 0 && yDiff < 0)
+                return Direction.E;
+
+            if (xDiff < 0 && yDiff > 0)
+                return Direction.W;
+
+            return Direction.N;
+        }
+
         public static List<Direction> GetDirectionsInMask(byte mask)
         {
             List<Direction> directions = new List<Direction>();
@@ -390,23 +433,25 @@ namespace TSMapEditor
 
         public static void FindDefaultSideForNewHouseType(HouseType houseType, Rules rules)
         {
+            // Cut numbers from the end of the housetype's name (so, for example, GDI2 becomes GDI)
+            string houseTypeIniName = houseType.ININame;
+            while (houseTypeIniName.Length > 0 && char.IsDigit(houseTypeIniName[^1]))
+                houseTypeIniName = houseTypeIniName[..^1];
+
+            if (string.IsNullOrWhiteSpace(houseTypeIniName))
+            {
+                houseType.Side = rules.Sides[0];
+                return;
+            }
+
             for (int sideIndex = 0; sideIndex < rules.Sides.Count; sideIndex++)
             {
                 string side = rules.Sides[sideIndex];
 
-                if (houseType.ININame.StartsWith(side))
+                if (side.StartsWith(houseTypeIniName))
                 {
                     houseType.Side = side;
                     break;
-                }
-
-                if (side.EndsWith("Side") && side.Length > 4)
-                {
-                    if (houseType.ININame.StartsWith(side[..4]))
-                    {
-                        houseType.Side = side;
-                        break;
-                    }
                 }
             }
 

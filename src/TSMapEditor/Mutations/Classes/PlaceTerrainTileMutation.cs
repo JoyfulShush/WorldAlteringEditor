@@ -37,6 +37,7 @@ namespace TSMapEditor.Mutations.Classes
         private readonly PlacedTile previousTile;
 
         private PlaceTerrainTileUndoData undoData;
+        private List<OriginalCellTerrainData> undoData;
 
         private static readonly Point2D[] surroundingTiles = new Point2D[] { new Point2D(-1, 0), new Point2D(1, 0), new Point2D(0, -1), new Point2D(0, 1) };
 
@@ -64,15 +65,15 @@ namespace TSMapEditor.Mutations.Classes
                 if (mapTile != null && (!MutationTarget.OnlyPaintOnClearGround || mapTile.IsClearGround()) &&
                     !undoData.OriginalTerrainData.Exists(otd => otd.CellCoords.X == cx && otd.CellCoords.Y == cy))
                 {
-                    undoData.OriginalTerrainData.Add(new OriginalTerrainData(mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level, mapTile.CoordsToPoint()));
+                    undoData.Add(new OriginalCellTerrainData(mapTile.CoordsToPoint(), mapTile.TileIndex, mapTile.SubTileIndex, mapTile.Level));
                 }
             }
         }
 
         public override void Perform()
         {
-            undoData.OriginalTerrainData = new List<OriginalTerrainData>(tile.TMPImages.Length * brushSize.Width * brushSize.Height);
-            undoData.currentTile = currentTile;
+            undoData = new List<OriginalCellTerrainData>(tile.TMPImages.Length * brushSize.Width * brushSize.Height);
+			undoData.currentTile = currentTile;
             undoData.previousTile = previousTile;
 
             int totalWidth = tile.Width * brushSize.Width;
@@ -89,15 +90,12 @@ namespace TSMapEditor.Mutations.Classes
             // so users can use larger brush sizes to "paint height"
             for (int i = 0; i < tile.TMPImages.Length; i++)
             {
-                MGTMPImage image = tile.TMPImages[i];
+                Point2D? subTileOffset = tile.GetSubTileCoordOffset(i);
 
-                if (image == null)
+                if (subTileOffset == null)
                     continue;
 
-                int cx = targetCellCoords.X + i % tile.Width;
-                int cy = targetCellCoords.Y + i / tile.Width;
-
-                var mapTile = MutationTarget.Map.GetTile(cx, cy);
+                var mapTile = MutationTarget.Map.GetTile(targetCellCoords + subTileOffset.Value);
 
                 if (mapTile != null)
                 {
@@ -106,7 +104,7 @@ namespace TSMapEditor.Mutations.Classes
                     int cellLevel = mapTile.Level;
 
                     // Allow replacing back cliffs
-                    if (existingTile.TmpImage.Height == image.TmpImage.Height)
+                    if (existingTile.TmpImage.Height == tile.GetSubTile(i).TmpImage.Height)
                         cellLevel -= existingTile.TmpImage.Height;
 
                     if (originLevel < 0 || cellLevel < originLevel)
@@ -123,19 +121,19 @@ namespace TSMapEditor.Mutations.Classes
             {
                 for (int i = 0; i < tile.TMPImages.Length; i++)
                 {
-                    MGTMPImage image = tile.TMPImages[i];
+                    Point2D? subTileOffset = tile.GetSubTileCoordOffset(i);
 
-                    if (image == null)
+                    if (subTileOffset == null)
                         continue;
 
                     int cx = targetCellCoords.X + (offset.X * tile.Width) + i % tile.Width;
                     int cy = targetCellCoords.Y + (offset.Y * tile.Height) + i / tile.Width;
 
-                    var mapTile = MutationTarget.Map.GetTile(cx, cy);
+                    var mapTile = MutationTarget.Map.GetTile(targetCellCoords + new Point2D(offset.X * tile.Width, offset.Y * tile.Height) + subTileOffset.Value);
                     if (mapTile != null && (!MutationTarget.OnlyPaintOnClearGround || mapTile.IsClearGround()))
                     {
                         mapTile.ChangeTileIndex(tile.TileID, (byte)i);
-                        mapTile.Level = (byte)Math.Min(originLevel + image.TmpImage.Height, Constants.MaxMapHeightLevel);
+                        mapTile.Level = (byte)Math.Min(originLevel + tile.GetSubTile(i).TmpImage.Height, Constants.MaxMapHeightLevel);
                         RefreshCellLighting(mapTile);
                     }
                 }
@@ -178,13 +176,13 @@ namespace TSMapEditor.Mutations.Classes
         {
             for (int i = 0; i < undoData.OriginalTerrainData.Count; i++)
             {
-                OriginalTerrainData originalTerrainData = undoData.OriginalTerrainData[i];
+                OriginalCellTerrainData originalTerrainData = undoData[i];
 
                 var mapCell = MutationTarget.Map.GetTile(originalTerrainData.CellCoords);
                 if (mapCell != null)
                 {
                     mapCell.ChangeTileIndex(originalTerrainData.TileIndex, originalTerrainData.SubTileIndex);
-                    mapCell.Level = originalTerrainData.Level;
+                    mapCell.Level = originalTerrainData.HeightLevel;
                     RefreshCellLighting(mapCell);
                 }
             }
