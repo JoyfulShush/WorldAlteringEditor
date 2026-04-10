@@ -855,7 +855,7 @@ namespace TSMapEditor
         /// Otherwise, a localized " (Clone)" suffix is appended to the name.
         /// If there are multiple numbers in the name, only the first is incremented.
         /// </summary>
-        public static string HandleCloneNaming(string name)
+        public static string GetNameForClone(string name)
         {
             string[] parts = name.Split(" ");
             int numPart = -1;            
@@ -864,7 +864,7 @@ namespace TSMapEditor
             {                
                 if (int.TryParse(parts[i], out numPart) && numPart >= 0)
                 {
-                    parts[i] = (numPart + 1).ToString();
+                    parts[i] = (numPart + 1).ToString(CultureInfo.InvariantCulture);
                     return string.Join(" ", parts);
                 }
             }

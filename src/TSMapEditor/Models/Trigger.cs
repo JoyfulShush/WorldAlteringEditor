@@ -87,7 +87,7 @@ namespace TSMapEditor.Models
         {
             Trigger clone = (Trigger)MemberwiseClone();
             clone.ID = uniqueId;
-            clone.Name = Helpers.HandleCloneNaming(Name);
+            clone.Name = Helpers.GetNameForClone(Name);
 
             // Deep clone the events and actions
 
