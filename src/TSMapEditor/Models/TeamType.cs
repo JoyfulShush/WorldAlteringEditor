@@ -132,7 +132,7 @@ namespace TSMapEditor.Models
         {
             var clone = MemberwiseClone() as TeamType;
             clone.ININame = iniName;
-            clone.Name = Name + Translate(this, "CloneName", " (Clone)");
+            clone.Name = Helpers.HandleCloneNaming(Name);
 
             clone.EnabledTeamTypeFlags = new List<string>(EnabledTeamTypeFlags);
 
