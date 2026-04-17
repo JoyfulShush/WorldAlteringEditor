@@ -963,7 +963,7 @@ namespace TSMapEditor
         public static string GetNameForClone(string name)
         {
             string[] parts = name.Split(" ");
-            int numPart = -1;            
+            int numPart = -1;
 
             for (int i = 0; i < parts.Length; i++)
             {                
