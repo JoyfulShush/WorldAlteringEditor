@@ -345,6 +345,27 @@ public class CornerHeightField
             int startHeight = heights[six, siy];
             bool startRigid = rigid[six, siy];
 
+            // A rigid corner may only move within the range of heights that the immutable
+            // terrain touching it implies (a cliff face, for example, spans from its base
+            // level to its top level, so ground may meet it at any height in between). If
+            // the start corner is out of slope range of even that span, the two cannot
+            // legally coexist — this happens around art anomalies such as exposed diagonal
+            // cliff ends. The immutable terrain wins: yield the morphable start corner into
+            // compliance instead of rejecting the whole edit. The bounds of all rigid
+            // neighbours are combined first so the corner yields once; clamping for each
+            // neighbour in turn could bounce it between two neighbours that disagree forever.
+            // If they cannot all be satisfied at once, the corner is left where it is.
+            if (!startRigid && TryGetRigidNeighbourBounds(p.X, p.Y, allowSteep, out int yieldMin, out int yieldMax))
+            {
+                int yielded = Math.Clamp(startHeight, yieldMin, yieldMax);
+                if (yielded != startHeight)
+                {
+                    startHeight = yielded;
+                    heights[six, siy] = startHeight;
+                    done[six, siy] = true;
+                }
+            }
+
             for (int dy = -1; dy <= 1; dy++)
             {
                 for (int dx = -1; dx <= 1; dx++)
@@ -382,22 +403,7 @@ public class CornerHeightField
                         if (startRigid)
                             continue;
 
-                        // A rigid corner may only move within the range of heights that the
-                        // immutable terrain touching it implies (a cliff face, for example,
-                        // spans from its base level to its top level, so ground may meet it
-                        // at any height in between). If the start corner is out of slope
-                        // range of even that span, the two cannot legally coexist — this
-                        // happens around art anomalies such as exposed diagonal cliff ends.
-                        // The immutable terrain wins: yield the morphable start corner into
-                        // compliance instead of rejecting the whole edit.
                         GetAdmissibleRange(nx, ny, out int admMin, out int admMax, out bool bordersMorphable);
-                        if (startHeight < admMin - threshold || startHeight > admMax + threshold)
-                        {
-                            startHeight = Math.Clamp(startHeight, admMin - threshold, admMax + threshold);
-                            heights[six, siy] = startHeight;
-                            done[six, siy] = true;
-                            worklist.Enqueue(p);
-                        }
 
                         // Slide the corner along the immutable face just far enough to be in
                         // slope range of the start corner. This ignores the pass direction on
@@ -657,6 +663,47 @@ public class CornerHeightField
             if (h < min) min = h;
             if (h > max) max = h;
         }
+    }
+
+    /// <summary>
+    /// The range of heights corner point (px, py) may take while staying within slope range
+    /// of the admissible span of every rigid corner around it. Returns false if no rigid
+    /// corner borders it, or if the rigid corners' requirements cannot all be met at once.
+    /// </summary>
+    private bool TryGetRigidNeighbourBounds(int px, int py, bool allowSteep, out int min, out int max)
+    {
+        min = int.MinValue;
+        max = int.MaxValue;
+        bool anyRigid = false;
+
+        for (int dy = -1; dy <= 1; dy++)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                int nx = px + dx;
+                int ny = py + dy;
+                if (!InRegion(nx, ny))
+                    continue;
+
+                int nix = nx - originX;
+                int niy = ny - originY;
+                if (!hasHeight[nix, niy] || !rigid[nix, niy])
+                    continue;
+
+                bool diagonal = dx != 0 && dy != 0;
+                int threshold = (diagonal && allowSteep) ? 2 : 1;
+
+                GetAdmissibleRange(nx, ny, out int admMin, out int admMax, out _);
+                min = Math.Max(min, admMin - threshold);
+                max = Math.Min(max, admMax + threshold);
+                anyRigid = true;
+            }
+        }
+
+        return anyRigid && min <= max;
     }
 
     private static Dictionary<int, RampType> BuildReverseLookup()
