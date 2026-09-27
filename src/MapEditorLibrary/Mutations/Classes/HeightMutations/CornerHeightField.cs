@@ -6,52 +6,40 @@ using MapEditorLibrary.Models.Enums;
 namespace MapEditorLibrary.Mutations.Classes.HeightMutations;
 
 /// <summary>
-/// The direction in which a flood-fill smoothing pass is allowed to move cell corners.
+/// The direction in which a smoothing pass is allowed to move cell corners.
 /// </summary>
 public enum HeightFloodMode
 {
-    /// <summary>Only raise corners that are too low (used when raising ground).</summary>
+    /// <summary>Only raise corners (used when raising ground).</summary>
     Up,
 
-    /// <summary>Only lower corners that are too high (used when lowering ground).</summary>
+    /// <summary>Only lower corners (used when lowering ground).</summary>
     Down,
 
     /// <summary>
-    /// Move corners either way toward their neighbours (used when flattening ground).
-    /// Implemented as a downward pass followed by an upward pass so that every corner
-    /// moves monotonically and the field always converges.
+    /// Move corners either way (used when flattening ground).
+    /// Runs a downward pass followed by an upward pass.
     /// </summary>
     Both
 }
 
 /// <summary>
-/// A transient cell-corner height field used for "smart" ground-height smoothing.
-///
-/// Instead of operating on per-cell height levels and guessing ramps from neighbour
-/// patterns, this assigns a height to every cell <i>corner</i>, smooths the corner
-/// field so neighbouring corners never differ by more than the allowed slope, and then
-/// derives each cell's ramp as a pure function of its four corner heights.
-///
-/// Heights are expressed in whole map height levels: a normal ramp raises a corner by
-/// one level, a steep ramp raises its far corner by two levels.
+/// A transient height field over cell corners, used for "smart" ground-height smoothing.
+/// Corners are smoothed so that neighbouring corners never differ by more than the allowed
+/// slope, and each cell's ramp is then derived from its four corner heights.
 /// </summary>
 public class CornerHeightField
 {
     /// <summary>
-    /// Corner point offsets from a cell, in the order used by <see cref="RampCornerHeights"/>.
-    /// Verified against RaiseGroundMutationBase.CreateSmallHill: index 0..3 are the
-    /// cell's NW, NE, SE and SW corner points respectively.
+    /// Offsets of a cell's NW, NE, SE and SW corner points, in <see cref="RampCornerHeights"/> order.
     /// </summary>
     public static readonly Point2D[] CornerOffsets =
     {
         new Point2D(0, 0), new Point2D(1, 0), new Point2D(1, 1), new Point2D(0, 1)
     };
 
-    // Per-ramp corner heights in level units, in CornerOffsets order, indexed by RampType.
-    // Each row is the height of the four corners for that ramp type: normal ramps raise a
-    // corner by one level, steep ramps raise their far corner by two. Rows 19/20
-    // (DoubleUp/DownNWSE) duplicate 17/18 and exist only so existing tiles of those types
-    // reconstruct correctly; they are never emitted.
+    // Corner heights of each ramp type, in CornerOffsets order, indexed by RampType.
+    // The NWSE double ramps duplicate the SWNE ones and are never emitted.
     private static readonly int[][] RampCornerHeights =
     {
         new[] { 0, 0, 0, 0 }, // None
@@ -73,17 +61,12 @@ public class CornerHeightField
         new[] { 1, 2, 1, 0 }, // SteepNE
         new[] { 0, 1, 0, 1 }, // DoubleUpSWNE
         new[] { 1, 0, 1, 0 }, // DoubleDownSWNE
-        new[] { 0, 1, 0, 1 }, // DoubleUpNWSE   (duplicate of DoubleUpSWNE)
-        new[] { 1, 0, 1, 0 }, // DoubleDownNWSE (duplicate of DoubleDownSWNE)
+        new[] { 0, 1, 0, 1 }, // DoubleUpNWSE
+        new[] { 1, 0, 1, 0 }, // DoubleDownNWSE
     };
 
-    // The highest ramp index that may be emitted. Rows above this duplicate earlier rows.
     private const int LastEmittedRamp = 18;
 
-    // Reverse lookup: normalized 4-corner pattern (base-3 key) -> RampType. Built from
-    // rows 0..18 only, first match wins, so the ambiguous double patterns
-    // {0,1,0,1}/{1,0,1,0} canonically resolve to the SWNE variants (17/18) and the
-    // duplicate NWSE rows are never emitted.
     private static readonly Dictionary<int, RampType> RampByCornerPattern = BuildReverseLookup();
 
     public CornerHeightField(Map map, int cellMinX, int cellMinY, int cellMaxX, int cellMaxY)
@@ -91,17 +74,14 @@ public class CornerHeightField
         this.map = map;
         rampTileSetStart = map.TheaterInstance.Theater.RampTileSet.StartTileIndex;
 
-        // A single height change can ripple outward up to MaxMapHeightLevel cells (each
-        // level of difference pushes the smoothing one cell further). Expand the working
-        // region by that much (+2 slack) so a flood started inside never needs to
-        // reference a corner outside the region.
+        // A height change can ripple outward by up to MaxMapHeightLevel cells,
+        // so pad the region enough for the flood to never reach its edge.
         int margin = Constants.MaxMapHeightLevel + 2;
         originX = Math.Max(0, cellMinX - margin);
         originY = Math.Max(0, cellMinY - margin);
         int regionMaxCellX = cellMaxX + margin;
         int regionMaxCellY = cellMaxY + margin;
 
-        // Cells [originX..regionMaxCellX] own corner points [originX..regionMaxCellX + 1].
         pointWidth = (regionMaxCellX - originX) + 2;
         pointHeight = (regionMaxCellY - originY) + 2;
 
@@ -138,17 +118,11 @@ public class CornerHeightField
                 int cellX = originX + ix;
                 int cellY = originY + iy;
 
-                // A corner takes its height from a single owning cell (the cell whose
-                // NW corner this point is), or, at the map's edge where that cell is off the
-                // map, from the nearest cell that does touch the corner. This keeps the field
-                // well-defined even on hand-edited maps where neighbours disagree, and lets
-                // ground be levelled right up to the edge of the map.
                 hasHeight[ix, iy] = TryGetCornerHeight(cellX, cellY, out int cornerHeight);
                 heights[ix, iy] = cornerHeight;
 
-                // A corner is rigid if any of the up-to-four cells touching it is a real,
-                // non-morphable cell (e.g. a cliff). Off-map (null) neighbours are not rigid:
-                // the empty space past the map edge is a free boundary, not immutable terrain.
+                // A corner is rigid if any cell touching it is non-morphable (e.g. a cliff).
+                // Off-map cells don't count.
                 rigid[ix, iy] = IsCellRigid(cellX, cellY) || IsCellRigid(cellX - 1, cellY) ||
                                 IsCellRigid(cellX - 1, cellY - 1) || IsCellRigid(cellX, cellY - 1);
 
@@ -158,12 +132,9 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Seeds a cell to a uniform height (used to raise/lower/flatten a targeted cell).
-    /// A corner anchored by an immutable cell that cannot take the height itself is
-    /// snapped to the nearest height the immutable terrain actually has at that corner,
-    /// if one exists within a one-level slope of the target — so a cell flattened against
-    /// e.g. a cliff lip becomes a ramp rising to the lip. Returns false if some corner
-    /// could not legally be seeded, in which case the whole operation must be rejected.
+    /// Seeds a cell to a uniform height. Rigid corners snap to the nearest height the
+    /// immutable terrain has at them, so e.g. a cell flattened against a cliff lip becomes a ramp.
+    /// Returns false if some corner could not be seeded, in which case the edit must be rejected.
     /// </summary>
     public bool TrySeedFlat(Point2D cellCoords, int level)
     {
@@ -186,8 +157,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Adjusts a single corner by a delta (used to raise the shared centre corner of a
-    /// 2x2 "small hill"). Returns false if the corner is anchored by an immutable cell.
+    /// Adjusts a single corner by a delta (used for the centre corner of a 2x2 hill).
+    /// Returns false if the corner is anchored by immutable terrain.
     /// </summary>
     public bool TrySeedAdjustCorner(Point2D point, int delta)
     {
@@ -199,9 +170,7 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Read-only check of whether <see cref="TrySeedFlat"/> would succeed for a cell.
-    /// Used to skip (rather than abort on) ramp cells that are already at the desired level
-    /// but happen to be pinned by adjacent immutable terrain.
+    /// Checks whether <see cref="TrySeedFlat"/> would succeed for a cell, without modifying the field.
     /// </summary>
     public bool CanSeedFlat(Point2D cellCoords, int level)
     {
@@ -217,12 +186,6 @@ public class CornerHeightField
         return true;
     }
 
-    /// <summary>
-    /// Determines the height a corner should take when its cell is seeded to
-    /// <paramref name="level"/>: the level itself for free corners, or the nearest height
-    /// the immutable terrain actually has at the corner (within a one-level slope of the
-    /// target) for anchored corners. Returns false if the corner cannot legally be seeded.
-    /// </summary>
     private bool TryResolveSeedCorner(int px, int py, int level, out int resolved)
     {
         resolved = level;
@@ -233,18 +196,9 @@ public class CornerHeightField
         int ix = px - originX;
         int iy = py - originY;
 
-        // Corners touched by no cell at all (deep off the map) have no height; nothing to seed.
-        if (!hasHeight[ix, iy])
+        if (!hasHeight[ix, iy] || !rigid[ix, iy])
             return true;
 
-        if (!rigid[ix, iy])
-            return true;
-
-        // Anchored corners always snap to a height the immutable terrain actually has at
-        // this corner. This makes the result independent of the order in which cells are
-        // brushed: a cell flattened one level below a cliff lip, for example, always gets
-        // its lip corners at the lip height (becoming a ramp), never a stale in-between
-        // value from earlier smoothing.
         int? snapped = GetBestExactHeight(px, py, level - 1, level + 1, level);
         if (snapped == null)
             return false;
@@ -279,7 +233,6 @@ public class CornerHeightField
         int ix = px - originX;
         int iy = py - originY;
 
-        // Corners touched by no cell at all (deep off the map) have no height; nothing to seed.
         if (!hasHeight[ix, iy])
             return true;
 
@@ -290,12 +243,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Whether a corner may legally be set to <paramref name="newHeight"/>. Off-map corners
-    /// are a free boundary (a no-op, not a rejection). A rigid corner may only take a height
-    /// within the span that the immutable terrain touching it covers: a cliff face spans from
-    /// its base level to its top level, so ground may legally meet it at any height in
-    /// between. Flat immutable terrain (e.g. water, or a cliff base) has a single-height
-    /// span, keeping mismatched edits against it rejected.
+    /// Whether a corner may be set to the given height. A rigid corner may only take
+    /// heights within the span of the immutable terrain touching it (e.g. from a cliff's base to its top).
     /// </summary>
     private bool CornerCanTake(int px, int py, int newHeight)
     {
@@ -316,9 +265,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Smooths the field so that neighbouring corners differ by no more than the allowed
-    /// slope. Returns false if the edit cannot be smoothed without moving a corner that
-    /// is anchored by an immutable cell, in which case nothing has been written to the map.
+    /// Smooths the field so that neighbouring corners differ by no more than the allowed slope.
+    /// Returns false if the edit had to be rejected.
     /// </summary>
     public bool Flood(HeightFloodMode mode, bool allowSteep)
     {
@@ -345,16 +293,9 @@ public class CornerHeightField
             int startHeight = heights[six, siy];
             bool startRigid = rigid[six, siy];
 
-            // A rigid corner may only move within the range of heights that the immutable
-            // terrain touching it implies (a cliff face, for example, spans from its base
-            // level to its top level, so ground may meet it at any height in between). If
-            // the start corner is out of slope range of even that span, the two cannot
-            // legally coexist — this happens around art anomalies such as exposed diagonal
-            // cliff ends. The immutable terrain wins: yield the morphable start corner into
-            // compliance instead of rejecting the whole edit. The bounds of all rigid
-            // neighbours are combined first so the corner yields once; clamping for each
-            // neighbour in turn could bounce it between two neighbours that disagree forever.
-            // If they cannot all be satisfied at once, the corner is left where it is.
+            // If the corner is out of slope range of adjacent immutable terrain, the terrain wins
+            // and the corner yields to it. All rigid neighbours are considered at once; yielding to
+            // them one at a time can bounce the corner between two of them forever.
             if (!startRigid && TryGetRigidNeighbourBounds(p.X, p.Y, allowSteep, out int yieldMin, out int yieldMax))
             {
                 int yielded = Math.Clamp(startHeight, yieldMin, yieldMax);
@@ -376,13 +317,11 @@ public class CornerHeightField
                     int nx = p.X + dx;
                     int ny = p.Y + dy;
                     if (!InRegion(nx, ny))
-                        continue; // the region margin guarantees a real ripple never reaches the edge
+                        continue;
 
                     int nix = nx - originX;
                     int niy = ny - originY;
 
-                    // Corners touched by no cell at all (deep off the map) have no height and
-                    // do not participate in smoothing.
                     if (!hasHeight[nix, niy])
                         continue;
 
@@ -396,32 +335,21 @@ public class CornerHeightField
 
                     if (rigid[nix, niy])
                     {
-                        // A slope violation between two rigid corners is the immutable
-                        // terrain's own geometry (e.g. a diagonal cliff cell whose art spans
-                        // its full height within one cell) — never a conflict to resolve or
-                        // reject over.
+                        // Slopes between two rigid corners are the immutable terrain's own geometry.
                         if (startRigid)
                             continue;
 
                         GetAdmissibleRange(nx, ny, out int admMin, out int admMax, out bool bordersMorphable);
 
-                        // Slide the corner along the immutable face just far enough to be in
-                        // slope range of the start corner. This ignores the pass direction on
-                        // purpose: the move is bounded by the art span either way, and without
-                        // it a corner can be left pinned at the wrong end of the face,
-                        // producing "holes" (cells skipped by the write-back spread guard).
-                        // Corners interior to immutable terrain (no morphable cell touches
-                        // them) are left alone: moving them has no visual meaning and would
-                        // create false conflicts inside cliff bodies.
+                        // Slide the rigid corner along the immutable face (in either direction)
+                        // until it's in slope range, so the cells touching it get written back as ramps.
+                        // It is not enqueued, so the flood never passes through immutable terrain.
                         int target = Math.Clamp(
                             Math.Clamp(neighborHeight, startHeight - threshold, startHeight + threshold),
                             admMin, admMax);
 
                         if (bordersMorphable && target != neighborHeight)
                         {
-                            // Mark done so the touching cells are written back as ramps, but
-                            // do NOT enqueue: the flood must never propagate through immutable
-                            // terrain to its far side.
                             heights[nix, niy] = target;
                             done[nix, niy] = true;
                         }
@@ -432,13 +360,11 @@ public class CornerHeightField
                     int newHeight = neighborHeight;
                     if (diff < 0)
                     {
-                        // Neighbour is too low; raise it (unless we are only lowering).
                         if (mode != HeightFloodMode.Down)
                             newHeight = startHeight - threshold;
                     }
                     else
                     {
-                        // Neighbour is too high; lower it (unless we are only raising).
                         if (mode != HeightFloodMode.Up)
                             newHeight = startHeight + threshold;
                     }
@@ -462,9 +388,6 @@ public class CornerHeightField
         {
             for (int ix = 0; ix < pointWidth; ix++)
             {
-                // Rigid corners never act as flood fronts: they may have been marked done
-                // for write-back purposes, but propagation must not start from (or pass
-                // through) immutable terrain.
                 if (done[ix, iy] && !rigid[ix, iy])
                     worklist.Enqueue(new Point2D(originX + ix, originY + iy));
             }
@@ -472,18 +395,16 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Writes the smoothed field back to the map: for every cell with at least one
-    /// changed corner, sets its height level and ramp tile derived from its four corner
-    /// heights. Returns the list of cells that were changed.
+    /// Writes the smoothed field back to the map, setting the height level and ramp tile
+    /// of every cell with at least one changed corner. Returns the changed cells.
     /// </summary>
-    /// <param name="allowSteep">Whether steep ramps (corner spread of 2) may be emitted.</param>
-    /// <param name="addUndo">Called with a cell's coords immediately before it is mutated.</param>
+    /// <param name="allowSteep">Whether steep ramps may be emitted.</param>
+    /// <param name="addUndo">Called with a cell's coords right before it is changed.</param>
     public List<MapTile> WriteBack(bool allowSteep, Action<Point2D> addUndo)
     {
         var changedCells = new List<MapTile>();
         int maxSpread = allowSteep ? 2 : 1;
 
-        // Cells [originX..originX + pointWidth - 2] have all four corners inside the field.
         int lastCellX = originX + pointWidth - 2;
         int lastCellY = originY + pointHeight - 2;
 
@@ -537,7 +458,7 @@ public class CornerHeightField
 
                 int key = PatternKey(c0 - min, c1 - min, c2 - min, c3 - min);
                 if (!RampByCornerPattern.TryGetValue(key, out RampType rampType))
-                    continue; // unreachable given the spread guard, but stay safe
+                    continue;
 
                 addUndo(new Point2D(cellX, cellY));
 
@@ -546,10 +467,7 @@ public class CornerHeightField
 
                 if (rampType == RampType.None)
                 {
-                    // Reset to the clear tile if the cell is currently a ramp, or if its
-                    // level changed (which also safely breaks up any multi-cell tile that
-                    // would otherwise be split across height levels). Flat ground that is
-                    // merely adjacent to the edit keeps its tile, preserving its texture.
+                    // Flat ground whose level didn't change keeps its tile.
                     if (tmpImage.RampType != RampType.None || min != oldLevel)
                         cell.ChangeTileIndex(0, 0);
                 }
@@ -575,12 +493,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Gets the height a corner point should have, sampled from a cell touching it: the
-    /// owning cell (whose NW corner this is) if it exists, otherwise the nearest other
-    /// touching cell (used at the map edge). Returns false only when no cell touches the
-    /// corner at all (deep off the map), in which case it is a non-participating boundary.
-    /// The cell touching the corner at corner-index k sits at (px, py) - CornerOffsets[k]
-    /// and contributes its own corner k's height.
+    /// Gets a corner's height from the cell whose NW corner it is, or, at the map edge,
+    /// from another cell touching it. Returns false if no cell touches the corner.
     /// </summary>
     private bool TryGetCornerHeight(int px, int py, out int height)
     {
@@ -609,12 +523,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// Of the corner heights that the immutable cells touching corner point (px, py) have
-    /// at it, returns the one closest to <paramref name="preferred"/> that lies within
-    /// [<paramref name="lo"/>, <paramref name="hi"/>], or null if none does. Morphable
-    /// touching cells are ignored: their current heights are editable, not anchors.
-    /// The cell touching the corner at corner-index k sits at (px, py) - CornerOffsets[k],
-    /// and contributes its own corner k's height. The index k must match on both sides.
+    /// Of the heights that the immutable cells touching a corner have at it, returns the one
+    /// within [lo, hi] closest to the preferred height, or null if there is none.
     /// </summary>
     private int? GetBestExactHeight(int px, int py, int lo, int hi, int preferred)
     {
@@ -638,11 +548,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// The lowest and highest corner heights implied for corner point (px, py) by the cells
-    /// touching it (see <see cref="IsAdmissibleHeight"/>). Only called for corners with an
-    /// owner, so at least the owning cell always contributes a value.
-    /// Also reports whether any morphable cell touches the corner; corners interior to
-    /// immutable terrain are treated differently by the flood.
+    /// Gets the lowest and highest heights that the cells touching a corner have at it,
+    /// and whether any of those cells is morphable.
     /// </summary>
     private void GetAdmissibleRange(int px, int py, out int min, out int max, out bool bordersMorphable)
     {
@@ -666,9 +573,8 @@ public class CornerHeightField
     }
 
     /// <summary>
-    /// The range of heights corner point (px, py) may take while staying within slope range
-    /// of the admissible span of every rigid corner around it. Returns false if no rigid
-    /// corner borders it, or if the rigid corners' requirements cannot all be met at once.
+    /// Gets the range of heights a corner may take while staying within slope range of every
+    /// rigid corner around it. Returns false if there are no rigid neighbours, or if no height satisfies them all.
     /// </summary>
     private bool TryGetRigidNeighbourBounds(int px, int py, bool allowSteep, out int min, out int max)
     {
@@ -706,6 +612,7 @@ public class CornerHeightField
         return anyRigid && min <= max;
     }
 
+    // First match wins, so the ambiguous double-ramp patterns resolve to the SWNE variants.
     private static Dictionary<int, RampType> BuildReverseLookup()
     {
         var dict = new Dictionary<int, RampType>();

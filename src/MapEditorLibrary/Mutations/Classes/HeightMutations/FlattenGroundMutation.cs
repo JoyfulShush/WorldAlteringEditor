@@ -42,10 +42,8 @@ public class FlattenGroundMutation : AlterElevationMutationBase
         int beginX = OriginCell.X - (BrushSize.Width - 1) / 2;
         int endX = OriginCell.X + BrushSize.Width / 2;
 
-        // Cells at a different level must be flattened (and reject the whole edit if they
-        // cannot be). Ramp cells already at the desired level (e.g. a ridge where two slopes
-        // meet, with no flat top) should also be flattened, but only where they legally can
-        // be — otherwise they are skipped rather than blocking the edit.
+        // Cells at a different level must be flattened. Ramps already at the desired level
+        // (e.g. a ridge) are flattened only where possible.
         var requiredCells = new List<Point2D>();
         var optionalCells = new List<Point2D>();
         for (int y = beginY; y <= endY; y++)
@@ -72,7 +70,6 @@ public class FlattenGroundMutation : AlterElevationMutationBase
         if (requiredCells.Count == 0 && optionalCells.Count == 0)
             return;
 
-        // Flattening only ever produces non-steep ramps.
         var changedCells = SmoothFlat(requiredCells, optionalCells, desiredHeightLevel, HeightFloodMode.Both, allowSteep: false);
 
         if (changedCells != null && AutoLATEnabled)

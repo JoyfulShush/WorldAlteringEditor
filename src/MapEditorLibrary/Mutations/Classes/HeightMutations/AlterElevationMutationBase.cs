@@ -49,20 +49,15 @@ public abstract class AlterElevationMutationBase : Mutation
     }
 
     /// <summary>
-    /// Runs a corner-field smoothing pass that sets each targeted cell to a uniform
-    /// height and then smooths the surrounding terrain, applying ramps where needed.
-    /// Returns the list of cells that were changed, or null if the edit was rejected
-    /// because it would have had to alter terrain anchored by an immutable cell, in
-    /// which case nothing on the map was changed.
+    /// Sets each targeted cell to a uniform height and smooths the surrounding terrain with ramps.
+    /// Returns the changed cells, or null if the edit was rejected.
     /// </summary>
     protected List<MapTile> SmoothFlat(List<Point2D> targetedCells, int newLevel, HeightFloodMode mode, bool allowSteep)
         => SmoothFlat(targetedCells, null, newLevel, mode, allowSteep);
 
     /// <summary>
-    /// As <see cref="SmoothFlat(List{Point2D}, int, HeightFloodMode, bool)"/>, but with a
-    /// second set of cells that are only seeded if they legally can be. A required cell that
-    /// cannot be seeded (it would move a corner anchored by immutable terrain) rejects the
-    /// whole edit; an optional cell that cannot be seeded is simply skipped.
+    /// As <see cref="SmoothFlat(List{Point2D}, int, HeightFloodMode, bool)"/>, but optional cells
+    /// that cannot be seeded are skipped instead of rejecting the edit.
     /// </summary>
     protected List<MapTile> SmoothFlat(List<Point2D> requiredCells, List<Point2D> optionalCells, int newLevel, HeightFloodMode mode, bool allowSteep)
     {
@@ -97,8 +92,8 @@ public abstract class AlterElevationMutationBase : Mutation
     }
 
     /// <summary>
-    /// Floods, writes back and refreshes lighting for an already-built and already-seeded
-    /// field. Returns the changed cells, or null if the edit was rejected.
+    /// Smooths a seeded field and writes it back to the map.
+    /// Returns the changed cells, or null if the edit was rejected.
     /// </summary>
     protected List<MapTile> RunSmoothing(CornerHeightField field, HeightFloodMode mode, bool allowSteep)
     {
