@@ -83,6 +83,7 @@ public class MapSetup
                 MapLoader.PreCheckMapIni(mapIni);
 
                 map.LoadExisting(gameConfigIniFiles, mapIni);
+                tutorialLines.ReadMapTutorialLines(mapIni);
             }
             catch (IniParseException ex)
             {

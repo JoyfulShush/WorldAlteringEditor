@@ -493,19 +493,17 @@ public class TriggersWindow : INItializableWindow
                 HandleScrollWheelOnTextBoxAndList(map.GetHouses(), house => house.ID.ToString(CultureInfo.InvariantCulture), currentParameterValue, textBox);
                 break;
             case TriggerParamType.Text:
-                if (int.TryParse(currentParameterValue, CultureInfo.InvariantCulture, out int textLineIndex))
+                if (Cursor.ScrollWheelValue < 0 && !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(currentParameterValue)))
                 {
-                    if (Cursor.ScrollWheelValue < 0 && !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(textLineIndex + 1)))
-                    {
-                        textBox.Text = (textLineIndex + 1).ToString(CultureInfo.InvariantCulture);
-                        EditTrigger(editedTrigger);
-                    }
-                    else if (Cursor.ScrollWheelValue > 0 && !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(textLineIndex - 1)))
-                    {
-                        textBox.Text = (textLineIndex - 1).ToString(CultureInfo.InvariantCulture);
-                        EditTrigger(editedTrigger);
-                    }
+                    textBox.Text = currentParameterValue;
+                    EditTrigger(editedTrigger);
                 }
+                else if (Cursor.ScrollWheelValue > 0 && !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(currentParameterValue)))
+                {
+                    textBox.Text = currentParameterValue;
+                    EditTrigger(editedTrigger);
+                }
+                
                 break;
             case TriggerParamType.Tag:
                 HandleScrollWheelOnTextBoxAndList(map.Tags, tag => tag.ID, currentParameterValue, textBox);
@@ -1455,7 +1453,7 @@ public class TriggersWindow : INItializableWindow
                     selectHouseWindow.Open(null);
                 break;
             case TriggerParamType.Text:
-                selectTutorialLineWindow.Open(new TutorialLine(Conversions.IntFromString(paramValue, -1), string.Empty));
+                selectTutorialLineWindow.Open(new TutorialLine(paramValue, string.Empty));
                 break;
             case TriggerParamType.Theme:
                 selectThemeWindow.Open(map.Rules.Themes.Get(Conversions.IntFromString(paramValue, -1)));
@@ -1643,7 +1641,7 @@ public class TriggersWindow : INItializableWindow
 
     private void TutorialDarkeningPanel_Hidden(object sender, EventArgs e)
     {
-        if (selectTutorialLineWindow.SelectedObject.ID < 0 || selectTutorialLineWindow.SelectedObject.Text == null)
+        if (selectTutorialLineWindow.SelectedObject.ID.Equals(Constants.NoneValue1) || selectTutorialLineWindow.SelectedObject.Text == null)
             return;
 
         AssignParamValue(selectTutorialLineWindow.IsForEvent, selectTutorialLineWindow.SelectedObject.ID);
@@ -2051,10 +2049,10 @@ public class TriggersWindow : INItializableWindow
                         action.Parameters[parameterIndex] = map.Waypoints[map.Waypoints.Count - 1].Identifier.ToString(CultureInfo.InvariantCulture);
                     break;
                 case TriggerParamType.Text:
-                    if (selectTutorialLineWindow.SelectedObject.ID > -1 && 
-                        !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(selectTutorialLineWindow.SelectedObject.ID + 1)))
+                    if (string.IsNullOrEmpty(selectTutorialLineWindow.SelectedObject.ID) && 
+                        !string.IsNullOrEmpty(map.Rules.TutorialLines.GetStringByIdOrEmptyString(selectTutorialLineWindow.SelectedObject.ID)))
                     {
-                        action.Parameters[parameterIndex] = (selectTutorialLineWindow.SelectedObject.ID + 1).ToString(CultureInfo.InvariantCulture);
+                        action.Parameters[parameterIndex] = (selectTutorialLineWindow.SelectedObject.ID).ToString(CultureInfo.InvariantCulture);
                     }
                     break;
                 case TriggerParamType.Number:
@@ -2930,10 +2928,11 @@ public class TriggersWindow : INItializableWindow
             case TriggerParamType.Unit:
                 return GetObjectValueText(RTTIType.Unit, map.Rules.UnitTypes, paramValue);
             case TriggerParamType.Text:
-                if (!intParseSuccess)
+                string tutorialLine = map.Rules.TutorialLines.GetStringByIdOrEmptyString(paramValue);
+                if (string.IsNullOrEmpty(tutorialLine))
                     return paramValue + Translate(this, "UnknownTextLine", " - Unknown text line");
 
-                return paramValue + " " + map.Rules.TutorialLines.GetStringByIdOrEmptyString(intValue);
+                return paramValue + " " + tutorialLine;
             case TriggerParamType.Theme:
                 if (!intParseSuccess)
                     return paramValue;

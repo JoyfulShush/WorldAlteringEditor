@@ -5,13 +5,13 @@ namespace MapEditorLibrary.Models;
 
 public struct TutorialLine
 {
-    public TutorialLine(int id, string text)
+    public TutorialLine(string id, string text)
     {
         ID = id;
         Text = text;
     }
 
-    public int ID;
+    public string ID;
     public string Text;
 }
 
@@ -90,7 +90,7 @@ public class TutorialLines
         fsw = null;
     }
 
-    private Dictionary<int, string> tutorialLines = new Dictionary<int, string>();
+    private Dictionary<string, string> tutorialLines = new Dictionary<string, string>();
 
     public List<TutorialLine> GetLines() => tutorialLines.Select(tl => new TutorialLine(tl.Key, tl.Value)).OrderBy(tl => tl.ID).ToList();
 
@@ -98,7 +98,7 @@ public class TutorialLines
     /// Fetches a tutorial text line with the given ID.
     /// If the text line doesn't exist, returns an empty string.
     /// </summary>
-    public string GetStringByIdOrEmptyString(int id)
+    public string GetStringByIdOrEmptyString(string id)
     {
         if (tutorialLines.TryGetValue(id, out string value))
             return value;
@@ -136,12 +136,30 @@ public class TutorialLines
             return;
 
         foreach (string key in keys)
-        {
-            int id = Conversions.IntFromString(key, -1);
+        {            
+            tutorialLines.Add(key, tutorialIni.GetStringValue(TutorialSectionName, key, string.Empty));
+        }
+    }
 
-            if (id > -1)
+    public void ReadMapTutorialLines(IniFile mapIni)
+    {
+        const string TutorialSectionName = "Tutorial";
+
+        if (!mapIni.SectionExists(TutorialSectionName)) 
+            return;
+
+        var keys = mapIni.GetSectionKeys(TutorialSectionName);
+        foreach (var key in keys)
+        {
+            string value = mapIni.GetStringValue(TutorialSectionName, key, string.Empty);
+
+            if (tutorialLines.ContainsKey(key))
             {
-                tutorialLines.Add(id, tutorialIni.GetStringValue(TutorialSectionName, key, string.Empty));
+                tutorialLines[key] = value;
+            }
+            else
+            {
+                tutorialLines.Add(key, value);
             }
         }
     }

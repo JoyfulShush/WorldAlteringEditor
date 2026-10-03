@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using MapEditorLibrary;
 
 namespace TSMapEditor.UI.Windows;
 
@@ -25,7 +26,7 @@ public class SelectTutorialLineWindow : SelectObjectWindow<TutorialLine>
     {
         if (lbObjectList.SelectedItem == null)
         {
-            SelectedObject = new TutorialLine(-1, null);
+            SelectedObject = new TutorialLine(Constants.NoneValue1, null);
             return;
         }
 
