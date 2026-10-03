@@ -61,6 +61,8 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
             btnNext = FindChild<EditorButton>(nameof(btnNext));
             btnApplyScriptOtherDiffs = FindChild<EditorButton>(nameof(btnApplyScriptOtherDiffs));
 
+            ddScripts.SelectedIndex = 0;
+
             lbDifficulties.SelectedIndexChanged += LbDifficulties_SelectedIndexChanged;
             ddScripts.SelectedIndexChanged += DdScripts_SelectedIndexChanged;
             btnOpenScripts.LeftClick += BtnOpenScripts_LeftClick;
