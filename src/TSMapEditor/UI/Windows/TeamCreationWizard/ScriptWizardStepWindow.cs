@@ -370,7 +370,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
         private void OpenScriptWindow()
         {
             ScriptsWindowOpened?.Invoke(this, new ScriptWindowEventArgs());
-            PutOnBackground();
+            Hide();
         }
 
         private void OpenTeamTypeWizardStepWindow()

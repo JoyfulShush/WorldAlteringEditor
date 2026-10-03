@@ -465,7 +465,7 @@ namespace TSMapEditor.UI.Windows.TeamCreationWizard
                 return;
 
             TagOpened?.Invoke(this, new TagEventArgs(currentWizardConfiguration.TeamType.Tag));
-            PutOnBackground();
+            Hide();
         }
 
         private void AdjustFinishButtonText()

@@ -101,23 +101,20 @@ public class WindowController : XNAWindowController
         AircraftOptionsWindow = new AircraftOptionsWindow(WindowParentControl.WindowManager, map, cursorActionTarget);
         RegisterWindow(AircraftOptionsWindow);
 
-        GeneralSettingsWizardStepWindow = new GeneralSettingsWizardStepWindow(windowParentControl.WindowManager, map);
+        GeneralSettingsWizardStepWindow = new GeneralSettingsWizardStepWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(GeneralSettingsWizardStepWindow);
 
-        TaskForceWizardStepWindow = new TaskForceWizardStepWindow(windowParentControl.WindowManager, map);
+        TaskForceWizardStepWindow = new TaskForceWizardStepWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(TaskForceWizardStepWindow);
 
-        ScriptWizardStepWindow = new ScriptWizardStepWindow(windowParentControl.WindowManager, map);
+        ScriptWizardStepWindow = new ScriptWizardStepWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(ScriptWizardStepWindow);
 
-        TeamTypesWizardStepWindow = new TeamTypesWizardStepWindow(windowParentControl.WindowManager, map);
+        TeamTypesWizardStepWindow = new TeamTypesWizardStepWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(TeamTypesWizardStepWindow);
 
-        AITriggersWizardStepWindow = new AITriggersWizardStepWindow(windowParentControl.WindowManager, map);
+        AITriggersWizardStepWindow = new AITriggersWizardStepWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(AITriggersWizardStepWindow);
-
-        PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
-        RegisterWindow(PlaceWaypointWindow);
 
         HousesWindow = new HousesWindow(WindowParentControl.WindowManager, map);
         RegisterWindow(HousesWindow);
@@ -207,24 +204,6 @@ public class WindowController : XNAWindowController
         ScriptWizardStepWindow.TeamTypeWizardStepOpened += ScriptWizardStepWindow_TeamTypeWizardStepOpened;
         TeamTypesWizardStepWindow.AITriggersWizardStepWindowOpened += TeamTypesWizardStepWindow_AITriggersWizardStepWindowOpened;
 
-        foreach (var window in Windows)
-        {
-            window.DrawOrder = ChildWindowOrderValue;
-            window.UpdateOrder = ChildWindowOrderValue;
-            window.IsForeground = false;
-            window.LeftClick += Window_HandleFocusSwitch;
-            window.InteractedWith += Window_HandleFocusSwitch;
-            window.Closed += Window_Closed;
-            windowParentControl.AddChild(window);
-
-            AddFocusSwitchHandlerToChildrenRecursive(window, window);
-
-            window.Disable();
-            window.CenterOnParent();
-        }
-
-        this.windowParentControl = windowParentControl;
-
         Initialized?.Invoke(this, EventArgs.Empty);
 
         WindowParentControl.RenderResolutionChanged += (s, e) => RenderResolutionChanged?.Invoke(this, EventArgs.Empty);
@@ -313,32 +292,6 @@ public class WindowController : XNAWindowController
         MapSizeWindow.OnResizeMapButtonClicked -= MapSizeWindow_OnResizeMapButtonClicked;
 
         GeneralSettingsWizardStepWindow.TaskForceWizardStepOpened -= GeneralSettingsWizardStepWindow_TaskForceWizardStepOpened;
-
-        foreach (var window in Windows)
-        {
-            window.LeftClick -= Window_HandleFocusSwitch;
-            window.InteractedWith -= Window_HandleFocusSwitch;
-            window.Closed -= Window_Closed;
-            windowParentControl.RemoveChild(window);
-
-            ClearFocusSwitchHandlerFromChildrenRecursive(window, window);
-
-            window.Kill();
-        }
-
-        Windows.Clear();
-
-        var properties = GetType().GetProperties();
-        foreach (var property in properties)
-        {
-            if (property.PropertyType.IsAssignableTo(typeof(EditorWindow)))
-            {
-                property.SetValue(this, null, BindingFlags.SetProperty | BindingFlags.NonPublic, null, null, null);
-            }
-        }
-
-        foregroundWindow = null;
-        windowParentControl = null;
 
         base.Clear();
     }
