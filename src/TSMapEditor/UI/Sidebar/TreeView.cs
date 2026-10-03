@@ -32,7 +32,6 @@ public class TreeViewNode
 public class TreeView : EditorPanel
 {
     private const int MARGIN = Constants.UIEmptyTopSpace;
-    private const int NODE_INDENTATION = 20;
 
     public TreeView(WindowManager windowManager) : base(windowManager)
     {
@@ -318,6 +317,29 @@ public class TreeView : EditorPanel
         ViewTop = ScrollBar.ViewTop;
     }
 
+    public override void Kill()
+    {
+        for (int i = 0; i < Categories.Count; i++)
+        {
+            var category = Categories[i];
+            if (category.Texture != null)
+            {
+                category.Texture.Dispose();
+            }
+
+            for (int n = 0; n < category.Nodes.Count; n++)
+            {
+                var node = category.Nodes[n];
+                if (node.Texture != null)
+                {
+                    node.Texture.Dispose();
+                }
+            }
+        }
+
+        base.Kill();
+    }
+
     /// <summary>
     /// Handles input from a scroll wheel.
     /// </summary>
@@ -465,7 +487,9 @@ public class TreeView : EditorPanel
                 else
                     text = category.Text;
 
-                DrawStringWithShadow(text, Constants.UIDefaultFont, new Vector2(x, y + CategoryMargin), UISettings.ActiveSettings.AltColor);
+                DrawStringWithShadow(text, Constants.UIDefaultFont,
+                    new Vector2(x, y + Renderer.GetSingleLineTextYPadding(Constants.UIDefaultFont, CategoryHeight)),
+                    UISettings.ActiveSettings.AltColor);
             }
 
             height += CategoryHeight;
@@ -489,11 +513,6 @@ public class TreeView : EditorPanel
                                 UISettings.ActiveSettings.FocusColor);
                         }
 
-                        x = TextBorderDistance + NODE_INDENTATION;
-                        int textHeight = (int)Renderer.GetTextDimensions(node.Text, Constants.UIDefaultFont).Y;
-                        int textY = y + ((LineHeight - textHeight) / 2);
-                        DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(x, textY), UISettings.ActiveSettings.AltColor);
-
                         if (node.Texture != null)
                         {
                             int textureHeight = node.Texture.Height;
@@ -507,21 +526,27 @@ public class TreeView : EditorPanel
                                 textureWidth = (int)(textureWidth / scaleRatio);
                             }
                             else
+                            {
                                 textureYPosition = (LineHeight - textureHeight) / 2;
+                            }
 
                             DrawTexture(node.Texture,
-                                new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                new Rectangle(Constants.UIEmptySideSpace,
                                 y + textureYPosition,
                                 textureWidth, textureHeight), Color.White);
 
                             if (node.RemapTexture != null)
                             {
                                 DrawTexture(node.RemapTexture,
-                                    new Rectangle(Width - ScrollBar.Width - textureWidth - MARGIN,
+                                    new Rectangle(Constants.UIEmptySideSpace,
                                     y + textureYPosition,
                                     textureWidth, textureHeight), node.RemapColor);
                             }
                         }
+
+                        x = TextBorderDistance + Constants.UITreeViewLineIndentation;
+                        int textY = y + Renderer.GetSingleLineTextYPadding(Constants.UIDefaultFont, LineHeight);
+                        DrawStringWithShadow(node.Text, Constants.UIDefaultFont, new Vector2(x, textY), UISettings.ActiveSettings.AltColor);
                     }
 
                     height += LineHeight;

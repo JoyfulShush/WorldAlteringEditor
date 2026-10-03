@@ -1,4 +1,5 @@
-﻿using MapEditorLibrary.CCEngine;
+﻿using MapEditorLibrary;
+using MapEditorLibrary.CCEngine;
 using MapEditorLibrary.Models;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -6,6 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Linq;
 using TSMapEditor.Rendering;
+using TSMapEditor.Settings;
 using TSMapEditor.UI.Controls;
 using TSMapEditor.UI.CursorActions;
 
@@ -19,7 +21,6 @@ enum TileSetSortMode
 
 public class TileSelector : EditorWindow
 {
-    private const int TileSetListWidth = 180;
     private const int ResizeDragThreshold = 30;
 
     public TileSelector(WindowManager windowManager, Map map, TheaterGraphics theaterGraphics,
@@ -30,7 +31,7 @@ public class TileSelector : EditorWindow
         this.placeTerrainCursorAction = placeTerrainCursorAction;
         this.editorState = editorState;
         EnableDropShadow = false;
-        CanBeMoved = false;
+        AllowDragging = false;
         CenterByDefault = false;
         HandleResolutionChanges = false;
     }
@@ -40,9 +41,9 @@ public class TileSelector : EditorWindow
         if (Initialized)
         {
             lbTileSetList.Height = Height - tbSearch.Bottom;
-            lbTileSetList.Width = TileSetListWidth;
+            lbTileSetList.Width = Constants.TileSetListWidth;
             TileDisplay.Height = Height;
-            TileDisplay.Width = Width - TileSetListWidth;
+            TileDisplay.Width = Width - Constants.TileSetListWidth;
         }
 
         base.OnClientRectangleUpdated();
@@ -80,12 +81,12 @@ public class TileSelector : EditorWindow
 
         btnSort = new SortButton(WindowManager);
         btnSort.Name = nameof(btnSort);
-        btnSort.X = TileSetListWidth - btnSort.Width;
+        btnSort.X = Constants.TileSetListWidth - btnSort.Width;
         AddChild(btnSort);
 
         tbSearch = new EditorListBoxSearchTextBox(WindowManager);
         tbSearch.Name = nameof(tbSearch);
-        tbSearch.Width = TileSetListWidth - btnSort.Width;
+        tbSearch.Width = Constants.TileSetListWidth - btnSort.Width;
         tbSearch.Suggestion = Translate(this, "SearchTileSets", "Search TileSet...");
         AddChild(tbSearch);
         UIHelpers.AddSearchTipsBoxToControl(tbSearch);
@@ -94,7 +95,7 @@ public class TileSelector : EditorWindow
         lbTileSetList.Name = nameof(lbTileSetList);
         lbTileSetList.Y = tbSearch.Bottom;
         lbTileSetList.Height = Height - tbSearch.Bottom;
-        lbTileSetList.Width = TileSetListWidth;
+        lbTileSetList.Width = Constants.TileSetListWidth;
         lbTileSetList.AllowRightClickUnselect = false;
         lbTileSetList.SelectedIndexChanged += LbTileSetList_SelectedIndexChanged;
         AddChild(lbTileSetList);
@@ -103,8 +104,8 @@ public class TileSelector : EditorWindow
         TileDisplay = new TileDisplay(WindowManager, map, theaterGraphics, placeTerrainCursorAction, editorState);
         TileDisplay.Name = nameof(TileDisplay);
         TileDisplay.Height = Height;
-        TileDisplay.Width = Width - TileSetListWidth;
-        TileDisplay.X = TileSetListWidth;
+        TileDisplay.Width = Width - Constants.TileSetListWidth;
+        TileDisplay.X = Constants.TileSetListWidth;
         AddChild(TileDisplay);
 
         lbTileSetList.BackgroundTexture = TileDisplay.BackgroundTexture;
@@ -123,13 +124,18 @@ public class TileSelector : EditorWindow
         tileSetContextMenu.Name = nameof(tileSetContextMenu);
         tileSetContextMenu.Width = 200;
         tileSetContextMenu.AddItem(Translate(this, "Pin", "Pin"),
-            () => { lbTileSetList.SetTileSetAsFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+            () => { lbTileSetList.SetTileSetAsFavourite((TileSet)lbTileSetList.SelectedItem.Tag); RefreshTileSets(); },
             null,
-            () => lbTileSetList.SelectedItem != null && !lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            () => lbTileSetList.SelectedItem != null && !lbTileSetList.IsTileSetFavourite((TileSet)lbTileSetList.SelectedItem.Tag));
+
         tileSetContextMenu.AddItem(Translate(this, "Unpin", "Unpin"),
-            () => { lbTileSetList.ClearFavouriteStatus(((TileSet)lbTileSetList.SelectedItem.Tag).Index); RefreshTileSets(); },
+            () => { lbTileSetList.ClearFavouriteStatus((TileSet)lbTileSetList.SelectedItem.Tag); RefreshTileSets(); },
             null,
-            () => lbTileSetList.SelectedItem != null && lbTileSetList.IsTileSetFavourite(((TileSet)lbTileSetList.SelectedItem.Tag).Index));
+            () => lbTileSetList.SelectedItem != null && lbTileSetList.IsTileSetFavourite((TileSet)lbTileSetList.SelectedItem.Tag));
+
+        tileSetContextMenu.AddItem(Translate(this, "UnpinAll", "Unpin All"),
+            () => { lbTileSetList.ClearAllFavourites(); RefreshTileSets(); });
+
         tileSetContextMenu.AddItem(Translate(this, "Unselect", "Unselect"), () => lbTileSetList.SelectedIndex = -1);
         AddChild(tileSetContextMenu);
 
@@ -137,11 +143,24 @@ public class TileSelector : EditorWindow
 
         base.Initialize();
 
+        LoadPinnedTileSets();
         RefreshTileSets();
 
         KeyboardCommands.Instance.NextTileSet.Action = NextTileSet;
         KeyboardCommands.Instance.PreviousTileSet.Action = PreviousTileSet;
         WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;
+    }
+
+    private void LoadPinnedTileSets()
+    {
+        UserSettings.Instance.PinnedTileSets.DoForAllEntries(pinnedTileSetName =>
+        {
+            var tileSet = theaterGraphics.Theater.TileSets.Find(ts => ts.AllowToPlace && ts.SetName == pinnedTileSetName);
+            if (tileSet != null)
+            {
+                lbTileSetList.SetTileSetAsFavourite(tileSet);
+            }
+        });
     }
 
     private void LbTileSetList_RightClick(object sender, EventArgs e)
@@ -264,7 +283,7 @@ public class TileSelector : EditorWindow
     private void RefreshTileSets()
     {
         lbTileSetList.Clear();
-        IOrderedEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets.OrderBy(ts => !lbTileSetList.IsTileSetFavourite(ts.Index));
+        IOrderedEnumerable<TileSet> sortedTileSets = theaterGraphics.Theater.TileSets.OrderBy(ts => !lbTileSetList.IsTileSetFavourite(ts));
 
         switch (TileSetSortMode)
         {

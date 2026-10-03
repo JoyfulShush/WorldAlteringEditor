@@ -11,8 +11,7 @@ public abstract class LowerGroundMutationBase : AlterElevationMutationBase
     }
 
     /// <summary>
-    /// Whether this lower operation is allowed to create steep ramps
-    /// (a corner spread of two levels across a single cell).
+    /// Whether steep ramps may be created.
     /// </summary>
     protected abstract bool AllowSteep { get; }
 
@@ -27,32 +26,24 @@ public abstract class LowerGroundMutationBase : AlterElevationMutationBase
 
         int targetCellHeight = targetCell.Level;
 
-        // If the brush size is 1, only process it if the target cell is a ramp.
-        // If it is not a ramp, then we'd need to lower the cell's height,
-        // which would always result in it affecting more than 1 cell,
-        // which wouldn't be logical with the brush size.
+        // Lowering a flat cell always affects more than 1 cell,
+        // so a 1-wide brush only lowers ramps.
         if (BrushSize.Width == 1 || BrushSize.Height == 1)
         {
             if (!RampTileSet.ContainsTile(targetCell.TileIndex))
                 return;
         }
 
-        // Like raising, the brush size is the footprint of the whole crater including its
-        // ramp ring, so the flat bottom is exactly (Width - 2) x (Height - 2): 3x3 -> 1x1,
-        // 4x4 -> 2x2, etc. This keeps lowering symmetric with raising and keeps craters
-        // (e.g. the veinhole pit) the size of the brush rather than a ring larger.
-        int xSize = BrushSize.Width - 2;
-        int ySize = BrushSize.Height - 2;
-        if (xSize < 0) xSize = 0; // a 1-wide brush (used to lower a ramp) still targets one cell
-        if (ySize < 0) ySize = 0;
+        // The brush covers the whole crater including its ramps, so the flat bottom is 2 cells smaller.
+        int xSize = Math.Max(0, BrushSize.Width - 2);
+        int ySize = Math.Max(0, BrushSize.Height - 2);
 
         int beginY = OriginCell.Y - (ySize - 1) / 2;
         int endY = OriginCell.Y + ySize / 2;
         int beginX = OriginCell.X - (xSize - 1) / 2;
         int endX = OriginCell.X + xSize / 2;
 
-        // Gather the cells we want to lower. We only lower ground that was on the same
-        // level as our original target cell, otherwise things get illogical.
+        // Only lower ground on the same level as the target cell.
         var targetedCells = new List<Point2D>();
         for (int y = beginY; y <= endY; y++)
         {

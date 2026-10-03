@@ -11,14 +11,10 @@ public abstract class RaiseGroundMutationBase : AlterElevationMutationBase
     }
 
     /// <summary>
-    /// Whether this raise operation is allowed to create steep ramps
-    /// (a corner spread of two levels across a single cell).
+    /// Whether steep ramps may be created.
     /// </summary>
     protected abstract bool AllowSteep { get; }
 
-    /// <summary>
-    /// Entry point for raising ground.
-    /// </summary>
     protected void RaiseGround()
     {
         Clear();
@@ -30,9 +26,7 @@ public abstract class RaiseGroundMutationBase : AlterElevationMutationBase
 
         int targetCellHeight = targetCell.Level;
 
-        // Special case for 2x2 brush.
-        // Check if we can create a 2x2 "hill". If yes, then do so.
-        // Otherwise, process it as 1x1.
+        // A 2x2 brush creates a small hill if possible, and otherwise acts as 1x1.
         if (BrushSize.Width == 2 && BrushSize.Height == 2)
         {
             if (CanCreateSmallHill(targetCellHeight))
@@ -42,30 +36,24 @@ public abstract class RaiseGroundMutationBase : AlterElevationMutationBase
             }
         }
 
-        // If the brush size is 1, only process it if the target cell is a ramp.
-        // If it is not a ramp, then we'd need to raise the cell's height,
-        // which would always result in it affecting more than 1 cell,
-        // which wouldn't be logical with the brush size.
+        // Raising a flat cell always affects more than 1 cell,
+        // so a 1-wide brush only raises ramps.
         if (BrushSize.Width == 1 || BrushSize.Height == 1)
         {
             if (!RampTileSet.ContainsTile(targetCell.TileIndex))
                 return;
         }
 
-        // The brush size is the footprint of the whole feature including its ramp ring, so
-        // the flat top is exactly (Width - 2) x (Height - 2): 3x3 -> 1x1, 4x4 -> 2x2, etc.
-        int xSize = BrushSize.Width - 2;
-        int ySize = BrushSize.Height - 2;
-        if (xSize < 0) xSize = 0; // a 1-wide brush (used to raise a ramp) still targets one cell
-        if (ySize < 0) ySize = 0;
+        // The brush covers the whole hill including its ramps, so the flat top is 2 cells smaller.
+        int xSize = Math.Max(0, BrushSize.Width - 2);
+        int ySize = Math.Max(0, BrushSize.Height - 2);
 
         int beginY = OriginCell.Y - (ySize - 1) / 2;
         int endY = OriginCell.Y + ySize / 2;
         int beginX = OriginCell.X - (xSize - 1) / 2;
         int endX = OriginCell.X + xSize / 2;
 
-        // Gather the cells we want to raise. We only raise ground that was on the same
-        // level as our original target cell, otherwise things get illogical.
+        // Only raise ground on the same level as the target cell.
         var targetedCells = new List<Point2D>();
         for (int y = beginY; y <= endY; y++)
         {
@@ -118,9 +106,7 @@ public abstract class RaiseGroundMutationBase : AlterElevationMutationBase
 
     private void CreateSmallHill(Point2D originCell)
     {
-        // A 2x2 hill is created by raising the single corner shared by all four cells
-        // (the bottom-right corner of the origin cell). This turns each of the four cells
-        // into a one-corner ramp, exactly matching the old hard-coded corner stamp.
+        // Raise the corner shared by all four cells, turning each of them into a corner ramp.
         var field = new CornerHeightField(Map, originCell.X, originCell.Y, originCell.X + 1, originCell.Y + 1);
         field.Build();
 

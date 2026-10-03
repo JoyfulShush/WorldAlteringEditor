@@ -24,7 +24,7 @@ public class EditorSidebar : EditorWindow
         this.cursorActionTarget = cursorActionTarget;
         this.overlayPlacementAction = overlayPlacementAction;
         EnableDropShadow = false;
-        CanBeMoved = false;
+        AllowDragging = false;
         CenterByDefault = false;
         HandleResolutionChanges = false;
     }
@@ -138,6 +138,25 @@ public class EditorSidebar : EditorWindow
 
         Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
         WindowManager.RenderResolutionChanged += WindowManager_RenderResolutionChanged;
+    }
+
+    protected override void OnClientRectangleUpdated()
+    {
+        if (lbSelection != null)
+        {
+            lbSelection.Width = Width;
+        }
+
+        if (modePanels != null)
+        {
+            foreach (var panel in modePanels)
+            {
+                panel.Height = Height - panel.Y;
+                panel.Width = Width;
+            }
+        }
+
+        base.OnClientRectangleUpdated();
     }
 
     private void WindowManager_RenderResolutionChanged(object sender, EventArgs e)

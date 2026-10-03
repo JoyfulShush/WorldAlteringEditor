@@ -2202,7 +2202,11 @@ public class TriggersWindow : INItializableWindow
         {
             if ((int)triggerActionType.Parameters[i].TriggerParamType < 0)
             {
-                triggerAction.Parameters[i] = Math.Abs((int)triggerActionType.Parameters[i].TriggerParamType).ToString(CultureInfo.InvariantCulture);
+                if (triggerActionType.Parameters[i].ReverseNegativeHardcodedParam)
+                    triggerAction.Parameters[i] = Math.Abs((int)triggerActionType.Parameters[i].TriggerParamType).ToString(CultureInfo.InvariantCulture);
+                else
+                    triggerAction.Parameters[i] = ((int)triggerActionType.Parameters[i].TriggerParamType).ToString(CultureInfo.InvariantCulture);
+
                 continue;
             }
 
@@ -3067,13 +3071,11 @@ public class TriggersWindow : INItializableWindow
     private void OpenTeamType(TeamType teamType)
     {
         TeamTypeOpened?.Invoke(this, new TeamTypeEventArgs(teamType));
-        PutOnBackground();
     }
 
     private void OpenCreateRandomTriggersSetWindow()
     {
         createRandomTriggerSetWindow.Open();
-        PutOnBackground();
     }
 
     private void Map_TriggersChanged(object sender, EventArgs e)

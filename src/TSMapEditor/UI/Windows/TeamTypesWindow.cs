@@ -181,11 +181,11 @@ public class TeamTypesWindow : INItializableWindow
 
         var sortContextMenu = new EditorContextMenu(WindowManager);
         sortContextMenu.Name = nameof(sortContextMenu);
-        sortContextMenu.Width = lbTeamTypes.Width;
         sortContextMenu.AddItem(Translate(this, "SortByID", "Sort by ID"), () => TeamTypeSortMode = TeamTypeSortMode.ID);
         sortContextMenu.AddItem(Translate(this, "SortByName", "Sort by Name"), () => TeamTypeSortMode = TeamTypeSortMode.Name);
         sortContextMenu.AddItem(Translate(this, "SortByColor", "Sort by Color"), () => TeamTypeSortMode = TeamTypeSortMode.Color);
         sortContextMenu.AddItem(Translate(this, "SortByColorName", "Sort by Color, then by Name"), () => TeamTypeSortMode = TeamTypeSortMode.ColorThenName);
+        sortContextMenu.Width = (int)Renderer.MeasureString(sortContextMenu.Items[^1].Text, sortContextMenu.FontIndex).X + Constants.UIEmptySideSpace * 2;
         AddChild(sortContextMenu);
 
         FindChild<EditorButton>("btnSortOptions").LeftClick += (s, e) => sortContextMenu.Open(GetCursorPoint());
@@ -277,7 +277,6 @@ public class TeamTypesWindow : INItializableWindow
             return;
 
         TaskForceOpened?.Invoke(this, new TaskForceEventArgs(editedTeamType.TaskForce));
-        PutOnBackground();
     }
 
     private void OpenScript()
@@ -286,7 +285,6 @@ public class TeamTypesWindow : INItializableWindow
             return;
 
         ScriptOpened?.Invoke(this, new ScriptEventArgs(editedTeamType.Script));
-        PutOnBackground();
     }
 
     private void OpenTag()
@@ -295,7 +293,6 @@ public class TeamTypesWindow : INItializableWindow
             return;
 
         TagOpened?.Invoke(this, new TagEventArgs(editedTeamType.Tag));
-        PutOnBackground();
     }
 
     private void SelectionWindow_ApplyEffect<T>(Action<T> action, T window)

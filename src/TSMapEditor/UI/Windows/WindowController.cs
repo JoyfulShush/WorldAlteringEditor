@@ -1,11 +1,7 @@
 ﻿using MapEditorLibrary.Models;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
+using Rampastring.XNAUI.Windowing;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using TSMapEditor.Rendering;
-using TSMapEditor.UI.Controls;
 using TSMapEditor.UI.Notifications;
 using TSMapEditor.UI.Windows.MainMenuWindows;
 using TSMapEditor.UI.Windows.TeamCreationWizard;
@@ -13,27 +9,8 @@ using TSMapEditor.UI.Windows.TerrainGenerator;
 
 namespace TSMapEditor.UI.Windows;
 
-public interface IWindowParentControl
+public class WindowController : XNAWindowController
 {
-    void AddChild(XNAControl child);
-    void RemoveChild(XNAControl child);
-    void AddCallback(Delegate d, params object[] args);
-
-    event EventHandler RenderResolutionChanged;
-
-    WindowManager WindowManager { get; }
-
-    INotificationManager NotificationManager { get; }
-
-    void SetAutoUpdateChildOrder(bool value);
-}
-
-public class WindowController
-{
-    public const int ChildWindowOrderValue = 10000;
-
-    private List<EditorWindow> Windows { get; } = new List<EditorWindow>();
-
     public event EventHandler Initialized;
     public event EventHandler RenderResolutionChanged;
 
@@ -79,198 +56,140 @@ public class WindowController
     public HistoryWindow HistoryWindow { get; private set; }
     public AboutWindow AboutWindow { get; private set; }
 
-    private IWindowParentControl windowParentControl;
-
-    private EditorWindow foregroundWindow;
-
-    /// <summary>
-    /// Handles window focus switching.
-    /// </summary>
-    private void Window_HandleFocusSwitch(object sender, EventArgs e)
+    public WindowController(Rampastring.XNAUI.Windowing.IWindowParentControl windowParentControl) : base(windowParentControl)
     {
-        var window = (EditorWindow)sender;
-
-        if (foregroundWindow != window)
-        {
-            if (foregroundWindow != null)
-                foregroundWindow.IsForeground = false;
-
-            windowParentControl.SetAutoUpdateChildOrder(false);
-
-            Windows.Remove(window);
-            Windows.Add(window);
-
-            for (int i = 0; i < Windows.Count; i++)
-            {
-                Windows[i].UpdateOrder = ChildWindowOrderValue + i;
-                Windows[i].DrawOrder = ChildWindowOrderValue + i;
-            }
-
-            windowParentControl.SetAutoUpdateChildOrder(true);
-
-            foregroundWindow = window;
-            foregroundWindow.IsForeground = true;
-
-            foregroundWindow.UpdateOrder = ChildWindowOrderValue + Windows.Count;
-            foregroundWindow.DrawOrder = ChildWindowOrderValue + Windows.Count;
-        }
     }
 
-    private void Window_Closed(object sender, EventArgs e)
+    public void Initialize(Map map, EditorState editorState, NotificationManager notificationManager, ICursorActionTarget cursorActionTarget)
     {
-        var window = (EditorWindow)sender;
-        if (foregroundWindow != window)
-            return;
+        BasicSectionConfigWindow = new BasicSectionConfigWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(BasicSectionConfigWindow);
 
-        SelectTopVisibleWindow(window);
-    }
+        TaskForcesWindow = new TaskforcesWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(TaskForcesWindow);
 
-    private void SelectTopVisibleWindow(EditorWindow excludedWindow = null)
-    {
-        if (foregroundWindow != null)
-            foregroundWindow.IsForeground = false;
+        ScriptsWindow = new ScriptsWindow(WindowParentControl.WindowManager, map, editorState, notificationManager, cursorActionTarget);
+        RegisterWindow(ScriptsWindow);
 
-        foregroundWindow = null;
+        TeamTypesWindow = new TeamTypesWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(TeamTypesWindow);
 
-        for (int i = Windows.Count - 1; i >= 0; i--)
-        {
-            var window = Windows[i];
-            if (window == excludedWindow || !window.Visible || !window.Enabled)
-                continue;
+        TriggersWindow = new TriggersWindow(WindowParentControl.WindowManager, map, editorState, cursorActionTarget);
+        RegisterWindow(TriggersWindow);
 
-            foregroundWindow = window;
-            foregroundWindow.IsForeground = true;
-            break;
-        }
-    }
+        TagsWindow = new TagsWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(TagsWindow);
 
-    public void Initialize(IWindowParentControl windowParentControl, Map map, EditorState editorState, ICursorActionTarget cursorActionTarget)
-    {
-        BasicSectionConfigWindow = new BasicSectionConfigWindow(windowParentControl.WindowManager, map);
-        Windows.Add(BasicSectionConfigWindow);
+        AITriggersWindow = new AITriggersWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(AITriggersWindow);
 
-        TaskForcesWindow = new TaskforcesWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TaskForcesWindow);
+        PlaceWaypointWindow = new PlaceWaypointWindow(WindowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
+        RegisterWindow(PlaceWaypointWindow);
 
-        ScriptsWindow = new ScriptsWindow(windowParentControl.WindowManager, map, editorState, windowParentControl.NotificationManager, cursorActionTarget);
-        Windows.Add(ScriptsWindow);
+        LocalVariablesWindow = new LocalVariablesWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(LocalVariablesWindow);
 
-        TeamTypesWindow = new TeamTypesWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TeamTypesWindow);
+        StructureOptionsWindow = new StructureOptionsWindow(WindowParentControl.WindowManager, map, editorState);
+        RegisterWindow(StructureOptionsWindow);
 
-        TriggersWindow = new TriggersWindow(windowParentControl.WindowManager, map, editorState, cursorActionTarget);
-        Windows.Add(TriggersWindow);
+        VehicleOptionsWindow = new VehicleOptionsWindow(WindowParentControl.WindowManager, map, editorState, cursorActionTarget);
+        RegisterWindow(VehicleOptionsWindow);
 
-        TagsWindow = new TagsWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TagsWindow);
+        InfantryOptionsWindow = new InfantryOptionsWindow(WindowParentControl.WindowManager, map, cursorActionTarget);
+        RegisterWindow(InfantryOptionsWindow);
 
-        AITriggersWindow = new AITriggersWindow(windowParentControl.WindowManager, map);
-        Windows.Add(AITriggersWindow);
+        AircraftOptionsWindow = new AircraftOptionsWindow(WindowParentControl.WindowManager, map, cursorActionTarget);
+        RegisterWindow(AircraftOptionsWindow);
 
         GeneralSettingsWizardStepWindow = new GeneralSettingsWizardStepWindow(windowParentControl.WindowManager, map);
-        Windows.Add(GeneralSettingsWizardStepWindow);
+        RegisterWindow(GeneralSettingsWizardStepWindow);
 
         TaskForceWizardStepWindow = new TaskForceWizardStepWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TaskForceWizardStepWindow);
+        RegisterWindow(TaskForceWizardStepWindow);
 
         ScriptWizardStepWindow = new ScriptWizardStepWindow(windowParentControl.WindowManager, map);
-        Windows.Add(ScriptWizardStepWindow);
+        RegisterWindow(ScriptWizardStepWindow);
 
         TeamTypesWizardStepWindow = new TeamTypesWizardStepWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TeamTypesWizardStepWindow);
+        RegisterWindow(TeamTypesWizardStepWindow);
 
         AITriggersWizardStepWindow = new AITriggersWizardStepWindow(windowParentControl.WindowManager, map);
-        Windows.Add(AITriggersWizardStepWindow);
+        RegisterWindow(AITriggersWizardStepWindow);
 
         PlaceWaypointWindow = new PlaceWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationManager, cursorActionTarget.MutationTarget);
-        Windows.Add(PlaceWaypointWindow);
+        RegisterWindow(PlaceWaypointWindow);
 
-        LocalVariablesWindow = new LocalVariablesWindow(windowParentControl.WindowManager, map);
-        Windows.Add(LocalVariablesWindow);
+        HousesWindow = new HousesWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(HousesWindow);
 
-        StructureOptionsWindow = new StructureOptionsWindow(windowParentControl.WindowManager, map, editorState);
-        Windows.Add(StructureOptionsWindow);
+        SaveMapAsWindow = new SaveMapAsWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(SaveMapAsWindow);
 
-        VehicleOptionsWindow = new VehicleOptionsWindow(windowParentControl.WindowManager, map, editorState, cursorActionTarget);
-        Windows.Add(VehicleOptionsWindow);
+        CreateNewMapWindow = new CreateNewMapWindow(WindowParentControl.WindowManager);
+        RegisterWindow(CreateNewMapWindow);
 
-        InfantryOptionsWindow = new InfantryOptionsWindow(windowParentControl.WindowManager, map, cursorActionTarget);
-        Windows.Add(InfantryOptionsWindow);
+        OpenMapWindow = new OpenMapWindow(WindowParentControl.WindowManager);
+        RegisterWindow(OpenMapWindow);
 
-        AircraftOptionsWindow = new AircraftOptionsWindow(windowParentControl.WindowManager, map, cursorActionTarget);
-        Windows.Add(AircraftOptionsWindow);
+        AutoApplyImpassableOverlayWindow = new AutoApplyImpassableOverlayWindow(WindowParentControl.WindowManager, map, cursorActionTarget.MutationTarget);
+        RegisterWindow(AutoApplyImpassableOverlayWindow);
 
-        HousesWindow = new HousesWindow(windowParentControl.WindowManager, map);
-        Windows.Add(HousesWindow);
+        TerrainGeneratorConfigWindow = new TerrainGeneratorConfigWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(TerrainGeneratorConfigWindow);
 
-        SaveMapAsWindow = new SaveMapAsWindow(windowParentControl.WindowManager, map);
-        Windows.Add(SaveMapAsWindow);
+        MinimapWindow = new MegamapWindow(WindowParentControl.WindowManager, cursorActionTarget, true);
+        RegisterWindow(MinimapWindow);
 
-        CreateNewMapWindow = new CreateNewMapWindow(windowParentControl.WindowManager);
-        Windows.Add(CreateNewMapWindow);
+        CopiedEntryTypesWindow = new CopiedEntryTypesWindow(WindowParentControl.WindowManager);
+        RegisterWindow(CopiedEntryTypesWindow);
 
-        OpenMapWindow = new OpenMapWindow(windowParentControl.WindowManager);
-        Windows.Add(OpenMapWindow);
+        LightingSettingsWindow = new LightingSettingsWindow(WindowParentControl.WindowManager, map, editorState);
+        RegisterWindow(LightingSettingsWindow);
 
-        AutoApplyImpassableOverlayWindow = new AutoApplyImpassableOverlayWindow(windowParentControl.WindowManager, map, cursorActionTarget.MutationTarget);
-        Windows.Add(AutoApplyImpassableOverlayWindow);
+        ApplyINICodeWindow = new ApplyINICodeWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(ApplyINICodeWindow);
 
-        TerrainGeneratorConfigWindow = new TerrainGeneratorConfigWindow(windowParentControl.WindowManager, map);
-        Windows.Add(TerrainGeneratorConfigWindow);
+        RunScriptWindow = new RunScriptWindow(WindowParentControl.WindowManager, new Scripts.ScriptDependencies(map, cursorActionTarget, editorState, WindowParentControl.WindowManager, this, map.FileManager));
+        RegisterWindow(RunScriptWindow);
 
-        MinimapWindow = new MegamapWindow(windowParentControl.WindowManager, cursorActionTarget, true);
-        Windows.Add(MinimapWindow);
+        HotkeyConfigurationWindow = new HotkeyConfigurationWindow(WindowParentControl.WindowManager);
+        RegisterWindow(HotkeyConfigurationWindow);
 
-        CopiedEntryTypesWindow = new CopiedEntryTypesWindow(windowParentControl.WindowManager);
-        Windows.Add(CopiedEntryTypesWindow);
-
-        LightingSettingsWindow = new LightingSettingsWindow(windowParentControl.WindowManager, map, editorState);
-        Windows.Add(LightingSettingsWindow);
-
-        ApplyINICodeWindow = new ApplyINICodeWindow(windowParentControl.WindowManager, map);
-        Windows.Add(ApplyINICodeWindow);
-
-        RunScriptWindow = new RunScriptWindow(windowParentControl.WindowManager, new Scripts.ScriptDependencies(map, cursorActionTarget, editorState, windowParentControl.WindowManager, this, map.FileManager));
-        Windows.Add(RunScriptWindow);
-
-        HotkeyConfigurationWindow = new HotkeyConfigurationWindow(windowParentControl.WindowManager);
-        Windows.Add(HotkeyConfigurationWindow);
-
-        MapSizeWindow = new MapSizeWindow(windowParentControl.WindowManager, map);
-        Windows.Add(MapSizeWindow);
+        MapSizeWindow = new MapSizeWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(MapSizeWindow);
         MapSizeWindow.OnResizeMapButtonClicked += MapSizeWindow_OnResizeMapButtonClicked;
 
-        ExpandMapWindow = new ExpandMapWindow(windowParentControl.WindowManager, map);
-        Windows.Add(ExpandMapWindow);
+        ExpandMapWindow = new ExpandMapWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(ExpandMapWindow);
 
-        ChangeHeightWindow = new ChangeHeightWindow(windowParentControl.WindowManager, map);
-        Windows.Add(ChangeHeightWindow);
+        ChangeHeightWindow = new ChangeHeightWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(ChangeHeightWindow);
 
-        FindWaypointWindow = new FindWaypointWindow(windowParentControl.WindowManager, map, cursorActionTarget);
-        Windows.Add(FindWaypointWindow);
+        FindWaypointWindow = new FindWaypointWindow(WindowParentControl.WindowManager, map, cursorActionTarget);
+        RegisterWindow(FindWaypointWindow);
 
-        DeletionModeConfigurationWindow = new DeletionModeConfigurationWindow(windowParentControl.WindowManager, editorState);
-        Windows.Add(DeletionModeConfigurationWindow);
+        DeletionModeConfigurationWindow = new DeletionModeConfigurationWindow(WindowParentControl.WindowManager, editorState);
+        RegisterWindow(DeletionModeConfigurationWindow);
 
-        RenderedObjectsConfigurationWindow = new RenderedObjectsConfigurationWindow(windowParentControl.WindowManager, editorState);
-        Windows.Add(RenderedObjectsConfigurationWindow);
+        RenderedObjectsConfigurationWindow = new RenderedObjectsConfigurationWindow(WindowParentControl.WindowManager, editorState);
+        RegisterWindow(RenderedObjectsConfigurationWindow);
 
-        ConfigureAlliesWindow = new ConfigureAlliesWindow(windowParentControl.WindowManager, map);
-        Windows.Add(ConfigureAlliesWindow);
+        ConfigureAlliesWindow = new ConfigureAlliesWindow(WindowParentControl.WindowManager, map);
+        RegisterWindow(ConfigureAlliesWindow);
 
-        SelectConnectedTileWindow = new SelectConnectedTileWindow(windowParentControl.WindowManager, map);
+        SelectConnectedTileWindow = new SelectConnectedTileWindow(WindowParentControl.WindowManager, map);
         // TODO add a way for WindowController windows to use DarkeningPanels
-        // DarkeningPanel.InitializeAndAddToParentControlWithChild(windowParentControl.WindowManager, windowParentControl, SelectConnectedTileWindow);
-        Windows.Add(SelectConnectedTileWindow);
+        // DarkeningPanel.InitializeAndAddToParentControlWithChild(WindowParentControl.WindowManager, windowParentControl, SelectConnectedTileWindow);
+        RegisterWindow(SelectConnectedTileWindow);
 
-        MegamapGenerationOptionsWindow = new MegamapGenerationOptionsWindow(windowParentControl.WindowManager);
-        Windows.Add(MegamapGenerationOptionsWindow);
+        MegamapGenerationOptionsWindow = new MegamapGenerationOptionsWindow(WindowParentControl.WindowManager);
+        RegisterWindow(MegamapGenerationOptionsWindow);
 
-        HistoryWindow = new HistoryWindow(windowParentControl.WindowManager, cursorActionTarget.MutationManager);
-        Windows.Add(HistoryWindow);
+        HistoryWindow = new HistoryWindow(WindowParentControl.WindowManager, cursorActionTarget.MutationManager);
+        RegisterWindow(HistoryWindow);
 
-        AboutWindow = new AboutWindow(windowParentControl.WindowManager);
-        Windows.Add(AboutWindow);
+        AboutWindow = new AboutWindow(WindowParentControl.WindowManager);
+        RegisterWindow(AboutWindow);
 
         TeamTypesWindow.TaskForceOpened += TeamTypesWindow_TaskForceOpened;
         TeamTypesWindow.ScriptOpened += TeamTypesWindow_ScriptOpened;
@@ -308,14 +227,14 @@ public class WindowController
 
         Initialized?.Invoke(this, EventArgs.Empty);
 
-        windowParentControl.RenderResolutionChanged += (s, e) => RenderResolutionChanged?.Invoke(this, EventArgs.Empty);
+        WindowParentControl.RenderResolutionChanged += (s, e) => RenderResolutionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void Window_TagOpened(object sender, TagEventArgs e)
     {
         if (e.Tag.Trigger == null)
         {
-            EditorMessageBox.Show(windowParentControl.WindowManager,
+            EditorMessageBox.Show(WindowParentControl.WindowManager,
                 Translate(this, "NoTriggerAttached.Title", "No trigger attached"),
                 Translate(this, "NoTriggerAttached.Description", "The specified Tag has no attached Trigger!"),
                 MessageBoxButtons.OK);
@@ -330,33 +249,6 @@ public class WindowController
     private void MapSizeWindow_OnResizeMapButtonClicked(object sender, EventArgs e)
     {
         ExpandMapWindow.Open();
-    }
-
-    private void AddFocusSwitchHandlerToChildrenRecursive(EditorWindow window, XNAControl control)
-    {
-        EventHandler<InputEventArgs> eventHandler = (s, e) => Window_HandleFocusSwitch(window, EventArgs.Empty);
-        window.FocusSwitchEventHandler = eventHandler;
-
-        foreach (var child in control.Children)
-        {
-            child.MouseLeftDown += eventHandler;
-            child.LeftClick += eventHandler;
-            AddFocusSwitchHandlerToChildrenRecursive(window, child);
-        }
-    }
-
-    private void RemoveFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
-    {
-        var eventHandler = window.FocusSwitchEventHandler;
-
-        foreach (var child in control.Children)
-        {
-            child.MouseLeftDown -= eventHandler;
-            child.LeftClick -= eventHandler;
-            RemoveFocusSwitchHandlerFromChildrenRecursive(window, child);
-        }
-
-        window.FocusSwitchEventHandler = null;
     }
 
     private void TeamTypesWindow_TaskForceOpened(object sender, TaskForceEventArgs e)
@@ -408,57 +300,7 @@ public class WindowController
 
     private void TriggersWindow_TeamTypeOpened(object sender, TeamTypeEventArgs e) => AITriggersWindow_TeamTypeOpened(sender, e);
 
-    private void ClearFocusSwitchHandlerFromChildrenRecursive(EditorWindow window, XNAControl control)
-    {
-        foreach (var child in control.Children)
-        {
-            child.MouseLeftDown -= window.FocusSwitchEventHandler;
-            child.LeftClick -= window.FocusSwitchEventHandler;
-            ClearFocusSwitchHandlerFromChildrenRecursive(window, child);
-        }
-
-        window.FocusSwitchEventHandler = null;
-    }
-
-    public void AddWindow(EditorWindow window)
-    {
-        Windows.Add(window);
-        window.DrawOrder = ChildWindowOrderValue;
-        window.UpdateOrder = ChildWindowOrderValue;
-        window.IsForeground = false;
-        window.LeftClick += Window_HandleFocusSwitch;
-        window.InteractedWith += Window_HandleFocusSwitch;
-        window.Closed += Window_Closed;
-        windowParentControl.AddChild(window);
-
-        AddFocusSwitchHandlerToChildrenRecursive(window, window);
-        window.Disable();
-
-        // Center on next frame because child addition (and initialization) can be delayed
-        // if windowParentControl is currently evaluating its children
-        windowParentControl.AddCallback(() => window.CenterOnParent());
-    }
-
-    public void RemoveWindow(EditorWindow window)
-    {
-        if (Windows.Remove(window))
-        {
-            window.DrawOrder = ChildWindowOrderValue;
-            window.UpdateOrder = ChildWindowOrderValue;
-            window.LeftClick -= Window_HandleFocusSwitch;
-            window.InteractedWith -= Window_HandleFocusSwitch;
-            window.Closed -= Window_Closed;
-            RemoveFocusSwitchHandlerFromChildrenRecursive(window, window);
-
-            if (foregroundWindow == window)
-                SelectTopVisibleWindow();
-
-            window.Kill();
-            windowParentControl.RemoveChild(window);
-        }
-    }
-
-    public void Clear()
+    public override void Clear()
     {
         TeamTypesWindow.TaskForceOpened -= TeamTypesWindow_TaskForceOpened;
         TeamTypesWindow.ScriptOpened -= TeamTypesWindow_ScriptOpened;
@@ -496,7 +338,8 @@ public class WindowController
         }
 
         foregroundWindow = null;
-
         windowParentControl = null;
+
+        base.Clear();
     }
 }

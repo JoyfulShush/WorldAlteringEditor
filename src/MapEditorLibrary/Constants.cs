@@ -70,24 +70,20 @@ public static class Constants
     public const int VeterancyElite = 200;
     public const int VeterancyVeteran = 100;
 
-    public const int UIEmptySideSpace = 10;
-    public const int UIEmptyTopSpace = 10;
-    public const int UIEmptyBottomSpace = 10;
+    public const int UIEmptySideSpace = 11;
+    public const int UIEmptyTopSpace = 11;
+    public const int UIEmptyBottomSpace = 11;
 
-    public const int UIHorizontalSpacing = 6;
-    public const int UIVerticalSpacing = 6;
+    public const int UIHorizontalSpacing = 7;
+    public const int UIVerticalSpacing = 7;
 
     public const int UIDefaultFont = 0;
     public const int UIBoldFont = 1;
 
-    public const int UITextBoxHeight = 21;
-    public const int UIButtonHeight = 23;
+    public const int UITextBoxHeight = 22;
+    public const int UIButtonHeight = 24;
 
-    public const int UITopBarMenuHeight = 23;
-
-    public static int UITreeViewLineHeight = 20;
-
-    public static double UIAccidentalClickPreventionTime = 0.2;
+    public const int UITopBarMenuHeight = 25;
 
     public static int MapPreviewMaxWidth = 800;
     public static int MapPreviewMaxHeight = 400;
@@ -128,6 +124,11 @@ public static class Constants
     public const int TS_WAYPT_SPECIAL = 100;
 
     public const string DefaultHouseTypeName = "Neutral";
+
+    public static int UITreeViewLineHeight = 22;
+    public static int UITreeViewLineIndentation = 50;
+    public static int TileSetListWidth = 200;
+    public static double UIAccidentalClickPreventionTime = 0.2;
 
     public static void Init()
     {
@@ -198,5 +199,8 @@ public static class Constants
         IniFile uiConstantsIni = Helpers.ReadConfigINI("UI/UIConstants.ini");
 
         UITreeViewLineHeight = uiConstantsIni.GetIntValue("UI", nameof(UITreeViewLineHeight), UITreeViewLineHeight);
+        UITreeViewLineIndentation = uiConstantsIni.GetIntValue("UI", nameof(UITreeViewLineIndentation), UITreeViewLineIndentation);
+        TileSetListWidth = uiConstantsIni.GetIntValue("UI", nameof(TileSetListWidth), TileSetListWidth);
+        UIAccidentalClickPreventionTime = uiConstantsIni.GetDoubleValue("UI", nameof(UIAccidentalClickPreventionTime), UIAccidentalClickPreventionTime);
     }
 }
