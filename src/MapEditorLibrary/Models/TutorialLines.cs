@@ -100,6 +100,9 @@ public class TutorialLines
     /// </summary>
     public string GetStringByIdOrEmptyString(string id)
     {
+        if (id == null)
+            return string.Empty;
+
         if (tutorialLines.TryGetValue(id, out string value))
             return value;
 
