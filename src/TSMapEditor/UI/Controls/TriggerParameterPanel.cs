@@ -13,7 +13,7 @@ namespace TSMapEditor.UI.Controls;
 /// </summary>
 public class TriggerParameterPanel : XNAScrollPanel
 {
-    private const int LabelWidth = 160;
+    private const int LabelWidth = 100;
     private const int ButtonWidth = 30;
     private const int RowHeight = Constants.UIButtonHeight + Constants.UIVerticalSpacing;
 
