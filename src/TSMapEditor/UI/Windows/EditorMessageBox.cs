@@ -46,6 +46,9 @@ public class EditorMessageBox : EditorWindow
     private List<XNAButton> buttons = new List<XNAButton>();
 
     private XNALabel lblDescription;
+    private int descriptionBottom;
+
+    private const int ScreenBorderBuffer = 10;
 
     public override void Initialize()
     {
@@ -63,16 +66,32 @@ public class EditorMessageBox : EditorWindow
             lblCaption.Bottom + Constants.UIVerticalSpacing, 0, 1);
         AddChild(line);
 
-        lblDescription = new XNALabel(WindowManager);
-        lblDescription.Text = description;
-        lblDescription.X = Constants.UIEmptySideSpace;
-        lblDescription.Y = line.Bottom + Constants.UIEmptyTopSpace;
-        AddChild(lblDescription);
-
-        Vector2 textDimensions = Renderer.GetTextDimensions(lblDescription.Text, lblDescription.FontIndex);
+        var descriptionList = new XNAListBox(WindowManager);
+        int descriptionFontIndex = descriptionList.FontIndex;
+        Vector2 textDimensions = Renderer.GetTextDimensions(description, descriptionFontIndex);
         int captionWidth = (int)Renderer.GetTextDimensions(caption, lblCaption.FontIndex).X;
         Width = Math.Max((int)textDimensions.X, captionWidth) + Constants.UIEmptySideSpace * 2;
         line.Width = Width - (Constants.UIEmptySideSpace * 2);
+
+        int descriptionY = line.Bottom + Constants.UIEmptyTopSpace;
+        int maximumHeight = WindowManager.RenderResolutionY - ScreenBorderBuffer * 2;
+        bool useScrollableDescription = descriptionY + (int)textDimensions.Y + Constants.UIEmptyBottomSpace > maximumHeight;
+
+        descriptionList.X = Constants.UIEmptySideSpace;
+        descriptionList.Y = descriptionY;
+        descriptionList.Width = Width - Constants.UIEmptySideSpace * 2;
+        descriptionList.Height = useScrollableDescription
+            ? maximumHeight - descriptionY - Constants.UIEmptyTopSpace - 30
+            : (int)textDimensions.Y;
+        descriptionList.EnableScrollbar = useScrollableDescription;
+        descriptionList.TextBorderDistance = 0;
+        descriptionList.SelectedIndexChanged += (sender, args) => descriptionList.SelectedIndex = -1;
+
+        foreach (string lineText in description.Split(Environment.NewLine))
+            descriptionList.AddItem(new XNAListBoxItem { Text = lineText });
+
+        AddChild(descriptionList);
+        descriptionBottom = descriptionList.Bottom;
 
         switch (messageBoxButtons)
         {
@@ -91,14 +110,14 @@ public class EditorMessageBox : EditorWindow
         if (buttons.Count > 0)
             Height = buttons[0].Bottom + Constants.UIEmptyBottomSpace;
         else
-            Height = lblDescription.Bottom + Constants.UIEmptyBottomSpace;
+            Height = descriptionBottom + Constants.UIEmptyBottomSpace;
 
         base.Initialize();
 
         WindowManager.CenterControlOnScreen(this);
 
-        if (Height > WindowManager.RenderResolutionY)
-            Y -= Height - WindowManager.RenderResolutionY;
+        if (Height > maximumHeight)
+            Height = maximumHeight;
     }
 
     private void AddOKButton()
@@ -114,7 +133,7 @@ public class EditorMessageBox : EditorWindow
         AddChild(btnOK);
 
         btnOK.CenterOnParentHorizontally();
-        btnOK.Y = lblDescription.Bottom + Constants.UIEmptyTopSpace;
+        btnOK.Y = descriptionBottom + Constants.UIEmptyTopSpace;
     }
 
     private void AddYesNoButtons()
@@ -128,7 +147,7 @@ public class EditorMessageBox : EditorWindow
         AddChild(btnYes);
 
         btnYes.X = (Width - ((btnYes.Width * 2) + Constants.UIHorizontalSpacing)) / 2;
-        btnYes.Y = lblDescription.Bottom + Constants.UIEmptyTopSpace;
+        btnYes.Y = descriptionBottom + Constants.UIEmptyTopSpace;
 
         var btnNo = new EditorButton(WindowManager);
         btnNo.Name = nameof(btnNo);
